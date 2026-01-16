@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "version": "1.0.0",
+  "name": "Frame0 Sketch Style Design Tokens",
+  "description": "Hand-drawn wireframe style design tokens extracted from Frame0.app - optimized for low-fidelity prototyping and sketch-style UI components",
+  "source": "https://frame0.app",
+  "lastUpdated": "2026-01-16",
+
+  "colors": {
+    "palette": {
+      "$description": "10 core HEX colors - grayscale dominant with coral/orange accent",
+      "white": "#FFFFFF",
+      "base100": "#F7F7F7",
+      "base200": "#EBEBEB",
+      "base300": "#DCDCDC",
+      "base500": "#8E8E8E",
+      "base700": "#5E5E5E",
+      "base900": "#343434",
+      "black": "#000000",
+      "accentPrimary": "#DF7D5F",
+      "accentLight": "#F19E7E"
+    },
+
+    "sketch": {
+      "$description": "80% transparent variants for layered sketch overlay effect",
+      "base100Alpha": "#F7F7F7CC",
+      "base200Alpha": "#EBEBEBCC",
+      "base300Alpha": "#DCDCDCCC",
+      "base500Alpha": "#8E8E8ECC",
+      "base700Alpha": "#5E5E5ECC",
+      "base900Alpha": "#343434CC",
+      "accentPrimaryAlpha": "#DF7D5FCC",
+      "accentLightAlpha": "#F19E7ECC"
+    },
+
+    "semantic": {
+      "$description": "Semantic color mappings for UI components",
+      "primary": "#DF7D5F",
+      "primaryLight": "#F19E7E",
+      "primaryDark": "#C86947",
+      "secondary": "#5E5E5E",
+      "background": "#FFFFFF",
+      "surface": "#F7F7F7",
+      "surfaceVariant": "#EBEBEB",
+      "outline": "#DCDCDC",
+      "outlineDark": "#8E8E8E",
+      "textPrimary": "#000000",
+      "textSecondary": "#343434",
+      "textTertiary": "#5E5E5E",
+      "textDisabled": "#8E8E8E",
+      "success": "#4CAF50",
+      "warning": "#FFC107",
+      "error": "#F44336",
+      "info": "#2196F3"
+    }
+  },
+
+  "typography": {
+    "fontFamilies": {
+      "primary": {
+        "name": "Bricolage Grotesque",
+        "fallback": ["Roboto", "Inter", "system-ui", "sans-serif"],
+        "description": "Main UI font - clean, modern sans-serif",
+        "flutterEquivalent": "Roboto"
+      },
+      "handDrawn": {
+        "name": "Jojoba",
+        "fallback": ["Patrick Hand", "Caveat", "Comic Sans MS", "cursive"],
+        "description": "Hand-drawn annotations and sketch elements",
+        "flutterEquivalent": "Patrick Hand"
+      },
+      "monospace": {
+        "name": "JetBrains Mono",
+        "fallback": ["Courier New", "Roboto Mono", "monospace"],
+        "description": "Code and technical content",
+        "flutterEquivalent": "Courier"
+      }
+    },
+
+    "fontSizes": {
+      "$description": "Type scale in pixels and rem units",
+      "xs": {"px": 12, "rem": 0.75},
+      "sm": {"px": 14, "rem": 0.875},
+      "base": {"px": 16, "rem": 1.0},
+      "lg": {"px": 18, "rem": 1.125},
+      "xl": {"px": 20, "rem": 1.25},
+      "2xl": {"px": 24, "rem": 1.5},
+      "3xl": {"px": 30, "rem": 1.875},
+      "4xl": {"px": 36, "rem": 2.25},
+      "5xl": {"px": 48, "rem": 3.0},
+      "6xl": {"px": 60, "rem": 3.75}
+    },
+
+    "fontWeights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600
+    },
+
+    "lineHeights": {
+      "tight": 1.25,
+      "normal": 1.5,
+      "relaxed": 1.75
+    },
+
+    "letterSpacing": {
+      "tighter": "-0.05em",
+      "tight": "-0.025em",
+      "normal": "0em",
+      "wide": "0.025em",
+      "wider": "0.05em"
+    }
+  },
+
+  "stroke": {
+    "$description": "Hand-drawn line styles for sketch effect",
+
+    "widths": {
+      "fine": {
+        "min": 1.0,
+        "max": 1.5,
+        "default": 1.0,
+        "usage": "Text underlines, fine details, icons"
+      },
+      "standard": {
+        "min": 1.5,
+        "max": 2.5,
+        "default": 2.0,
+        "usage": "Shape borders, dividers, most UI elements"
+      },
+      "bold": {
+        "min": 2.5,
+        "max": 4.0,
+        "default": 3.0,
+        "usage": "Emphasis, selected states, headers"
+      },
+      "extraBold": {
+        "min": 4.0,
+        "max": 6.0,
+        "default": 5.0,
+        "usage": "Titles, major visual elements, focus indicators"
+      }
+    },
+
+    "dashPatterns": {
+      "$description": "SVG stroke-dasharray patterns for sketch variety",
+      "solid": [1, 0],
+      "lightDashed": [4, 3],
+      "heavyDashed": [8, 4]
+    },
+
+    "caps": "round",
+    "joins": "round",
+
+    "roughness": {
+      "min": 0.8,
+      "max": 1.2,
+      "description": "Randomization factor for hand-drawn wobble effect"
+    }
+  },
+
+  "effects": {
+    "shadows": {
+      "$description": "Drop shadow elevation system",
+      "sm": {
+        "offsetX": 0,
+        "offsetY": 1,
+        "blur": 2,
+        "color": "rgba(0, 0, 0, 0.1)",
+        "css": "0 1px 2px rgba(0, 0, 0, 0.1)"
+      },
+      "md": {
+        "offsetX": 0,
+        "offsetY": 2,
+        "blur": 4,
+        "color": "rgba(0, 0, 0, 0.15)",
+        "css": "0 2px 4px rgba(0, 0, 0, 0.15)"
+      },
+      "lg": {
+        "offsetX": 0,
+        "offsetY": 4,
+        "blur": 8,
+        "color": "rgba(0, 0, 0, 0.2)",
+        "css": "0 4px 8px rgba(0, 0, 0, 0.2)"
+      },
+      "xl": {
+        "offsetX": 0,
+        "offsetY": 8,
+        "blur": 16,
+        "color": "rgba(0, 0, 0, 0.25)",
+        "css": "0 8px 16px rgba(0, 0, 0, 0.25)"
+      }
+    },
+
+    "noise": {
+      "$description": "Paper texture filter for hand-drawn aesthetic",
+      "type": "turbulence",
+      "baseFrequency": 0.65,
+      "numOctaves": 4,
+      "seed": 12345,
+      "stitchTiles": "stitch",
+      "flutterImplementation": {
+        "intensity": 0.035,
+        "grainSize": 1.5,
+        "description": "Use CustomPainter with noise shader or overlay image"
+      }
+    },
+
+    "blur": {
+      "sm": 2,
+      "md": 4,
+      "lg": 8,
+      "xl": 16
+    }
+  },
+
+  "spacing": {
+    "$description": "8px base grid spacing scale",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48,
+    "4xl": 64,
+    "5xl": 80,
+    "6xl": 96
+  },
+
+  "borderRadius": {
+    "$description": "Corner radius values for components",
+    "none": 0,
+    "sm": 2,
+    "md": 4,
+    "lg": 8,
+    "xl": 12,
+    "2xl": 16,
+    "pill": 9999,
+    "circle": "50%"
+  },
+
+  "opacity": {
+    "$description": "Transparency levels",
+    "disabled": 0.4,
+    "subtle": 0.6,
+    "sketch": 0.8,
+    "full": 1.0
+  },
+
+  "transitions": {
+    "duration": {
+      "fast": "150ms",
+      "normal": "250ms",
+      "slow": "350ms"
+    },
+    "easing": {
+      "easeIn": "cubic-bezier(0.4, 0, 1, 1)",
+      "easeOut": "cubic-bezier(0, 0, 0.2, 1)",
+      "easeInOut": "cubic-bezier(0.4, 0, 0.2, 1)"
+    }
+  },
+
+  "breakpoints": {
+    "$description": "Responsive design breakpoints (for web/desktop)",
+    "xs": 320,
+    "sm": 640,
+    "md": 768,
+    "lg": 1024,
+    "xl": 1280,
+    "2xl": 1536
+  },
+
+  "components": {
+    "$description": "Component-specific token hints (foundational only)",
+
+    "button": {
+      "paddingSmall": "8px 16px",
+      "paddingMedium": "12px 24px",
+      "paddingLarge": "16px 32px",
+      "borderRadius": "pill",
+      "fontSize": "base",
+      "fontWeight": "regular",
+      "primaryBg": "#DF7D5F",
+      "primaryText": "#FFFFFF",
+      "secondaryBg": "transparent",
+      "secondaryText": "#343434",
+      "secondaryBorder": "#DCDCDC"
+    },
+
+    "card": {
+      "background": "#FFFFFF",
+      "border": "#EBEBEB",
+      "borderWidth": 2,
+      "borderRadius": "lg",
+      "padding": "xl",
+      "shadow": "md"
+    },
+
+    "input": {
+      "background": "#FFFFFF",
+      "border": "#DCDCDC",
+      "borderWidth": 2,
+      "borderRadius": "md",
+      "padding": "md",
+      "fontSize": "base",
+      "placeholderColor": "#8E8E8E",
+      "focusBorderColor": "#DF7D5F"
+    }
+  },
+
+  "metadata": {
+    "usage": "Import this JSON into Flutter design_system package and parse into theme constants",
+    "integration": {
+      "flutter": {
+        "package": "packages/design_system",
+        "parseWith": "dart:convert",
+        "applyTo": "ThemeData, TextTheme, ColorScheme"
+      }
+    },
+    "notes": [
+      "OKLCH color space used in Frame0 for perceptual uniformity",
+      "Hand-drawn effect requires CustomPainter with path randomization",
+      "Lucide icon library (1,500+ icons) recommended for sketch-style icons",
+      "80% opacity variants enable layered sketch overlay effects",
+      "Round caps/joins create organic, hand-drawn feel",
+      "Noise texture should be subtle (2-5% intensity)"
+    ]
+  }
+}
