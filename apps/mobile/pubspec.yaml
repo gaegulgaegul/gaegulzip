@@ -1,0 +1,13 @@
+name: app_gaegulzip
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+  flutter: ">=3.24.0"
+
+dev_dependencies:
+  melos: ^6.0.0  # 또는 최신
+
+melos:
+  # 빈 워크스페이스: 하위 packages/apps 자동 감지
