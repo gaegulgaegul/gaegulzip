@@ -14,6 +14,9 @@ dependencies:
   # State management for reactive widgets
   get: ^4.6.6
 
+  # SVG 렌더링 (로고 이미지)
+  flutter_svg: ^2.0.10+1
+
   # Internal dependencies
   core:
     path: ../core
@@ -28,6 +31,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - assets/social_login/
 
   # To add assets to your package, add an assets section, like this:
   # assets:
