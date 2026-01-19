@@ -21,6 +21,13 @@ export 'src/widgets/sketch_checkbox.dart';
 export 'src/widgets/sketch_slider.dart';
 export 'src/widgets/sketch_dropdown.dart';
 
+// Enums
+export 'src/enums/social_login_platform.dart';
+export 'src/enums/apple_sign_in_style.dart';
+
+// Widgets
+export 'src/widgets/social_login_button.dart';
+
 /// A Calculator.
 class Calculator {
   /// Returns [value] plus 1.
