@@ -4,6 +4,10 @@ library core;
 export 'sketch_design_tokens.dart';
 export 'sketch_color_palettes.dart';
 
+// Exceptions
+export 'src/exceptions/auth_exception.dart';
+export 'src/exceptions/network_exception.dart';
+
 /// A Calculator.
 class Calculator {
   /// Returns [value] plus 1.
