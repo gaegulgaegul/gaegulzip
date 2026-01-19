@@ -89,8 +89,14 @@ class SketchDesignTokens {
   /// 베이스 300 - 부드러운 회색 (#DCDCDC)
   static const Color base300 = Color(0xFFDCDCDC);
 
+  /// 베이스 400 - 중간-밝은 회색 (#B5B5B5)
+  static const Color base400 = Color(0xFFB5B5B5);
+
   /// 베이스 500 - 중간 회색 (#8E8E8E)
   static const Color base500 = Color(0xFF8E8E8E);
+
+  /// 베이스 600 - 중간-어두운 회색 (#767676)
+  static const Color base600 = Color(0xFF767676);
 
   /// 베이스 700 - 어두운 회색 (#5E5E5E)
   static const Color base700 = Color(0xFF5E5E5E);
