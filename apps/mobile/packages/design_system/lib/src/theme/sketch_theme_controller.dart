@@ -195,8 +195,6 @@ mixin SketchThemeObserver on State<StatefulWidget> implements WidgetsBindingObse
 
   @override
   void didChangePlatformBrightness() {
-    super.didChangePlatformBrightness();
-
     // 테마 컨트롤러에 밝기 업데이트 알림
     try {
       Get.find<SketchThemeController>().updateSystemBrightness();
