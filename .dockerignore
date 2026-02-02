@@ -1,50 +1,24 @@
-# Minimal .dockerignore for apps/server deployment
-# Strategy: Exclude only what's absolutely necessary
+# Absolute minimum exclusions for Docker build
 
-# Mobile app
+# Mobile app (not needed for server)
 apps/mobile
 
-# Dependencies (will be installed in Docker)
+# Dependencies (installed in Docker)
 node_modules
 .pnpm-store
 
-# Build output (will be built in Docker)
+# Build output (built in Docker)
 dist
-*.tsbuildinfo
 
-# Environment files
+# Environment
 .env
-.env.*
-
-# Tests
-tests
-*.test.ts
-*.spec.ts
-coverage
-
-# Development tools
-.vscode
-.idea
-.DS_Store
 
 # Git
 .git
-.gitignore
 
-# Logs
-*.log
+# IDE
+.idea
+.vscode
 
-# CI/CD
-.github
-
-# Temporary
-tmp
-temp
-.cache
+# Temp
 .turbo
-prompt
-.claude
-
-# Specific root files
-gaegulzip.iml
-bkit.config.json
