@@ -6,8 +6,9 @@ RUN corepack enable && corepack prepare pnpm@10.27.0 --activate
 
 WORKDIR /app
 
-# Copy dependency files
-COPY package.json pnpm-lock.yaml ./
+# Copy dependency files from root and server
+COPY pnpm-lock.yaml ./
+COPY apps/server/package.json ./
 
 # Install all dependencies (including devDependencies for build)
 RUN pnpm install --frozen-lockfile
@@ -23,12 +24,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package.json ./package.json
 
-# Copy source code and config
-COPY tsconfig.json ./
-COPY src ./src
-COPY docs ./docs
-COPY drizzle ./drizzle
-COPY drizzle.config.ts ./
+# Copy source code and config from apps/server
+COPY apps/server/tsconfig.json ./
+COPY apps/server/src ./src
+COPY apps/server/docs ./docs
+COPY apps/server/drizzle ./drizzle
+COPY apps/server/drizzle.config.ts ./
 
 # Build TypeScript
 RUN pnpm build
@@ -40,8 +41,9 @@ RUN corepack enable && corepack prepare pnpm@10.27.0 --activate
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
+# Copy package files from root and server
+COPY pnpm-lock.yaml ./
+COPY apps/server/package.json ./
 
 # Install production dependencies only
 RUN pnpm install --prod --frozen-lockfile
