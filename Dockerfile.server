@@ -1,19 +1,20 @@
-# Multi-stage Dockerfile for apps/server
-# Build from repository root with: docker build -f Dockerfile.server -t gaegulzip-server .
+# Multi-stage Dockerfile for apps/server using pnpm deploy
+# Builds a standalone deployment from monorepo workspace
 
-# Stage 1: Install dependencies
-FROM node:20-alpine AS deps
+# Stage 1: Deploy workspace
+FROM node:20-alpine AS deploy
 
 RUN corepack enable && corepack prepare pnpm@10.27.0 --activate
 
-WORKDIR /app
+WORKDIR /monorepo
 
-# Copy only dependency files first (for better caching)
-COPY pnpm-lock.yaml ./
-COPY apps/server/package.json ./package.json
+# Copy monorepo files needed for deploy
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/server ./apps/server
 
-# Install all dependencies
-RUN pnpm install --frozen-lockfile
+# Deploy apps/server to /deploy directory
+# This creates a standalone directory with only server dependencies
+RUN pnpm --filter=gaegulzip-server deploy /deploy --prod=false
 
 # Stage 2: Build TypeScript
 FROM node:20-alpine AS build
@@ -22,18 +23,10 @@ RUN corepack enable && corepack prepare pnpm@10.27.0 --activate
 
 WORKDIR /app
 
-# Copy dependencies from previous stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/package.json ./package.json
+# Copy deployed dependencies from previous stage
+COPY --from=deploy /deploy ./
 
-# Copy source files
-COPY apps/server/tsconfig.json ./tsconfig.json
-COPY apps/server/src ./src
-COPY apps/server/docs ./docs
-COPY apps/server/drizzle ./drizzle
-COPY apps/server/drizzle.config.ts ./drizzle.config.ts
-
-# Build
+# Build TypeScript
 RUN pnpm build
 
 # Stage 3: Production
@@ -43,9 +36,9 @@ RUN corepack enable && corepack prepare pnpm@10.27.0 --activate
 
 WORKDIR /app
 
-# Copy dependency files
+# Copy package files
+COPY --from=deploy /deploy/package.json ./package.json
 COPY pnpm-lock.yaml ./
-COPY apps/server/package.json ./package.json
 
 # Install production dependencies only
 RUN pnpm install --prod --frozen-lockfile
