@@ -38,9 +38,9 @@ model: sonnet
 
 #### 가이드 파일 읽기
 ```
-Read(".claude/guides/directory_structure.md")
-Read(".claude/guides/common_patterns.md")
-Read(".claude/guides/getx_best_practices.md")
+Read(".claude/guide/mobile/directory_structure.md")
+Read(".claude/guide/mobile/common_patterns.md")
+Read(".claude/guide/mobile/getx_best_practices.md")
 ```
 - 가이드 내용을 작업 전반에 적용
 - 의문점은 CTO에게 에스컬레이션
@@ -486,7 +486,7 @@ core (foundation)
 ## 참고 자료
 - GetX 문서: https://pub.dev/packages/get
 - Freezed 문서: https://pub.dev/packages/freezed
-- .claude/guides/ 참조
+- .claude/guide/mobile/ 참조
 ```
 
 ### 3️⃣ brief.md 생성

@@ -1,0 +1,193 @@
+{
+  "$schema": "./.bkit/bkit.config.schema.json",
+  "version": "1.5.0",
+  "sourceDirectories": [
+    "apps/server/src",
+    "apps/mobile/apps/wowa/lib",
+    "apps/mobile/packages/api/lib",
+    "apps/mobile/packages/core/lib",
+    "apps/mobile/packages/design_system/lib"
+  ],
+  "codeExtensions": [
+    ".ts",
+    ".tsx",
+    ".js",
+    ".dart"
+  ],
+  "pdca": {
+    "designDocPaths": [
+      "docs/pdca/02-design/features/{feature}.design.md",
+      "docs/server/{feature}/brief.md",
+      "docs/flutter/{feature}/brief.md"
+    ],
+    "planDocPaths": [
+      "docs/pdca/01-plan/features/{feature}.plan.md",
+      "docs/server/{feature}/user-story.md",
+      "docs/flutter/{feature}/user-stories.md"
+    ],
+    "statusFile": "docs/.pdca-status.json",
+    "matchRateThreshold": 90,
+    "autoIterate": true,
+    "maxIterations": 5
+  },
+  "platforms": {
+    "server": {
+      "root": "apps/server",
+      "sourceDirectories": ["apps/server/src"],
+      "codeExtensions": [".ts", ".js"],
+      "testCommand": "pnpm test",
+      "buildCommand": "pnpm build",
+      "agents": {
+        "plan": "product-owner",
+        "design": "server/tech-lead",
+        "do": "server/node-developer",
+        "check": ["bkit/gap-detector", "independent-reviewer"],
+        "act": "bkit/pdca-iterator",
+        "report": "bkit/report-generator"
+      }
+    },
+    "mobile": {
+      "root": "apps/mobile",
+      "sourceDirectories": [
+        "apps/mobile/apps/wowa/lib",
+        "apps/mobile/packages"
+      ],
+      "codeExtensions": [".dart"],
+      "testCommand": "melos analyze",
+      "buildCommand": "flutter build",
+      "agents": {
+        "plan": "product-owner",
+        "design": ["mobile/ui-ux-designer", "mobile/tech-lead"],
+        "do": "mobile/flutter-developer",
+        "check": ["bkit/gap-detector", "independent-reviewer"],
+        "act": "bkit/pdca-iterator",
+        "report": "bkit/report-generator"
+      }
+    },
+    "fullstack": {
+      "agents": {
+        "plan": "product-owner",
+        "design": ["server/tech-lead", "mobile/ui-ux-designer", "mobile/tech-lead"],
+        "do": ["server/node-developer", "mobile/flutter-developer"],
+        "check": ["bkit/gap-detector", "independent-reviewer"],
+        "act": "bkit/pdca-iterator",
+        "report": "bkit/report-generator"
+      }
+    }
+  },
+  "taskClassification": {
+    "thresholds": {
+      "quickFix": 50,
+      "minorChange": 200,
+      "feature": 1000
+    },
+    "labels": {
+      "quickFix": "Quick Fix",
+      "minorChange": "Minor Change",
+      "feature": "Feature",
+      "majorFeature": "Major Feature"
+    }
+  },
+  "templates": {
+    "directory": ".bkit/templates",
+    "types": {
+      "plan": "plan.template.md",
+      "design": "design.template.md",
+      "analysis": "analysis.template.md",
+      "report": "report.template.md"
+    }
+  },
+  "conventions": {
+    "naming": {
+      "components": "PascalCase",
+      "functions": "camelCase",
+      "constants": "UPPER_SNAKE_CASE",
+      "files": "kebab-case"
+    },
+    "server": {
+      "handlers": "camelCase",
+      "routes": "kebab-case",
+      "schema": "camelCase"
+    },
+    "mobile": {
+      "controllers": "PascalCase + Controller suffix",
+      "views": "PascalCase + View suffix",
+      "bindings": "PascalCase + Binding suffix",
+      "models": "PascalCase + Model suffix"
+    }
+  },
+  "agents": {
+    "levelBased": {
+      "Starter": "bkit/starter-guide",
+      "Dynamic": "bkit/bkend-expert",
+      "Enterprise": "bkit/enterprise-expert"
+    },
+    "taskBased": {
+      "code review": "bkit/code-analyzer",
+      "security scan": "bkit/code-analyzer",
+      "design review": "bkit/design-validator",
+      "spec check": "bkit/design-validator",
+      "gap analysis": "bkit/gap-detector",
+      "report": "bkit/report-generator",
+      "summary": "bkit/report-generator",
+      "QA": "bkit/qa-monitor",
+      "log analysis": "bkit/qa-monitor",
+      "pipeline": "bkit/pipeline-guide"
+    }
+  },
+  "output": {
+    "jsonEscaping": true,
+    "maxContextLength": 500,
+    "format": "compact"
+  },
+  "permissions": {
+    "Write": "allow",
+    "Edit": "allow",
+    "Read": "allow",
+    "Bash": "allow",
+    "Bash(rm -rf*)": "deny",
+    "Bash(rm -r*)": "ask",
+    "Bash(git push --force*)": "deny",
+    "Bash(git reset --hard*)": "ask"
+  },
+  "context": {
+    "defaultLanguage": "korean",
+    "defaultForkBehavior": "shared",
+    "importCacheTTL": 30000,
+    "hierarchyCacheTTL": 5000
+  },
+  "automation": {
+    "intentDetection": true,
+    "ambiguityThreshold": 50,
+    "supportedLanguages": [
+      "ko",
+      "en",
+      "ja",
+      "zh"
+    ]
+  },
+  "hooks": {
+    "userPromptSubmit": {
+      "enabled": true,
+      "timeout": 3000
+    },
+    "contextCompaction": {
+      "enabled": true,
+      "snapshotLimit": 10
+    }
+  },
+  "gaegulzip": {
+    "tdd": {
+      "enabled": true,
+      "platforms": ["server"]
+    },
+    "parallelExecution": {
+      "enabled": true,
+      "platforms": ["server", "mobile"]
+    },
+    "freshEyesReview": {
+      "enabled": true,
+      "minMatchRate": 85
+    }
+  }
+}

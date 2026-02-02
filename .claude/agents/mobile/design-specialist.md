@@ -33,9 +33,9 @@ model: sonnet
 
 #### 가이드 파일 읽기
 ```
-Read(".claude/guides/common_widgets.md")
-Read(".claude/guides/flutter_best_practices.md")
-Read(".claude/guides/performance.md")
+Read(".claude/guide/mobile/common_widgets.md")
+Read(".claude/guide/mobile/flutter_best_practices.md")
+Read(".claude/guide/mobile/performance.md")
 ```
 - 가이드 내용을 작업 전반에 적용
 - 의문점은 CTO에게 에스컬레이션

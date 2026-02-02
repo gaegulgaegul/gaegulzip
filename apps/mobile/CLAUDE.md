@@ -29,17 +29,17 @@ core (foundation layer - no dependencies on other packages)
 
 ## Best Practices & Guides
 
-**📖 Detailed guides are available in `.claude/guides/`:**
+**📖 Detailed guides are available in `../../.claude/guide/mobile/`:**
 
-- **[Flutter Best Practices](./.claude/guides/flutter_best_practices.md)** - Widget development, state management, performance, code organization
-- **[GetX Best Practices](./.claude/guides/getx_best_practices.md)** - Controllers, bindings, navigation, reactive programming, dependency injection
-- **[Directory Structure](./.claude/guides/directory_structure.md)** - Recommended folder organization for all packages
-- **[Common Patterns](./.claude/guides/common_patterns.md)** - Controller-View-Binding patterns, routing, API integration, responsive design
-- **[Common Widgets](./.claude/guides/common_widgets.md)** - Layout, Material, and GetX widgets reference
-- **[Design System](./.claude/guides/design_system.md)** - Frame0 스케치 스타일 디자인 시스템, 12개 UI 컴포넌트, CustomPainter, 테마, 컬러 팔레트
-- **[Error Handling](./.claude/guides/error_handling.md)** - Error handling patterns in controllers and views
-- **[Performance Optimization](./.claude/guides/performance.md)** - Const constructors, Obx scope, GetBuilder usage
-- **[Comments and Documentation](./.claude/guides/comments.md)** - Documentation comments, inline comments, when and how to write effective comments
+- **[Flutter Best Practices](../../.claude/guide/mobile/flutter_best_practices.md)** - Widget development, state management, performance, code organization
+- **[GetX Best Practices](../../.claude/guide/mobile/getx_best_practices.md)** - Controllers, bindings, navigation, reactive programming, dependency injection
+- **[Directory Structure](../../.claude/guide/mobile/directory_structure.md)** - Recommended folder organization for all packages
+- **[Common Patterns](../../.claude/guide/mobile/common_patterns.md)** - Controller-View-Binding patterns, routing, API integration, responsive design
+- **[Common Widgets](../../.claude/guide/mobile/common_widgets.md)** - Layout, Material, and GetX widgets reference
+- **[Design System](../../.claude/guide/mobile/design_system.md)** - Frame0 스케치 스타일 디자인 시스템, 12개 UI 컴포넌트, CustomPainter, 테마, 컬러 팔레트
+- **[Error Handling](../../.claude/guide/mobile/error_handling.md)** - Error handling patterns in controllers and views
+- **[Performance Optimization](../../.claude/guide/mobile/performance.md)** - Const constructors, Obx scope, GetBuilder usage
+- **[Comments and Documentation](../../.claude/guide/mobile/comments.md)** - Documentation comments, inline comments, when and how to write effective comments
 
 ### Quick Reference
 
@@ -60,7 +60,7 @@ core (foundation layer - no dependencies on other packages)
 - Wrap app with `SketchThemeExtension` in ThemeData
 - Use `SketchDesignTokens` constants for spacing, colors, typography
 - Customize with `roughness`, `strokeWidth`, `seed` parameters
-- See `.claude/guides/design_system.md` for complete component catalog
+- See `../../.claude/guide/mobile/design_system.md` for complete component catalog
 
 **Comments Best Practices:**
 - **모든 주석은 한글로 작성** - 문서화/구현 주석 모두 해당

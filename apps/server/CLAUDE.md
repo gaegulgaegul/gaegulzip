@@ -122,7 +122,7 @@ app.use(errorHandler);  // Error handler must be last
 - Centralize error handling in a single middleware
 - Use custom AppError class for operational errors
 
-**📖 상세 가이드**: [예외 처리 가이드](./.claude/guide/exception-handling.md)
+**📖 상세 가이드**: [예외 처리 가이드](../../.claude/guide/server/exception-handling.md)
 
 핵심 원칙:
 - **특수값 대신 예외 사용**: -1, null 등으로 오류를 표현하지 말 것
@@ -134,7 +134,7 @@ app.use(errorHandler);  // Error handler must be last
 
 ### API Response Design
 
-**📖 상세 가이드**: [API Response 설계 가이드](./.claude/guide/api-response-design.md)
+**📖 상세 가이드**: [API Response 설계 가이드](../../.claude/guide/server/api-response-design.md)
 
 **필드 설계**:
 - **최소 스펙**: 현재 필요한 필드만 포함 (추가는 쉽지만 제거는 Breaking Change)
@@ -191,7 +191,7 @@ export const db = drizzle(client);
 
 ## Logging Best Practices
 
-**📖 상세 가이드**: [로깅 베스트 프랙티스](./.claude/guide/logging-best-practices.md)
+**📖 상세 가이드**: [로깅 베스트 프랙티스](../../.claude/guide/server/logging-best-practices.md)
 
 ### 로그 레벨 구분
 - **DEBUG**: 개발/디버깅 (운영 환경 비활성화)
