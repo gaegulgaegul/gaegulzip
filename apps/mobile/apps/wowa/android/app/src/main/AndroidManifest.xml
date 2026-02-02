@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 인터넷 권한 (소셜 로그인 필수) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="wowa"
         android:name="${applicationName}"
@@ -30,6 +33,16 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- 카카오 로그인 -->
+        <meta-data
+            android:name="com.kakao.sdk.AppKey"
+            android:value="${KAKAO_APP_KEY}" />
+
+        <!-- AdMob App ID -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_app_id" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
@@ -41,5 +54,11 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+
+        <!-- 카카오톡 앱 확인 -->
+        <package android:name="com.kakao.talk" />
+
+        <!-- 네이버 앱 확인 -->
+        <package android:name="com.nhn.android.search" />
     </queries>
 </manifest>

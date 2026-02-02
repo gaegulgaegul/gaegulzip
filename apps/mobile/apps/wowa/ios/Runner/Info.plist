@@ -45,5 +45,58 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- 카카오 로그인 -->
+	<key>KAKAO_APP_KEY</key>
+	<string>$(KAKAO_NATIVE_APP_KEY)</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaokompassauth</string>
+		<string>kakaolink</string>
+	</array>
+
+	<!-- 네이버 로그인 -->
+	<key>NaverThirdPartyConstantsForApp</key>
+	<dict>
+		<key>kServiceAppUrlScheme</key>
+		<string>$(NAVER_URL_SCHEME)</string>
+		<key>kConsumerKey</key>
+		<string>$(NAVER_CLIENT_ID)</string>
+		<key>kConsumerSecret</key>
+		<string>$(NAVER_CLIENT_SECRET)</string>
+		<key>kServiceAppName</key>
+		<string>$(NAVER_CLIENT_NAME)</string>
+	</dict>
+
+	<!-- 구글 로그인 -->
+	<key>GIDClientID</key>
+	<string>$(GOOGLE_IOS_CLIENT_ID)</string>
+
+	<!-- AdMob App ID -->
+	<key>GADApplicationIdentifier</key>
+	<string>$(ADMOB_APP_ID_IOS)</string>
+
+	<!-- URL Schemes -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<!-- 카카오 -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kakao$(KAKAO_NATIVE_APP_KEY)</string>
+			</array>
+		</dict>
+		<!-- 네이버 -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(NAVER_URL_SCHEME)</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
