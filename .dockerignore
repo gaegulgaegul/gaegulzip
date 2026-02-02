@@ -1,0 +1,64 @@
+# Monorepo .dockerignore for apps/server deployment
+# Docker Context: . (root)
+
+# Mobile app (not needed for server deployment)
+apps/mobile/
+
+# Dependencies (will be installed in Docker)
+**/node_modules/
+**/.pnpm-store/
+
+# Build artifacts (will be built in Docker)
+**/dist/
+**/*.tsbuildinfo
+
+# Environment files (use Render dashboard for env vars)
+**/.env
+**/.env.*
+!**/.env.example
+
+# Tests
+**/tests/
+**/*.test.ts
+**/*.spec.ts
+**/coverage/
+**/.nyc_output/
+
+# Development tools
+**/.vscode/
+**/.idea/
+**/.DS_Store
+**/*.swp
+**/*.swo
+**/*~
+
+# Git
+.git/
+.gitignore
+
+# Documentation (except what's needed)
+*.md
+!apps/server/docs/**
+
+# Logs
+**/logs/
+**/*.log
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.circleci/
+
+# Monorepo config files (not needed in container)
+turbo.json
+melos.yaml
+pubspec.yaml
+pnpm-workspace.yaml
+
+# Other
+**/tmp/
+**/temp/
+**/.cache/
+**/.turbo/
+prompt/
+.claude/
