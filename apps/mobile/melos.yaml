@@ -1,0 +1,56 @@
+name: weather_budget_monorepo
+
+packages:
+  - packages/**
+  - apps/**
+
+command:
+  bootstrap:
+    environment:
+      sdk: ">=3.10.7 <4.0.0"
+      flutter: ">=3.24.0"
+
+scripts:
+  # Bootstrap all packages
+  bootstrap:
+    run: flutter pub get
+    description: Install dependencies for all packages
+
+  # Clean all packages
+  clean:
+    run: flutter clean
+    description: Clean build artifacts from all packages
+
+  # Code generation for packages that need it
+  generate:
+    run: dart run build_runner build --delete-conflicting-outputs
+    description: Run code generation for all packages
+    packageFilters:
+      dependsOn: "build_runner"
+
+  # Watch mode for code generation during development
+  generate:watch:
+    run: dart run build_runner watch --delete-conflicting-outputs
+    description: Watch mode for code generation
+    packageFilters:
+      dependsOn: "build_runner"
+
+  # Run tests across all packages
+  test:
+    run: flutter test
+    description: Run tests for all packages
+
+  # Analyze all packages
+  analyze:
+    run: flutter analyze
+    description: Analyze all packages for issues
+
+  # Format all Dart files
+  format:
+    run: dart format .
+    description: Format all Dart files
+
+  # Check for outdated dependencies
+  outdated:
+    run: flutter pub outdated
+    description: Check for outdated dependencies
