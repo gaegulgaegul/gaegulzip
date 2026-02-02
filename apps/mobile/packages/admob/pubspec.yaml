@@ -1,0 +1,24 @@
+name: admob
+description: AdMob integration package with .env configuration support
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ">=3.10.7 <4.0.0"
+  flutter: '>=3.24.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Google Mobile Ads SDK (버전 5.x는 webview 의존성 없음)
+  google_mobile_ads: ^5.3.0
+
+  # Core package (GetX, Logger 등)
+  core:
+    path: ../core
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
