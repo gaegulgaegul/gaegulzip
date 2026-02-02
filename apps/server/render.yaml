@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: gaegulzip-server
+    runtime: docker
+    region: singapore
+    plan: free
+    rootDir: apps/server
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./
+    branch: main
+
+    # Auto-deploy on push to main
+    autoDeploy: true
+
+    # Health check
+    healthCheckPath: /health
+
+    # Environment variables
+    # Note: Sensitive values should be set in Render Dashboard (sync: false)
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 10000
+
+      - key: LOG_LEVEL
+        value: info
+
+      # Set these in Render Dashboard (do not commit sensitive values)
+      - key: DATABASE_URL
+        sync: false
+
+      - key: JWT_SECRET_FALLBACK
+        sync: false
+
+      - key: SUPABASE_URL
+        sync: false
+
+      - key: SUPABASE_ANON_KEY
+        sync: false

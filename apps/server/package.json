@@ -8,10 +8,14 @@
     "test:watch": "vitest --watch",
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
+    "build:verify": "tsc --noEmit",
     "start": "node dist/server.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push"
+    "db:migrate:prod": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "docker:build": "docker build -t gaegulzip-server .",
+    "docker:run": "docker run -p 3001:3001 --env-file .env gaegulzip-server"
   },
   "keywords": [],
   "author": "",
@@ -29,12 +33,10 @@
     "express-async-errors": "^3.1.1",
     "firebase-admin": "^13.6.0",
     "jsonwebtoken": "^9.0.3",
-    "nodemon": "^3.1.11",
     "pino": "^10.2.0",
     "pino-pretty": "^13.1.3",
     "postgres": "^3.4.8",
     "swagger-ui-express": "^5.0.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "uuid": "^13.0.0",
     "yamljs": "^0.3.0",
@@ -48,6 +50,8 @@
     "@types/yamljs": "^0.2.34",
     "@vitest/ui": "^4.0.17",
     "drizzle-kit": "^0.31.8",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
     "vitest": "^4.0.17"
   }
 }
