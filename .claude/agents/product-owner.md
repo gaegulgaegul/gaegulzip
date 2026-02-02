@@ -92,7 +92,7 @@ Grep("router.get|post|put|delete", path="apps/server/src/")
 ```
 
 ### 출력 파일
-- `docs/server/[feature]/user-story.md`
+- `docs/server/[feature]/server-user-story.md`
 
 ### CLAUDE.md 준수
 - Express Conventions: 미들웨어 기반 설계, Controller/Service 패턴 사용 금지
@@ -127,7 +127,7 @@ Grep("GetxController", path="apps/mobile/apps/wowa/lib/")
 ```
 
 ### 출력 파일
-- `docs/flutter/[feature]/user-stories.md`
+- `docs/mobile/[feature]/mobile-user-story.md`
 
 ### CLAUDE.md 준수
 - 모노레포 구조: core → api/design_system → wowa
@@ -145,8 +145,8 @@ Grep("GetxController", path="apps/mobile/apps/wowa/lib/")
 3. 양쪽 연결점 (API 호출 ↔ UI 인터랙션) 명시
 
 ### 출력 파일
-- `docs/fullstack/[feature]/user-story.md` (Server)
-- `docs/fullstack/[feature]/user-stories.md` (Mobile)
+- `docs/fullstack/[feature]/server-user-story.md` (Server)
+- `docs/fullstack/[feature]/mobile-user-story.md` (Mobile)
 
 ---
 

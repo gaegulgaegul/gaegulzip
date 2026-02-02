@@ -47,7 +47,7 @@ model: sonnet
 
 ### 참조 문서
 ```
-Read("docs/server/[feature]/brief.md")
+Read("docs/server/[feature]/server-brief.md")
 ```
 
 ### 검증 프로세스
@@ -65,7 +65,7 @@ Read("docs/server/[feature]/brief.md")
 12. **잠재적 오류/보안 취약점 발견**
 
 ### 출력
-- `docs/server/[feature]/review-report.md` (14 sections: Summary, Requirements Coverage, API Compliance, Business Logic, Data Validation, DB Schema, Test Coverage, Potential Issues, Edge Cases, Security, Build, Final Verdict, Statistics, Next Steps)
+- `docs/server/[feature]/server-review-report.md` (14 sections: Summary, Requirements Coverage, API Compliance, Business Logic, Data Validation, DB Schema, Test Coverage, Potential Issues, Edge Cases, Security, Build, Final Verdict, Statistics, Next Steps)
 
 ---
 
@@ -73,9 +73,9 @@ Read("docs/server/[feature]/brief.md")
 
 ### 참조 문서
 ```
-Read("docs/flutter/[feature]/brief.md")
-Read("docs/flutter/[feature]/design-spec.md")
-Read("docs/flutter/[feature]/test-scenarios.md")
+Read("docs/mobile/[feature]/mobile-brief.md")
+Read("docs/mobile/[feature]/mobile-design-spec.md")
+Read("docs/mobile/[feature]/mobile-test-scenarios.md")
 ```
 
 ### 가이드 참조
@@ -126,7 +126,7 @@ npx -y @mobilenext/mobile-mcp
 - 스크린 리더 지원
 
 ### 출력
-- `docs/flutter/[feature]/review-report.md` (수동 테스트, FlutterTestMcp, mobile-mcp, UI/UX, 시나리오, GetX, 접근성 결과 포함)
+- `docs/mobile/[feature]/mobile-review-report.md` (수동 테스트, FlutterTestMcp, mobile-mcp, UI/UX, 시나리오, GetX, 접근성 결과 포함)
 
 ---
 
