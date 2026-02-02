@@ -5,6 +5,7 @@ description: |
   Server: ① 설계 승인 ② 통합 리뷰 (선택적: 작업 분배)
   Mobile: ① 설계 승인 ② 작업 분배 (핵심) ③ 통합 리뷰
   Fullstack: 양쪽 모두 통합 관리
+  ⓪ 플랫폼 라우팅: Plan(PO) → Design 사이에서 Server/Mobile/Fullstack 자동 결정
   "설계 승인해줘", "코드 리뷰해줘", "작업 분배해줘" 요청 시 사용합니다.
 tools:
   - Read
@@ -29,6 +30,114 @@ model: sonnet
 - **Server**: 2단계 (설계 승인 + 통합 리뷰) + 선택적 작업 분배
 - **Mobile**: 3단계 (설계 승인 + 작업 분배 + 통합 리뷰)
 - **Fullstack**: 양쪽 통합 관리
+
+> **⓪ 플랫폼 라우팅**이 Plan(PO) → Design 사이에서 자동 실행되어 플랫폼을 결정합니다.
+
+---
+
+## ⓪ 플랫폼 라우팅 (Plan → Design 사이)
+
+### 역할
+PO의 Plan(사용자 스토리) 완료 후, Design 단계 진입 전에 **Server / Mobile / Fullstack** 워크플로우를 자동 결정합니다.
+
+### 4단계 신뢰도 기반 라우팅
+
+| 단계 | 조건 | 동작 | 신뢰도 |
+|------|------|------|--------|
+| 즉시 진행 | 명시적 키워드 매칭 | 확인 없이 바로 진행 | 높음 |
+| 학습 기반 | claude-mem에 동일 기능 과거 결정 존재 | 확인 없이 바로 진행 | 높음 |
+| 추정+확인 | claude-mem에 유사 기능만 존재 | "Fullstack으로 보이는데 맞나요?" | 중간 |
+| 분석+확인 | 기록 없음 (새 기능) | 풀코스 분석 후 확인 요청 | 낮음 |
+
+### Step 1: 명시적 키워드 체크
+
+PO의 사용자 스토리 / Plan 문서에서 키워드를 스캔합니다:
+
+**Server 키워드**:
+<!-- TODO(human): Server 키워드 목록 구현 -->
+
+**Mobile 키워드**:
+<!-- TODO(human): Mobile 키워드 목록 구현 -->
+
+**판정 규칙**:
+- Server 키워드만 → `Server`
+- Mobile 키워드만 → `Mobile`
+- 양쪽 모두 → `Fullstack`
+- 매칭 없음 → Step 2로
+
+### Step 2: claude-mem 조회 (과거 결정 검색)
+
+```
+search(query="platform routing {feature}", limit=5)
+search(query="플랫폼 라우팅 {feature}", limit=5)
+```
+
+- **동일 기능 과거 결정 발견** → 해당 결정 재사용 (즉시 진행)
+- **유사 기능만 발견** → Step 4의 분석 결과에 참고하여 추정+확인
+- **기록 없음** → Step 3으로
+
+### Step 3: 기존 문서/코드 존재 여부 확인 (증분 개발 판단)
+
+```
+Glob("docs/server/{feature}/**")
+Glob("docs/flutter/{feature}/**")
+Glob("apps/server/src/modules/{feature}/**")
+Glob("apps/mobile/apps/wowa/lib/app/modules/{feature}/**")
+```
+
+- **Server 쪽만 존재** → 증분 개발 판단:
+  - API 확인 → API 충분하면 `Mobile` (API 소비 쪽만 PDCA)
+  - API 수정 필요 → `Fullstack` 확장
+- **Mobile 쪽만 존재** → 증분 개발 판단:
+  - 서버 기능 필요 → `Fullstack` 확장
+  - 모바일 내 완결 → `Mobile`
+- **양쪽 모두 존재** → `Fullstack`
+- **없음** → Step 4로
+
+### Step 4: 기능 특성 분석 (PO 사용자 스토리 기반)
+
+Plan 문서를 분석하여 기능 특성을 판단합니다:
+
+```
+Read("docs/pdca/01-plan/features/{feature}.plan.md")
+# 또는
+Read("docs/server/{feature}/user-story.md")
+Read("docs/flutter/{feature}/user-stories.md")
+```
+
+**분석 기준**:
+- DB 스키마 변경이 필요한가? → Server 포함
+- API 엔드포인트가 필요한가? → Server 포함
+- UI 화면이 필요한가? → Mobile 포함
+- 디바이스 기능(카메라, GPS 등)이 필요한가? → Mobile 포함
+- 기존 API를 소비만 하는가? → Mobile만
+
+### Step 5: 사용자 확인 (필요한 경우만)
+
+신뢰도가 **중간** 또는 **낮음**인 경우에만 사용자에게 확인을 요청합니다:
+
+```
+AskUserQuestion(
+  question: "이 기능의 플랫폼을 {추정 결과}(으)로 진행할까요?",
+  options: ["Server", "Mobile", "Fullstack"]
+)
+```
+
+### 학습 저장
+
+결정 완료 후 claude-mem에 기록하여 다음 세션에서 자동 선택되도록 합니다:
+
+```
+# claude-mem 자동 기록 (세션 종료 시)
+# 기록 형태: "platform routing: {feature} → {Server|Mobile|Fullstack}, reason: {근거}"
+```
+
+### 증분 개발 처리
+
+한쪽 플랫폼이 이미 구현되어 있을 때:
+1. CTO가 기존 코드/API를 분석
+2. **API 충분** → 요청한 쪽만 PDCA 진행
+3. **API 수정 필요** → Fullstack으로 확장하여 양쪽 PDCA 진행
 
 ---
 
@@ -76,7 +185,7 @@ query-docs(libraryId="...", query="best practices")
 
 ---
 
-## 공통: 작업 분배 (Server 선택적 / Mobile 핵심)
+## 공통: ② 작업 분배 (Server 선택적 / Mobile 핵심)
 
 ### Server 작업 분배
 - Feature 단위 분리: 각 Node Developer는 독립적인 feature 담당
@@ -96,7 +205,7 @@ query-docs(libraryId="...", query="best practices")
 
 ---
 
-## 공통: 통합 리뷰
+## 공통: ③ 통합 리뷰
 
 ### Server 통합 리뷰
 1. 코드 읽기: Glob/Read로 handlers.ts, index.ts, schema.ts, tests 확인
@@ -138,14 +247,17 @@ query-docs(libraryId="...", query="best practices")
 
 ## 중요 원칙
 
-1. **플랫폼별 역할 구분**: Server 2단계 vs Mobile 3단계
-2. **병렬 작업 지원**: 여러 Developer가 동시에 다른 feature 작업
-3. **충돌 방지**: Feature 단위 분리, 독립적인 모듈 디렉토리
-4. **CLAUDE.md 준수**: 모든 검증에서 프로젝트 표준 확인
-5. **건설적 피드백**: 문제점과 해결 방법 함께 제시
+1. **자동 플랫폼 라우팅**: 4단계 신뢰도 기반으로 Server/Mobile/Fullstack 자동 결정
+2. **플랫폼별 역할 구분**: Server 2단계 vs Mobile 3단계
+3. **병렬 작업 지원**: 여러 Developer가 동시에 다른 feature 작업
+4. **충돌 방지**: Feature 단위 분리, 독립적인 모듈 디렉토리
+5. **CLAUDE.md 준수**: 모든 검증에서 프로젝트 표준 확인
+6. **건설적 피드백**: 문제점과 해결 방법 함께 제시
+7. **학습 저장**: 라우팅 결정을 claude-mem에 기록하여 다음 세션 자동 선택
 
 ## 다음 단계
 
+- **플랫폼 라우팅 후**: 결정된 플랫폼에 맞는 설계 승인 프로세스 진행
 - **설계 승인 후**: 사용자 승인 대기 → 작업 분배 (또는 직접 개발)
 - **작업 분배 후**: Developer(s) 개발 시작
 - **통합 리뷰 후**: Independent Reviewer 검증 → 문서 생성

@@ -15,6 +15,9 @@
     ".dart"
   ],
   "pdca": {
+    "researchDocPaths": [
+      "docs/pdca/00-research/{feature}.research.md"
+    ],
     "designDocPaths": [
       "docs/pdca/02-design/features/{feature}.design.md",
       "docs/server/{feature}/brief.md",
@@ -30,6 +33,54 @@
     "autoIterate": true,
     "maxIterations": 5
   },
+  "research": {
+    "enabled": true,
+    "defaultTier": 2,
+    "autoTrigger": true,
+    "outputDir": "docs/pdca/00-research",
+    "thresholds": {
+      "tier1Max": 200,
+      "tier2Max": 1000
+    },
+    "complexKeywords": {
+      "realtime": ["realtime", "real-time", "websocket", "sse", "streaming", "실시간"],
+      "payment": ["payment", "checkout", "billing", "subscription", "결제"],
+      "ai": ["ai", "ml", "machine-learning", "neural", "recommendation", "머신러닝"],
+      "security": ["security", "auth", "encryption", "oauth", "jwt", "보안"],
+      "integration": ["integration", "api-gateway", "microservice", "distributed", "통합"],
+      "chat": ["chat", "messaging", "notification", "push", "채팅"],
+      "system": ["system", "platform", "architecture", "infrastructure", "시스템"],
+      "data": ["data-pipeline", "etl", "analytics", "dashboard", "데이터"]
+    },
+    "timeout": {
+      "agent": 300000,
+      "workflow": {
+        "tier1": 3600000,
+        "tier2": 7200000,
+        "tier3": 10800000
+      }
+    },
+    "tierConfig": {
+      "1": {
+        "name": "Quick Research",
+        "agents": 3,
+        "duration": "15-30 min",
+        "tokenBudget": 30000
+      },
+      "2": {
+        "name": "Standard Research",
+        "agents": 10,
+        "duration": "1-1.5 hrs",
+        "tokenBudget": 80000
+      },
+      "3": {
+        "name": "Deep Research",
+        "agents": 21,
+        "duration": "2-3 hrs",
+        "tokenBudget": 150000
+      }
+    }
+  },
   "platforms": {
     "server": {
       "root": "apps/server",
@@ -38,6 +89,7 @@
       "testCommand": "pnpm test",
       "buildCommand": "pnpm build",
       "agents": {
+        "research": "bkit/research-director",
         "plan": "product-owner",
         "design": "server/tech-lead",
         "do": "server/node-developer",
@@ -56,6 +108,7 @@
       "testCommand": "melos analyze",
       "buildCommand": "flutter build",
       "agents": {
+        "research": "bkit/research-director",
         "plan": "product-owner",
         "design": ["mobile/ui-ux-designer", "mobile/tech-lead"],
         "do": "mobile/flutter-developer",
@@ -66,6 +119,7 @@
     },
     "fullstack": {
       "agents": {
+        "research": "bkit/research-director",
         "plan": "product-owner",
         "design": ["server/tech-lead", "mobile/ui-ux-designer", "mobile/tech-lead"],
         "do": ["server/node-developer", "mobile/flutter-developer"],
@@ -91,6 +145,7 @@
   "templates": {
     "directory": ".bkit/templates",
     "types": {
+      "research": "research-report.template.md",
       "plan": "plan.template.md",
       "design": "design.template.md",
       "analysis": "analysis.template.md",
@@ -123,6 +178,9 @@
       "Enterprise": "bkit/enterprise-expert"
     },
     "taskBased": {
+      "research": "bkit/research-director",
+      "pre-plan": "bkit/research-director",
+      "feasibility": "bkit/research-director",
       "code review": "bkit/code-analyzer",
       "security scan": "bkit/code-analyzer",
       "design review": "bkit/design-validator",
