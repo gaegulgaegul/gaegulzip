@@ -1,5 +1,4 @@
 {
-  "$schema": "./.bkit/bkit.config.schema.json",
   "version": "1.5.0",
   "sourceDirectories": [
     "apps/server/src",
@@ -16,18 +15,19 @@
   ],
   "pdca": {
     "researchDocPaths": [
-      "docs/{feature}/research/research.md",
-      "docs/{feature}/server/research.md",
-      "docs/{feature}/mobile/research.md"
+      "docs/{platform}/{feature}/research.md",
+      "docs/{platform}/{feature}/server-research.md",
+      "docs/{platform}/{feature}/mobile-research.md"
     ],
     "designDocPaths": [
-      "docs/{feature}/server/brief.md",
-      "docs/{feature}/mobile/brief.md",
-      "docs/{feature}/mobile/design-spec.md"
+      "docs/{platform}/{feature}/server-brief.md",
+      "docs/{platform}/{feature}/mobile-brief.md",
+      "docs/{platform}/{feature}/mobile-design-spec.md"
     ],
     "planDocPaths": [
-      "docs/{feature}/server/user-story.md",
-      "docs/{feature}/mobile/user-stories.md"
+      "docs/{platform}/{feature}/server-user-story.md",
+      "docs/{platform}/{feature}/mobile-user-story.md",
+      "docs/{platform}/{feature}/plan.md"
     ],
     "statusFile": "docs/.pdca-status.json",
     "matchRateThreshold": 90,
@@ -38,7 +38,7 @@
     "enabled": true,
     "defaultTier": 2,
     "autoTrigger": true,
-    "outputDir": "docs/pdca/00-research",
+    "outputDir": "docs/research",
     "thresholds": {
       "tier1Max": 200,
       "tier2Max": 1000
@@ -94,7 +94,7 @@
         "plan": "product-owner",
         "design": "server/tech-lead",
         "do": "server/node-developer",
-        "check": ["bkit/gap-detector", "independent-reviewer"],
+        "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
         "act": "bkit/pdca-iterator",
         "report": "bkit/report-generator"
       }
@@ -113,7 +113,7 @@
         "plan": "product-owner",
         "design": ["mobile/ui-ux-designer", "mobile/tech-lead"],
         "do": "mobile/flutter-developer",
-        "check": ["bkit/gap-detector", "independent-reviewer"],
+        "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
         "act": "bkit/pdca-iterator",
         "report": "bkit/report-generator"
       }
@@ -124,7 +124,7 @@
         "plan": "product-owner",
         "design": ["server/tech-lead", "mobile/ui-ux-designer", "mobile/tech-lead"],
         "do": ["server/node-developer", "mobile/flutter-developer"],
-        "check": ["bkit/gap-detector", "independent-reviewer"],
+        "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
         "act": "bkit/pdca-iterator",
         "report": "bkit/report-generator"
       }
