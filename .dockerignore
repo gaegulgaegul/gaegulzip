@@ -15,7 +15,6 @@ apps/mobile/
 # Environment files (use Render dashboard for env vars)
 **/.env
 **/.env.*
-!**/.env.example
 
 # Tests
 **/tests/
@@ -36,10 +35,6 @@ apps/mobile/
 .git/
 .gitignore
 
-# Documentation (except what's needed)
-*.md
-!apps/server/docs/**
-
 # Logs
 **/logs/
 **/*.log
@@ -49,12 +44,6 @@ apps/mobile/
 .gitlab-ci.yml
 .circleci/
 
-# Monorepo config files (not needed in container)
-turbo.json
-melos.yaml
-pubspec.yaml
-pnpm-workspace.yaml
-
 # Other
 **/tmp/
 **/temp/
@@ -62,3 +51,15 @@ pnpm-workspace.yaml
 **/.turbo/
 prompt/
 .claude/
+
+# Specific root files to exclude
+turbo.json
+melos.yaml
+pubspec.yaml
+gaegulzip.iml
+bkit.config.json
+
+# Keep these important files (explicitly listed to avoid wildcards)
+# - pnpm-lock.yaml (needed for monorepo)
+# - pnpm-workspace.yaml (needed for pnpm workspace)
+# - apps/server/** (all server files)
