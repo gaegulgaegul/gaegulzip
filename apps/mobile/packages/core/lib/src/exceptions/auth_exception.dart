@@ -8,9 +8,13 @@ class AuthException implements Exception {
   /// 에러 메시지 (사용자에게 표시할 메시지)
   final String message;
 
+  /// 추가 데이터 (예: account_conflict 시 existingProvider 정보)
+  final Map<String, dynamic>? data;
+
   const AuthException({
     required this.code,
     required this.message,
+    this.data,
   });
 
   @override

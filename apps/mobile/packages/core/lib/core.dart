@@ -8,6 +8,12 @@ export 'sketch_color_palettes.dart';
 export 'src/exceptions/auth_exception.dart';
 export 'src/exceptions/network_exception.dart';
 
+// Services
+export 'src/services/secure_storage_service.dart';
+
+// Utils
+export 'src/utils/logger.dart';
+
 /// A Calculator.
 class Calculator {
   /// Returns [value] plus 1.
