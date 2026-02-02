@@ -245,8 +245,43 @@ Defined in `turbo.json`:
 - **Avoid over-engineering**: Make only necessary changes, don't add features beyond what's requested
 - **No backwards-compatibility hacks**: Delete unused code completely instead of renaming or commenting
 
+## Core Features (재사용 가능한 공통 기능)
+
+새 제품/기능 개발 시 아래 카탈로그에서 기존 구현을 확인하고 재사용하세요.
+
+| 플랫폼 | 카탈로그 | 설명 |
+|--------|---------|------|
+| Server | `docs/wowa/server-catalog.md` | 서버 모듈, API, 미들웨어, 유틸리티 |
+| Mobile | `docs/wowa/mobile-catalog.md` | 앱 모듈, 패키지, 위젯, 예외 클래스 |
+| Core (상세) | `docs/core/catalog.md` | 공통 기능 상세 분석 인덱스 |
+
 ## Documentation References
 
-For detailed conventions, patterns, and best practices:
-- **Server**: `apps/server/CLAUDE.md` and guides in `apps/server/.claude/guide/`
-- **Mobile**: `apps/mobile/CLAUDE.md` and guides in `apps/mobile/.claude/guides/`
+Each platform has a dedicated CLAUDE.md and detailed guides. **Read the relevant guide before implementing.**
+
+### Server (`apps/server/`)
+
+- `apps/server/CLAUDE.md` — server-specific conventions and patterns
+
+| 상황 | 참조 가이드 |
+|------|------------|
+| API 엔드포인트 작성, 응답 형식 설계 | `.claude/guide/server/api-response-design.md` |
+| 에러 처리, AppError 클래스 사용 | `.claude/guide/server/exception-handling.md` |
+| 로그 추가, Domain Probe 패턴 | `.claude/guide/server/logging-best-practices.md` |
+
+### Mobile (`apps/mobile/`)
+
+- `apps/mobile/CLAUDE.md` — mobile-specific conventions and patterns
+
+| 상황 | 참조 가이드 |
+|------|------------|
+| 새 화면/기능 추가, 디렉토리 구조 결정 | `.claude/guide/mobile/directory_structure.md` |
+| GetX Controller, Binding, 상태 관리 | `.claude/guide/mobile/getx_best_practices.md` |
+| 위젯 개발, const 생성자, 성능 최적화 | `.claude/guide/mobile/flutter_best_practices.md` |
+| UI 컴포넌트, Frame0 스케치 스타일 테마 | `.claude/guide/mobile/design_system.md` |
+| 주석 작성 (한글 정책) | `.claude/guide/mobile/comments.md` |
+| 에러 처리 (Controller/View) | `.claude/guide/mobile/error_handling.md` |
+| 자주 쓰는 위젯, 레이아웃 패턴 | `.claude/guide/mobile/common_widgets.md` |
+| Import, 패키지 간 의존성 패턴 | `.claude/guide/mobile/common_patterns.md` |
+| 렌더링 성능, 리빌드 최소화 | `.claude/guide/mobile/performance.md` |
+| 디자인 토큰 (색상, 타이포, 간격) | `.claude/guide/mobile/design-tokens.json` |

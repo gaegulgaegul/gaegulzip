@@ -54,10 +54,23 @@ PO의 Plan(사용자 스토리) 완료 후, Design 단계 진입 전에 **Server
 PO의 사용자 스토리 / Plan 문서에서 키워드를 스캔합니다:
 
 **Server 키워드**:
-<!-- TODO(human): Server 키워드 목록 구현 -->
+- API, REST, CRUD, endpoint, 엔드포인트
+- DB, database, 데이터베이스, schema, 스키마, migration, 마이그레이션
+- middleware, 미들웨어, handler, router, 라우터
+- Express, Drizzle, PostgreSQL, Supabase
+- 테이블, 컬럼, 인덱스, 쿼리, SQL
+- webhook, cron, batch, 배치
+- 서버, backend, 백엔드
 
 **Mobile 키워드**:
-<!-- TODO(human): Mobile 키워드 목록 구현 -->
+- 화면, screen, UI, UX, 레이아웃, layout
+- widget, 위젯, 컴포넌트, component
+- navigation, 네비게이션, 탭, tab, 바텀시트, drawer
+- GetX, Controller, View, Binding, Flutter
+- 애니메이션, animation, 트랜지션, transition
+- 카메라, camera, GPS, 위치, 갤러리, 사진
+- 디자인, design, 테마, theme, 폰트, 색상
+- 모바일, 앱, app
 
 **판정 규칙**:
 - Server 키워드만 → `Server`
