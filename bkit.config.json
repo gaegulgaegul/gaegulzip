@@ -16,17 +16,18 @@
   ],
   "pdca": {
     "researchDocPaths": [
-      "docs/pdca/00-research/{feature}.research.md"
+      "docs/{feature}/research/research.md",
+      "docs/{feature}/server/research.md",
+      "docs/{feature}/mobile/research.md"
     ],
     "designDocPaths": [
-      "docs/pdca/02-design/features/{feature}.design.md",
-      "docs/server/{feature}/brief.md",
-      "docs/flutter/{feature}/brief.md"
+      "docs/{feature}/server/brief.md",
+      "docs/{feature}/mobile/brief.md",
+      "docs/{feature}/mobile/design-spec.md"
     ],
     "planDocPaths": [
-      "docs/pdca/01-plan/features/{feature}.plan.md",
-      "docs/server/{feature}/user-story.md",
-      "docs/flutter/{feature}/user-stories.md"
+      "docs/{feature}/server/user-story.md",
+      "docs/{feature}/mobile/user-stories.md"
     ],
     "statusFile": "docs/.pdca-status.json",
     "matchRateThreshold": 90,
