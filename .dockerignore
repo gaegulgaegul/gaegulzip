@@ -1,65 +1,50 @@
-# Monorepo .dockerignore for apps/server deployment
-# Docker Context: . (root)
+# Minimal .dockerignore for apps/server deployment
+# Strategy: Exclude only what's absolutely necessary
 
-# Mobile app (not needed for server deployment)
-apps/mobile/
+# Mobile app
+apps/mobile
 
 # Dependencies (will be installed in Docker)
-**/node_modules/
-**/.pnpm-store/
+node_modules
+.pnpm-store
 
-# Build artifacts (will be built in Docker)
-**/dist/
-**/*.tsbuildinfo
+# Build output (will be built in Docker)
+dist
+*.tsbuildinfo
 
-# Environment files (use Render dashboard for env vars)
-**/.env
-**/.env.*
+# Environment files
+.env
+.env.*
 
 # Tests
-**/tests/
-**/*.test.ts
-**/*.spec.ts
-**/coverage/
-**/.nyc_output/
+tests
+*.test.ts
+*.spec.ts
+coverage
 
 # Development tools
-**/.vscode/
-**/.idea/
-**/.DS_Store
-**/*.swp
-**/*.swo
-**/*~
+.vscode
+.idea
+.DS_Store
 
 # Git
-.git/
+.git
 .gitignore
 
 # Logs
-**/logs/
-**/*.log
+*.log
 
 # CI/CD
-.github/
-.gitlab-ci.yml
-.circleci/
+.github
 
-# Other
-**/tmp/
-**/temp/
-**/.cache/
-**/.turbo/
-prompt/
-.claude/
+# Temporary
+tmp
+temp
+.cache
+.turbo
+prompt
+.claude
 
-# Specific root files to exclude
-turbo.json
-melos.yaml
-pubspec.yaml
+# Specific root files
 gaegulzip.iml
 bkit.config.json
-
-# Keep these important files (explicitly listed to avoid wildcards)
-# - pnpm-lock.yaml (needed for monorepo)
-# - pnpm-workspace.yaml (needed for pnpm workspace)
-# - apps/server/** (all server files)
