@@ -1,0 +1,6 @@
+name: my_monorepo
+packages:
+  - apps/mobile/**
+  - packages/shared/**
+scripts:
+  dev:mobile: flutter run

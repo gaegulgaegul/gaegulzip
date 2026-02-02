@@ -245,3 +245,8 @@ doc/api/
 docs/archive/
 .bkit-memory.json
 .claude-plugin/node_modules/
+
+# Monorepo tooling
+.turbo/
+*.iml
+prompt/
