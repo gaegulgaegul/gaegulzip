@@ -4,9 +4,8 @@ services:
     runtime: docker
     region: singapore
     plan: free
-    rootDir: apps/server
-    dockerfilePath: ./Dockerfile
-    dockerContext: ./
+    dockerfilePath: ./apps/server/Dockerfile
+    dockerContext: ./apps/server
     branch: main
 
     # Auto-deploy on push to main
