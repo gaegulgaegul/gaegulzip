@@ -33,7 +33,7 @@
 
 | PDCA 단계 | 명령어 | 실행 Agent | 결과물 |
 |-----------|--------|-----------|--------|
-| Research | `/pdca research` | `bkit/research-director` | `docs/pdca/00-research/{feature}.research.md` |
+| Research | `/pdca research` | `bkit/research-director` | `docs/research/{feature}/research.md` |
 | Plan | `/pdca plan` | `product-owner` | `docs/server/{feature}/user-story.md` |
 | **CTO 라우팅** | `/pdca design` (자동 선행) | `cto` ⓪ 플랫폼 라우팅 | `.pdca-status.json` (platform 필드) |
 | Design | `/pdca design` | `server/tech-lead` | `docs/server/{feature}/brief.md` |
@@ -46,12 +46,12 @@
 
 | PDCA 단계 | 명령어 | 실행 Agent | 결과물 |
 |-----------|--------|-----------|--------|
-| Research | `/pdca research` | `bkit/research-director` | `docs/pdca/00-research/{feature}.research.md` |
-| Plan | `/pdca plan` | `product-owner` | `docs/flutter/{feature}/user-stories.md` |
+| Research | `/pdca research` | `bkit/research-director` | `docs/research/{feature}/research.md` |
+| Plan | `/pdca plan` | `product-owner` | `docs/mobile/{feature}/user-stories.md` |
 | **CTO 라우팅** | `/pdca design` (자동 선행) | `cto` ⓪ 플랫폼 라우팅 | `.pdca-status.json` (platform 필드) |
-| Design | `/pdca design` | `mobile/ui-ux-designer` → `mobile/tech-lead` | `design-spec.md` + `docs/flutter/{feature}/brief.md` |
+| Design | `/pdca design` | `mobile/ui-ux-designer` → `mobile/tech-lead` | `design-spec.md` + `docs/mobile/{feature}/brief.md` |
 | Do | `/pdca do` | `mobile/flutter-developer` | `apps/wowa/lib/app/modules/{feature}/*` |
-| Check | `/pdca analyze` | `bkit/gap-detector` → `independent-reviewer` | `docs/flutter/{feature}/review-report.md` |
+| Check | `/pdca analyze` | `bkit/gap-detector` → `independent-reviewer` | `docs/mobile/{feature}/review-report.md` |
 | Act | `/pdca iterate` | `bkit/pdca-iterator` | 자동 수정 코드 |
 | Report | `/pdca report` | `bkit/report-generator` | `docs/04-reports/{feature}-completion-report.md` |
 
