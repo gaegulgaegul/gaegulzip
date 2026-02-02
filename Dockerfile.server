@@ -12,10 +12,11 @@ WORKDIR /monorepo
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/server ./apps/server
 
-# Deploy apps/server to /deploy directory
-# This creates a standalone directory with only server dependencies
+# Deploy apps/server to /deploy directory (all deps for building)
 # --legacy: Required for pnpm v10+ without inject-workspace-packages
 RUN pnpm --filter=gaegulzip-server deploy /deploy --prod=false --legacy
+# Deploy with production-only deps (for runtime image)
+RUN pnpm --filter=gaegulzip-server deploy /deploy-prod --prod --legacy
 
 # Stage 2: Build TypeScript
 FROM node:20-alpine AS build
@@ -33,16 +34,11 @@ RUN pnpm build
 # Stage 3: Production
 FROM node:20-alpine AS production
 
-RUN corepack enable && corepack prepare pnpm@10.27.0 --activate
-
 WORKDIR /app
 
-# Copy package files
-COPY --from=deploy /deploy/package.json ./package.json
-COPY pnpm-lock.yaml ./
-
-# Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
+# Copy production-only dependencies from deploy-prod (no pnpm needed)
+COPY --from=deploy /deploy-prod/package.json ./package.json
+COPY --from=deploy /deploy-prod/node_modules ./node_modules
 
 # Copy built files from build stage
 COPY --from=build /app/dist ./dist
