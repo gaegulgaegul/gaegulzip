@@ -2,14 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
-import '../../../data/repositories/auth_repository.dart';
-import '../../../services/social_login/social_login_provider.dart';
-import '../../../services/social_login/kakao_login_provider.dart';
-import '../../../services/social_login/naver_login_provider.dart';
-import '../../../services/social_login/apple_login_provider.dart';
-import '../../../services/social_login/google_login_provider.dart';
+import 'package:auth_sdk/auth_sdk.dart';
 import '../../../routes/app_routes.dart';
-import '../../../services/auth_state_service.dart';
 
 /// 로그인 화면 컨트롤러
 ///
@@ -29,34 +23,12 @@ class LoginController extends GetxController {
   /// 구글 로그인 로딩 상태
   final isGoogleLoading = false.obs;
 
-  // ===== 비반응형 상태 (의존성) =====
-
-  late final AuthRepository _authRepository;
-  late final SocialLoginProvider _kakaoProvider;
-  late final SocialLoginProvider _naverProvider;
-  late final SocialLoginProvider _appleProvider;
-  late final SocialLoginProvider _googleProvider;
-
-  // ===== 초기화 =====
-
-  @override
-  void onInit() {
-    super.onInit();
-
-    // Repository 및 Provider 주입
-    _authRepository = Get.find<AuthRepository>();
-    _kakaoProvider = Get.find<KakaoLoginProvider>();
-    _naverProvider = Get.find<NaverLoginProvider>();
-    _appleProvider = Get.find<AppleLoginProvider>();
-    _googleProvider = Get.find<GoogleLoginProvider>();
-  }
-
   // ===== 소셜 로그인 메서드 =====
 
   /// 카카오 로그인 처리
   Future<void> handleKakaoLogin() async {
     await _handleSocialLogin(
-      provider: _kakaoProvider,
+      provider: SocialProvider.kakao,
       loadingState: isKakaoLoading,
     );
   }
@@ -64,7 +36,7 @@ class LoginController extends GetxController {
   /// 네이버 로그인 처리
   Future<void> handleNaverLogin() async {
     await _handleSocialLogin(
-      provider: _naverProvider,
+      provider: SocialProvider.naver,
       loadingState: isNaverLoading,
     );
   }
@@ -72,7 +44,7 @@ class LoginController extends GetxController {
   /// 애플 로그인 처리
   Future<void> handleAppleLogin() async {
     await _handleSocialLogin(
-      provider: _appleProvider,
+      provider: SocialProvider.apple,
       loadingState: isAppleLoading,
     );
   }
@@ -80,40 +52,31 @@ class LoginController extends GetxController {
   /// 구글 로그인 처리
   Future<void> handleGoogleLogin() async {
     await _handleSocialLogin(
-      provider: _googleProvider,
+      provider: SocialProvider.google,
       loadingState: isGoogleLoading,
     );
   }
 
   /// 공통 소셜 로그인 처리 로직
   ///
-  /// [provider] SocialLoginProvider 인스턴스
+  /// [provider] SocialProvider 열거형
   /// [loadingState] 로딩 상태 (.obs)
   Future<void> _handleSocialLogin({
-    required SocialLoginProvider provider,
+    required SocialProvider provider,
     required RxBool loadingState,
   }) async {
     try {
       // 1. 로딩 시작
       loadingState.value = true;
 
-      // 2. 소셜 SDK에서 OAuth access token 획득
-      final accessToken = await provider.signIn();
+      // 2. AuthSdk를 통한 소셜 로그인
+      final loginResponse = await AuthSdk.login(provider);
 
-      // 3. 백엔드 API 호출 (로그인)
-      final user = await _authRepository.login(
-        provider: provider.platformName,
-        accessToken: accessToken,
-      );
-
-      // 4. 전역 인증 상태 업데이트
-      Get.find<AuthStateService>().onLoginSuccess();
-
-      // 5. 성공 - 메인 화면으로 이동
+      // 3. 성공 - 메인 화면으로 이동
       Get.offAllNamed(Routes.HOME);
 
-      // 5. 성공 메시지
-      _showSuccessSnackbar('로그인 성공', '${user.nickname}님 환영합니다!');
+      // 4. 성공 메시지
+      _showSuccessSnackbar('로그인 성공', '${loginResponse.user.nickname}님 환영합니다!');
     } on AuthException catch (e) {
       // 인증 오류
       if (e.code == 'user_cancelled') {
@@ -136,24 +99,10 @@ class LoginController extends GetxController {
       _showErrorSnackbar('로그인 실패', e.message);
     } on NetworkException catch (e) {
       // 네트워크 오류
-      _showErrorSnackbar(
-        '네트워크 오류',
-        e.message,
-        onRetry: () => _handleSocialLogin(
-          provider: provider,
-          loadingState: loadingState,
-        ),
-      );
+      _showErrorSnackbar('네트워크 오류', e.message);
     } catch (e) {
       // 기타 오류
-      _showErrorSnackbar(
-        '로그인 오류',
-        '로그인 중 오류가 발생했습니다',
-        onRetry: () => _handleSocialLogin(
-          provider: provider,
-          loadingState: loadingState,
-        ),
-      );
+      _showErrorSnackbar('로그인 오류', '로그인 중 오류가 발생했습니다');
     } finally {
       // 6. 로딩 종료
       loadingState.value = false;

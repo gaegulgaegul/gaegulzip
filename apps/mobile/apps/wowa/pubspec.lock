@@ -55,6 +55,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.0"
+  auth_sdk:
+    dependency: "direct main"
+    description:
+      path: "../../packages/auth_sdk"
+      relative: true
+    source: path
+    version: "0.0.1"
   boolean_selector:
     dependency: transitive
     description:

@@ -50,8 +50,10 @@ dependencies:
     path: ../../packages/design_system
   admob:
     path: ../../packages/admob
+  auth_sdk:
+    path: ../../packages/auth_sdk
 
-  # Social login SDKs
+  # Social login SDKs (이제 auth_sdk에서 관리)
   kakao_flutter_sdk: ^1.9.0
   flutter_naver_login: ^1.8.0
   sign_in_with_apple: ^5.0.0
