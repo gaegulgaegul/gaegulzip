@@ -2,8 +2,9 @@ import { db } from '../../config/database';
 import { wods, proposedChanges, wodSelections } from './schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 import { RegisterWodInput, WodWithComparison, WodsByDateResult, CreateProposalInput, ProposedChange, SelectWodInput, WodSelection, GetSelectionsInput } from './types';
-import { NotFoundException, BusinessException } from '../../utils/errors';
+import { NotFoundException, BusinessException, ValidationException } from '../../utils/errors';
 import { compareWods } from './comparison';
+import { programDataSchema } from './validators';
 
 /**
  * WOD 등록 비즈니스 로직
@@ -11,6 +12,12 @@ import { compareWods } from './comparison';
  * @returns 등록된 WOD (comparisonResult 포함)
  */
 export async function registerWod(data: RegisterWodInput): Promise<WodWithComparison> {
+  // 0. programData 구조 검증
+  const parsed = programDataSchema.safeParse(data.programData);
+  if (!parsed.success) {
+    throw new ValidationException(parsed.error.issues[0]?.message ?? 'Invalid programData');
+  }
+
   // 1. Base WOD 존재 여부 확인
   const [existingBase] = await db
     .select()
