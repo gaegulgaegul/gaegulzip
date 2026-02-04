@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { createBox } from './services';
+import { createBox, getCurrentBox, searchBoxes, joinBox as joinBoxService, getBoxById, getBoxMembers } from './services';
+import { createBoxSchema, searchBoxQuerySchema, boxIdParamsSchema } from './validators';
 
 /**
  * 박스 생성 핸들러
@@ -7,12 +8,78 @@ import { createBox } from './services';
  */
 export const create = async (req: Request, res: Response) => {
   const { userId } = (req as any).user;
+  const { name, region, description } = createBoxSchema.parse(req.body);
 
   const box = await createBox({
-    name: req.body.name,
-    description: req.body.description,
+    name,
+    region,
+    description,
     createdBy: userId,
   });
 
-  res.status(201).json(box);
+  // 생성자를 자동으로 멤버로 등록 (단일 박스 정책: 기존 박스 자동 탈퇴)
+  const membership = await joinBoxService({ boxId: box.id, userId });
+
+  res.status(201).json({ box, membership });
+};
+
+/**
+ * 내 현재 박스 조회 핸들러
+ * @route GET /boxes/me
+ */
+export const getMyBox = async (req: Request, res: Response) => {
+  const { userId } = (req as any).user;
+
+  const box = await getCurrentBox(userId);
+
+  res.json({ box });
+};
+
+/**
+ * 박스 검색 핸들러
+ * @route GET /boxes/search
+ */
+export const search = async (req: Request, res: Response) => {
+  const { name, region } = searchBoxQuerySchema.parse(req.query);
+
+  const boxes = await searchBoxes({ name, region });
+
+  res.json({ boxes });
+};
+
+/**
+ * 박스 가입 핸들러
+ * @route POST /boxes/:boxId/join
+ */
+export const join = async (req: Request, res: Response) => {
+  const { userId } = (req as any).user;
+  const { boxId } = boxIdParamsSchema.parse(req.params);
+
+  const result = await joinBoxService({ boxId, userId });
+
+  res.json(result);
+};
+
+/**
+ * 박스 상세 조회 핸들러
+ * @route GET /boxes/:boxId
+ */
+export const getById = async (req: Request, res: Response) => {
+  const { boxId } = boxIdParamsSchema.parse(req.params);
+
+  const box = await getBoxById(boxId);
+
+  res.json(box);
+};
+
+/**
+ * 박스 멤버 목록 조회 핸들러
+ * @route GET /boxes/:boxId/members
+ */
+export const getMembers = async (req: Request, res: Response) => {
+  const { boxId } = boxIdParamsSchema.parse(req.params);
+
+  const members = await getBoxMembers(boxId);
+
+  res.json({ members, totalCount: members.length });
 };
