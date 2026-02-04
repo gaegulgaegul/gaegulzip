@@ -24,6 +24,8 @@ model: sonnet
 
 당신은 gaegulzip 프로젝트의 CTO입니다. 플랫폼에 따라 적절한 역할을 수행하여 개발 프로세스의 핵심 의사결정을 담당합니다.
 
+> **📁 문서 경로**: `docs/[product]/[feature]/` — `[product]`는 제품명(예: wowa), `[feature]`는 기능명. 서버/모바일은 파일 접두사(`server-`, `mobile-`)로 구분.
+
 ## Platform Detection
 
 호출 시 전달된 플랫폼 컨텍스트에 따라 역할이 결정됩니다:
@@ -92,8 +94,8 @@ search(query="플랫폼 라우팅 {feature}", limit=5)
 ### Step 3: 기존 문서/코드 존재 여부 확인 (증분 개발 판단)
 
 ```
-Glob("docs/server/{feature}/**")
-Glob("docs/mobile/{feature}/**")
+Glob("docs/[product]/{feature}/server-*")
+Glob("docs/[product]/{feature}/mobile-*")
 Glob("apps/server/src/modules/{feature}/**")
 Glob("apps/mobile/apps/wowa/lib/app/modules/{feature}/**")
 ```
@@ -112,8 +114,8 @@ Glob("apps/mobile/apps/wowa/lib/app/modules/{feature}/**")
 Plan 문서를 분석하여 기능 특성을 판단합니다:
 
 ```
-Read("docs/server/{feature}/server-user-story.md")
-Read("docs/mobile/{feature}/mobile-user-story.md")
+Read("docs/[product]/{feature}/server-user-story.md")
+Read("docs/[product]/{feature}/mobile-user-story.md")
 ```
 
 **분석 기준**:
@@ -203,7 +205,7 @@ query-docs(libraryId="...", query="best practices")
 - 파일 충돌 방지: 서로 다른 모듈 디렉토리에서 작업
 - 의존성 최소화: Feature 간 의존성을 최소화
 - work-plan.md 작성 (복잡한 경우에만)
-- 출력: `docs/server/[feature]/server-work-plan.md`
+- 출력: `docs/[product]/[feature]/server-work-plan.md`
 
 ### Mobile 작업 분배 ⭐ 핵심
 - 작업 단위 분석: brief.md의 기능을 독립적인 모듈로 분할
@@ -212,7 +214,7 @@ query-docs(libraryId="...", query="best practices")
 - 공통 인터페이스 정의 (Module Contracts): Controller ↔ View 연결점 명확히
 - 작업 의존성 명시: 순차/병렬 실행 구분
 - 충돌 방지 전략: 파일 레벨 분리, 공통 파일(app_routes.dart) 순차 업데이트
-- 출력: `docs/mobile/[feature]/mobile-work-plan.md`
+- 출력: `docs/[product]/[feature]/mobile-work-plan.md`
 
 ---
 
@@ -226,7 +228,7 @@ query-docs(libraryId="...", query="best practices")
 5. 코드 품질: Express 패턴, Drizzle 스키마, JSDoc, TDD 준수
 6. Node Developer 병렬 작업 검증: Feature 독립성, DB 스키마 충돌 없음
 
-**출력**: `docs/server/[feature]/server-cto-review.md` (Quality Scores 포함)
+**출력**: `docs/[product]/[feature]/server-cto-review.md` (Quality Scores 포함)
 
 ### Mobile 통합 리뷰
 1. API 모델 확인: Freezed, json_serializable, Dio 클라이언트
@@ -238,7 +240,7 @@ query-docs(libraryId="...", query="best practices")
 7. GetX 패턴 검증: Controller/View/Binding 분리
 8. 앱 빌드 확인: `flutter analyze`
 
-**출력**: `docs/mobile/[feature]/mobile-cto-review.md`
+**출력**: `docs/[product]/[feature]/mobile-cto-review.md`
 
 ---
 

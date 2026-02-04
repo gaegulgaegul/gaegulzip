@@ -7,20 +7,22 @@
 
 | 기능 | 상세 문서 | 서버 | 모바일 |
 |------|----------|------|--------|
-| 소셜 로그인 | [`social-login.md`](./social-login.md) | ✅ 완료 | ⚠️ UI 스텁 |
+| 소셜 로그인 | [`social-login.md`](./social-login.md) | ✅ 완료 | ⚠️ SDK 연동 완료 (실 서버 테스트 필요) |
 | FCM 푸시 알림 | [`fcm-push-notification.md`](./fcm-push-notification.md) | ✅ 완료 | ❌ 미구현 |
 
 ## 소셜 로그인
 
 - **프로바이더**: 카카오, 네이버, 구글, 애플 (4개)
 - **서버**: OAuth 토큰 검증 → 사용자 Upsert → JWT 발급 + Refresh Token 로테이션
-- **모바일**: SocialLoginButton 위젯 완성, 실제 SDK 연동 미구현
+- **모바일**: SocialLoginButton 위젯, OAuth SDK 연동 (4개 프로바이더), AuthRepository, SecureStorageService
 - **핵심 진입점**:
   - 서버 로그인: `apps/server/src/modules/auth/handlers.ts` > `oauthLogin()`
   - 서버 토큰 갱신: `apps/server/src/modules/auth/handlers.ts` > `refreshToken()`
   - 인증 미들웨어: `apps/server/src/middleware/auth.ts` > `authenticate()`
   - 모바일 컨트롤러: `apps/mobile/apps/wowa/lib/app/modules/login/controllers/login_controller.dart`
-- **주요 개선 필요**: Apple 공개키 서명 검증, 모바일 OAuth SDK 연동
+  - 모바일 Repository: `apps/mobile/apps/wowa/lib/app/data/repositories/auth_repository.dart`
+  - 소셜 프로바이더: `apps/mobile/apps/wowa/lib/app/services/social_login/`
+- **주요 개선 필요**: Apple 공개키 서명 검증, 실 서버 연동 테스트
 
 ## FCM 푸시 알림
 

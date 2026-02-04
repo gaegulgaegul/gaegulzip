@@ -1,239 +1,103 @@
-# CLAUDE.md
+# Mobile CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Flutter 모노레포 (Melos) — 날씨 및 가계부 앱 `wowa` + 공유 패키지
 
-## Project Overview
+## Commands
 
-This is a Flutter monorepo managed by Melos, containing a weather and budget tracking application (`wowa`) with shared packages for API communication, core utilities, and design system components.
+```bash
+# Setup
+melos bootstrap                     # 항상 flutter pub get 대신 사용
+melos clean && melos bootstrap      # Full reset
 
-## Monorepo Architecture
+# Code generation
+melos generate                      # 일회성 생성
+melos generate:watch                # Watch mode
 
-The codebase follows a layered package architecture:
+# Quality
+melos analyze                       # 정적 분석
+melos format                        # 코드 포맷
 
+# Run
+cd apps/wowa && flutter run         # Default device
+cd apps/wowa && flutter run -d ios  # iOS simulator
 ```
-core (foundation layer - no dependencies on other packages)
-  ↑
-  ├── api (HTTP client, data models, serialization)
-  ├── design_system (UI components, reactive widgets)
-  └── wowa app (integrates all packages, app logic, routing)
-```
-
-**Key principle**: `core` is the foundation and has no internal dependencies. All other packages depend on `core`. The app depends on all packages.
-
-### Package Responsibilities
-
-- **`packages/core`**: Foundation utilities, dependency injection (GetX), logging, shared extensions, error handling
-- **`packages/api`**: HTTP communication via Dio, API response models, JSON serialization (using Freezed/json_serializable)
-- **`packages/design_system`**: Reusable UI components, theme, reactive widgets using GetX
-- **`apps/wowa`**: Main application, state management, routing, feature implementation
-
-## Best Practices & Guides
-
-**📖 Detailed guides are available in `../../.claude/guide/mobile/`:**
-
-- **[Flutter Best Practices](../../.claude/guide/mobile/flutter_best_practices.md)** - Widget development, state management, performance, code organization
-- **[GetX Best Practices](../../.claude/guide/mobile/getx_best_practices.md)** - Controllers, bindings, navigation, reactive programming, dependency injection
-- **[Directory Structure](../../.claude/guide/mobile/directory_structure.md)** - Recommended folder organization for all packages
-- **[Common Patterns](../../.claude/guide/mobile/common_patterns.md)** - Controller-View-Binding patterns, routing, API integration, responsive design
-- **[Common Widgets](../../.claude/guide/mobile/common_widgets.md)** - Layout, Material, and GetX widgets reference
-- **[Design System](../../.claude/guide/mobile/design_system.md)** - Frame0 스케치 스타일 디자인 시스템, 12개 UI 컴포넌트, CustomPainter, 테마, 컬러 팔레트
-- **[Error Handling](../../.claude/guide/mobile/error_handling.md)** - Error handling patterns in controllers and views
-- **[Performance Optimization](../../.claude/guide/mobile/performance.md)** - Const constructors, Obx scope, GetBuilder usage
-- **[Comments and Documentation](../../.claude/guide/mobile/comments.md)** - Documentation comments, inline comments, when and how to write effective comments
-
-### Quick Reference
-
-**Flutter Best Practices:**
-- Use `const` constructors wherever possible
-- Keep widgets small and focused
-- Minimize rebuilds with specific reactive widgets
-- Profile before optimizing
-
-**GetX Best Practices:**
-- One controller per screen/feature
-- Use bindings for dependency injection
-- Use named routes for navigation
-- Choose the right reactive widget (Obx, GetBuilder, GetX)
-
-**Design System Best Practices:**
-- Use `SketchContainer`, `SketchButton`, `SketchCard` etc. for Frame0 스타일
-- Wrap app with `SketchThemeExtension` in ThemeData
-- Use `SketchDesignTokens` constants for spacing, colors, typography
-- Customize with `roughness`, `strokeWidth`, `seed` parameters
-- See `../../.claude/guide/mobile/design_system.md` for complete component catalog
-
-**Comments Best Practices:**
-- **모든 주석은 한글로 작성** - 문서화/구현 주석 모두 해당
-- Use `///` for documentation comments on public APIs
-- Use `//` for implementation comments explaining complex logic
-- Explain WHY, not WHAT - code shows what happens
-- **기술 용어는 영어 유지** - API, JSON, HTTP 등
-- Avoid commenting obvious code - prefer self-documenting names
 
 ## Testing Policy
 
-**IMPORTANT: Do NOT write test code in this project.**
+**테스트 코드 작성 금지** — features, bug fixes에 테스트 불필요
 
-- Tests are not required for features or bug fixes
-- Existing test files should not be modified unless explicitly requested
-- Focus on implementation code only
+## Package Architecture
 
-## Essential Commands
-
-### Setup and Dependencies
-```bash
-# Initial setup - always use this instead of flutter pub get
-melos bootstrap
-
-# Clean all build artifacts
-melos clean
-
-# Full reset
-melos clean && melos bootstrap
+```
+core (foundation — no internal dependencies)
+  ↑
+  ├── api          (Dio, Freezed models, JSON serialization)
+  ├── design_system (UI components, theme, reactive widgets)
+  └── wowa app     (state management, routing, features)
 ```
 
-### Code Generation
-```bash
-# Generate code for packages with build_runner (api package)
-melos generate
+- `core` → 기초 유틸, DI, 로깅, extensions, 에러 처리
+- `api` → HTTP (Dio), API 모델 (Freezed/json_serializable)
+- `design_system` → Frame0 스케치 스타일 UI 컴포넌트, 테마
+- `wowa` → 메인 앱, GetX 상태관리, 라우팅
 
-# Watch mode during development (keeps running, regenerates on file changes)
-melos generate:watch
-```
+**의존성 규칙**: 단방향 (core ← api/design_system ← wowa), 순환 의존 금지
 
-### Quality Checks
-```bash
-# Analyze all packages
-melos analyze
+## Quick Reference
 
-# Format all Dart files
-melos format
-
-# Check for outdated dependencies
-melos outdated
-```
-
-### Running the App
-```bash
-# Run wowa app
-cd apps/wowa
-flutter run
-
-# Or with device specification
-flutter run -d chrome  # Web
-flutter run -d macos   # macOS
-flutter run -d ios     # iOS simulator
-```
-
-### Testing (Not Required)
-**Note: Test code is NOT written in this project. The commands below are for reference only.**
-
-```bash
-# Run tests in a specific package (if needed)
-cd packages/core && flutter test
-cd packages/api && flutter test
-cd packages/design_system && flutter test
-cd apps/wowa && flutter test
-
-# Note: melos test may fail if run from root, use package-specific commands
-```
+- **Flutter**: `const` 생성자 적극 사용, 위젯 소형화, 리빌드 최소화
+- **GetX**: 화면/기능당 1 controller, binding으로 DI, named routes
+- **Design System**: `SketchContainer`, `SketchButton` 등 Frame0 컴포넌트 사용
+- **주석**: **모든 주석 한글**, 기술 용어(API, JSON 등)만 영어
 
 ## Development Workflow
 
-### Adding New Dependencies
+### 의존성 추가
 
-1. **Determine the correct package** based on the dependency graph
-2. **Add to appropriate pubspec.yaml**:
-   - Network/HTTP → `packages/api`
-   - State management utilities → `packages/core`
-   - UI-related → `packages/design_system`
-   - App-specific → `apps/wowa`
-3. **Run** `melos bootstrap` to install
-4. **If adding code generation tools**, add to `dev_dependencies` and run `melos generate`
+1. 의존성 그래프에 맞는 패키지 선택 (Network→api, UI→design_system, 앱→wowa)
+2. `pubspec.yaml`에 추가 후 `melos bootstrap`
+3. 코드 생성 도구면 `melos generate` 실행
 
-### Working with API Models
+### API 모델 작업
 
-When creating new API models in `packages/api`:
+1. `packages/api`에 Freezed + json_serializable 모델 생성
+2. `melos generate:watch` 실행 (자동 재생성)
 
-1. Create model with Freezed and json_serializable annotations
-2. Run `melos generate:watch` in a terminal (leave it running)
-3. Generated `.g.dart` and `.freezed.dart` files will auto-update
-
-Example model structure:
-```dart
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'my_model.freezed.dart';
-part 'my_model.g.dart';
-
-@freezed
-class MyModel with _$MyModel {
-  factory MyModel({required String id}) = _MyModel;
-  factory MyModel.fromJson(Map<String, dynamic> json) => _$MyModelFromJson(json);
-}
-```
-
-### Package Inter-Dependencies
-
-Always use path dependencies for internal packages:
+### 패키지 간 의존성
 
 ```yaml
 dependencies:
   core:
-    path: ../core  # or ../../packages/core from app
+    path: ../core             # 패키지 간
   api:
-    path: ../../packages/api  # from app
+    path: ../../packages/api  # 앱에서
 ```
-
-Never add circular dependencies. The dependency flow is one-way up the architecture.
-
-## Key Technologies
-
-- **Melos**: Monorepo management tool
-- **GetX**: State management, dependency injection, routing (in core, design_system, wowa)
-- **Dio**: HTTP client (in api package only)
-- **Freezed**: Immutable data classes (in api package)
-- **json_serializable**: JSON serialization (in api package)
-- **build_runner**: Code generation tool
 
 ## Important Notes
 
-- **Always use `melos bootstrap`** instead of `flutter pub get` to ensure workspace consistency
-- **Never add `resolution: workspace`** to pubspec.yaml files (causes bootstrap failures)
-- **Code generation is only configured** for packages with `build_runner` dependency (currently `api` and `wowa`)
-- **GetX is shared** across core, design_system, and wowa for consistent state management
-- **Dio is isolated** to the api package to centralize HTTP logic
+- **`melos bootstrap`** 필수 (`flutter pub get` 금지)
+- **`resolution: workspace`** pubspec.yaml에 추가 금지 (bootstrap 실패 원인)
+- **코드 생성**은 `build_runner` 의존성 있는 패키지만 (`api`, `wowa`)
 
 ## Troubleshooting
 
-### Bootstrap fails
-- Remove any `resolution: workspace` lines from pubspec.yaml files
-- Run `melos clean && melos bootstrap`
+- **Bootstrap 실패**: `resolution: workspace` 제거 → `melos clean && melos bootstrap`
+- **코드 생성 안 됨**: `build_runner` in dev_dependencies 확인 → `melos generate`
+- **Import 에러**: `pubspec.yaml` 의존성 확인 → `melos bootstrap`
+- **GetX controller not found**: binding 등록 확인, `Get.lazyPut()` 사용
+- **Obx 업데이트 안 됨**: `.obs` 확인, `.value` 사용, const 위젯 내부 확인
 
-### Code generation not working
-- Ensure package has `build_runner` in dev_dependencies
-- Run `melos generate` explicitly
-- Check for syntax errors in model files
-- Delete generated files and regenerate: `melos generate`
+## 📖 Detailed Guides
 
-### Import errors
-- Verify the package dependency is declared in pubspec.yaml
-- Run `melos bootstrap` after adding dependencies
-- Check the dependency graph - ensure no circular dependencies
-
-### GetX controller not found
-- Ensure binding is registered in route
-- Use `Get.lazyPut()` in binding
-- Check if controller is disposed prematurely
-- Use `Get.find<Controller>()` to verify injection
-
-### Hot reload issues
-- Restart app if GetX bindings change
-- Use `flutter clean` if state becomes inconsistent
-- Check that controllers properly implement onClose()
-
-### Obx not updating
-- Ensure variable is `.obs` (e.g., `final count = 0.obs`)
-- Access with `.value` in controller (e.g., `count.value++`)
-- Don't wrap `.obs` variable access in Obx (just read directly)
-- Check if Obx is inside a const widget (won't rebuild)
+| 가이드 | 경로 |
+|-------|------|
+| Flutter Best Practices | `../../.claude/guide/mobile/flutter_best_practices.md` |
+| GetX Best Practices | `../../.claude/guide/mobile/getx_best_practices.md` |
+| Directory Structure | `../../.claude/guide/mobile/directory_structure.md` |
+| Design System | `../../.claude/guide/mobile/design_system.md` |
+| Common Patterns | `../../.claude/guide/mobile/common_patterns.md` |
+| Common Widgets | `../../.claude/guide/mobile/common_widgets.md` |
+| Error Handling | `../../.claude/guide/mobile/error_handling.md` |
+| Performance | `../../.claude/guide/mobile/performance.md` |
+| Comments | `../../.claude/guide/mobile/comments.md` |
+| Design Tokens | `../../.claude/guide/mobile/design-tokens.json` |
