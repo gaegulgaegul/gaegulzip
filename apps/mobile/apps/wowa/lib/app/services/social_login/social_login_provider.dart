@@ -5,9 +5,9 @@ abstract class SocialLoginProvider {
   /// 플랫폼 이름 (예: 'kakao', 'naver', 'apple', 'google')
   String get platformName;
 
-  /// OAuth 인증을 시작하고 authorization code를 획득합니다.
+  /// OAuth 인증을 시작하고 access token을 획득합니다.
   ///
-  /// Returns: OAuth authorization code
+  /// Returns: OAuth access token (서버에서 검증할 토큰)
   /// Throws:
   ///   - [AuthException] 사용자 취소, 권한 거부 등 인증 오류
   ///   - [NetworkException] 네트워크 연결 오류

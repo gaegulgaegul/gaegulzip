@@ -11,6 +11,7 @@ _$RefreshResponseImpl _$$RefreshResponseImplFromJson(
 ) => _$RefreshResponseImpl(
   accessToken: json['accessToken'] as String,
   refreshToken: json['refreshToken'] as String,
+  tokenType: json['tokenType'] as String,
   expiresIn: (json['expiresIn'] as num).toInt(),
 );
 
@@ -19,5 +20,6 @@ Map<String, dynamic> _$$RefreshResponseImplToJson(
 ) => <String, dynamic>{
   'accessToken': instance.accessToken,
   'refreshToken': instance.refreshToken,
+  'tokenType': instance.tokenType,
   'expiresIn': instance.expiresIn,
 };

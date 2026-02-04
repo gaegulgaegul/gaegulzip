@@ -27,6 +27,9 @@ mixin _$RefreshResponse {
   /// 새로운 refreshToken
   String get refreshToken => throw _privateConstructorUsedError;
 
+  /// 토큰 타입 (항상 "Bearer")
+  String get tokenType => throw _privateConstructorUsedError;
+
   /// 만료 시간 (초)
   int get expiresIn => throw _privateConstructorUsedError;
 
@@ -47,7 +50,12 @@ abstract class $RefreshResponseCopyWith<$Res> {
     $Res Function(RefreshResponse) then,
   ) = _$RefreshResponseCopyWithImpl<$Res, RefreshResponse>;
   @useResult
-  $Res call({String accessToken, String refreshToken, int expiresIn});
+  $Res call({
+    String accessToken,
+    String refreshToken,
+    String tokenType,
+    int expiresIn,
+  });
 }
 
 /// @nodoc
@@ -67,6 +75,7 @@ class _$RefreshResponseCopyWithImpl<$Res, $Val extends RefreshResponse>
   $Res call({
     Object? accessToken = null,
     Object? refreshToken = null,
+    Object? tokenType = null,
     Object? expiresIn = null,
   }) {
     return _then(
@@ -78,6 +87,10 @@ class _$RefreshResponseCopyWithImpl<$Res, $Val extends RefreshResponse>
             refreshToken: null == refreshToken
                 ? _value.refreshToken
                 : refreshToken // ignore: cast_nullable_to_non_nullable
+                      as String,
+            tokenType: null == tokenType
+                ? _value.tokenType
+                : tokenType // ignore: cast_nullable_to_non_nullable
                       as String,
             expiresIn: null == expiresIn
                 ? _value.expiresIn
@@ -98,7 +111,12 @@ abstract class _$$RefreshResponseImplCopyWith<$Res>
   ) = __$$RefreshResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String accessToken, String refreshToken, int expiresIn});
+  $Res call({
+    String accessToken,
+    String refreshToken,
+    String tokenType,
+    int expiresIn,
+  });
 }
 
 /// @nodoc
@@ -117,6 +135,7 @@ class __$$RefreshResponseImplCopyWithImpl<$Res>
   $Res call({
     Object? accessToken = null,
     Object? refreshToken = null,
+    Object? tokenType = null,
     Object? expiresIn = null,
   }) {
     return _then(
@@ -128,6 +147,10 @@ class __$$RefreshResponseImplCopyWithImpl<$Res>
         refreshToken: null == refreshToken
             ? _value.refreshToken
             : refreshToken // ignore: cast_nullable_to_non_nullable
+                  as String,
+        tokenType: null == tokenType
+            ? _value.tokenType
+            : tokenType // ignore: cast_nullable_to_non_nullable
                   as String,
         expiresIn: null == expiresIn
             ? _value.expiresIn
@@ -144,6 +167,7 @@ class _$RefreshResponseImpl implements _RefreshResponse {
   const _$RefreshResponseImpl({
     required this.accessToken,
     required this.refreshToken,
+    required this.tokenType,
     required this.expiresIn,
   });
 
@@ -158,13 +182,17 @@ class _$RefreshResponseImpl implements _RefreshResponse {
   @override
   final String refreshToken;
 
+  /// 토큰 타입 (항상 "Bearer")
+  @override
+  final String tokenType;
+
   /// 만료 시간 (초)
   @override
   final int expiresIn;
 
   @override
   String toString() {
-    return 'RefreshResponse(accessToken: $accessToken, refreshToken: $refreshToken, expiresIn: $expiresIn)';
+    return 'RefreshResponse(accessToken: $accessToken, refreshToken: $refreshToken, tokenType: $tokenType, expiresIn: $expiresIn)';
   }
 
   @override
@@ -176,6 +204,8 @@ class _$RefreshResponseImpl implements _RefreshResponse {
                 other.accessToken == accessToken) &&
             (identical(other.refreshToken, refreshToken) ||
                 other.refreshToken == refreshToken) &&
+            (identical(other.tokenType, tokenType) ||
+                other.tokenType == tokenType) &&
             (identical(other.expiresIn, expiresIn) ||
                 other.expiresIn == expiresIn));
   }
@@ -183,7 +213,7 @@ class _$RefreshResponseImpl implements _RefreshResponse {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, accessToken, refreshToken, expiresIn);
+      Object.hash(runtimeType, accessToken, refreshToken, tokenType, expiresIn);
 
   /// Create a copy of RefreshResponse
   /// with the given fields replaced by the non-null parameter values.
@@ -206,6 +236,7 @@ abstract class _RefreshResponse implements RefreshResponse {
   const factory _RefreshResponse({
     required final String accessToken,
     required final String refreshToken,
+    required final String tokenType,
     required final int expiresIn,
   }) = _$RefreshResponseImpl;
 
@@ -219,6 +250,10 @@ abstract class _RefreshResponse implements RefreshResponse {
   /// 새로운 refreshToken
   @override
   String get refreshToken;
+
+  /// 토큰 타입 (항상 "Bearer")
+  @override
+  String get tokenType;
 
   /// 만료 시간 (초)
   @override

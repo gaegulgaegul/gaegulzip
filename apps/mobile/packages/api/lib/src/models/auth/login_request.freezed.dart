@@ -21,11 +21,14 @@ LoginRequest _$LoginRequestFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$LoginRequest {
+  /// 앱 코드 (서버에서 앱 식별용, 예: 'wowa')
+  String get code => throw _privateConstructorUsedError;
+
   /// 소셜 로그인 플랫폼 ('kakao' | 'naver' | 'apple' | 'google')
   String get provider => throw _privateConstructorUsedError;
 
-  /// OAuth authorization code
-  String get code => throw _privateConstructorUsedError;
+  /// 소셜 SDK에서 획득한 OAuth access token
+  String get accessToken => throw _privateConstructorUsedError;
 
   /// Serializes this LoginRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -44,7 +47,7 @@ abstract class $LoginRequestCopyWith<$Res> {
     $Res Function(LoginRequest) then,
   ) = _$LoginRequestCopyWithImpl<$Res, LoginRequest>;
   @useResult
-  $Res call({String provider, String code});
+  $Res call({String code, String provider, String accessToken});
 }
 
 /// @nodoc
@@ -61,16 +64,24 @@ class _$LoginRequestCopyWithImpl<$Res, $Val extends LoginRequest>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? provider = null, Object? code = null}) {
+  $Res call({
+    Object? code = null,
+    Object? provider = null,
+    Object? accessToken = null,
+  }) {
     return _then(
       _value.copyWith(
+            code: null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                      as String,
             provider: null == provider
                 ? _value.provider
                 : provider // ignore: cast_nullable_to_non_nullable
                       as String,
-            code: null == code
-                ? _value.code
-                : code // ignore: cast_nullable_to_non_nullable
+            accessToken: null == accessToken
+                ? _value.accessToken
+                : accessToken // ignore: cast_nullable_to_non_nullable
                       as String,
           )
           as $Val,
@@ -87,7 +98,7 @@ abstract class _$$LoginRequestImplCopyWith<$Res>
   ) = __$$LoginRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String provider, String code});
+  $Res call({String code, String provider, String accessToken});
 }
 
 /// @nodoc
@@ -103,16 +114,24 @@ class __$$LoginRequestImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? provider = null, Object? code = null}) {
+  $Res call({
+    Object? code = null,
+    Object? provider = null,
+    Object? accessToken = null,
+  }) {
     return _then(
       _$LoginRequestImpl(
+        code: null == code
+            ? _value.code
+            : code // ignore: cast_nullable_to_non_nullable
+                  as String,
         provider: null == provider
             ? _value.provider
             : provider // ignore: cast_nullable_to_non_nullable
                   as String,
-        code: null == code
-            ? _value.code
-            : code // ignore: cast_nullable_to_non_nullable
+        accessToken: null == accessToken
+            ? _value.accessToken
+            : accessToken // ignore: cast_nullable_to_non_nullable
                   as String,
       ),
     );
@@ -122,22 +141,30 @@ class __$$LoginRequestImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$LoginRequestImpl implements _LoginRequest {
-  const _$LoginRequestImpl({required this.provider, required this.code});
+  const _$LoginRequestImpl({
+    required this.code,
+    required this.provider,
+    required this.accessToken,
+  });
 
   factory _$LoginRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$LoginRequestImplFromJson(json);
+
+  /// 앱 코드 (서버에서 앱 식별용, 예: 'wowa')
+  @override
+  final String code;
 
   /// 소셜 로그인 플랫폼 ('kakao' | 'naver' | 'apple' | 'google')
   @override
   final String provider;
 
-  /// OAuth authorization code
+  /// 소셜 SDK에서 획득한 OAuth access token
   @override
-  final String code;
+  final String accessToken;
 
   @override
   String toString() {
-    return 'LoginRequest(provider: $provider, code: $code)';
+    return 'LoginRequest(code: $code, provider: $provider, accessToken: $accessToken)';
   }
 
   @override
@@ -145,14 +172,16 @@ class _$LoginRequestImpl implements _LoginRequest {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$LoginRequestImpl &&
+            (identical(other.code, code) || other.code == code) &&
             (identical(other.provider, provider) ||
                 other.provider == provider) &&
-            (identical(other.code, code) || other.code == code));
+            (identical(other.accessToken, accessToken) ||
+                other.accessToken == accessToken));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, provider, code);
+  int get hashCode => Object.hash(runtimeType, code, provider, accessToken);
 
   /// Create a copy of LoginRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -170,20 +199,25 @@ class _$LoginRequestImpl implements _LoginRequest {
 
 abstract class _LoginRequest implements LoginRequest {
   const factory _LoginRequest({
-    required final String provider,
     required final String code,
+    required final String provider,
+    required final String accessToken,
   }) = _$LoginRequestImpl;
 
   factory _LoginRequest.fromJson(Map<String, dynamic> json) =
       _$LoginRequestImpl.fromJson;
 
+  /// 앱 코드 (서버에서 앱 식별용, 예: 'wowa')
+  @override
+  String get code;
+
   /// 소셜 로그인 플랫폼 ('kakao' | 'naver' | 'apple' | 'google')
   @override
   String get provider;
 
-  /// OAuth authorization code
+  /// 소셜 SDK에서 획득한 OAuth access token
   @override
-  String get code;
+  String get accessToken;
 
   /// Create a copy of LoginRequest
   /// with the given fields replaced by the non-null parameter values.
