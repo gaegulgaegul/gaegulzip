@@ -9,6 +9,7 @@ import '../../../services/social_login/naver_login_provider.dart';
 import '../../../services/social_login/apple_login_provider.dart';
 import '../../../services/social_login/google_login_provider.dart';
 import '../../../routes/app_routes.dart';
+import '../../../services/auth_state_service.dart';
 
 /// 로그인 화면 컨트롤러
 ///
@@ -96,16 +97,19 @@ class LoginController extends GetxController {
       // 1. 로딩 시작
       loadingState.value = true;
 
-      // 2. OAuth 인증 및 code 획득
-      final code = await provider.signIn();
+      // 2. 소셜 SDK에서 OAuth access token 획득
+      final accessToken = await provider.signIn();
 
       // 3. 백엔드 API 호출 (로그인)
       final user = await _authRepository.login(
         provider: provider.platformName,
-        code: code,
+        accessToken: accessToken,
       );
 
-      // 4. 성공 - 메인 화면으로 이동
+      // 4. 전역 인증 상태 업데이트
+      Get.find<AuthStateService>().onLoginSuccess();
+
+      // 5. 성공 - 메인 화면으로 이동
       Get.offAllNamed(Routes.HOME);
 
       // 5. 성공 메시지
