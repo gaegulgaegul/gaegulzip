@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   findAppByCode,
-  upsertUser,
+  findUserByProvider,
+  createUser,
+  updateUserLogin,
   generateJWT,
   generateRefreshToken,
   storeRefreshToken,
@@ -90,8 +92,48 @@ describe('services', () => {
     });
   });
 
-  describe('upsertUser', () => {
-    it('should create new user when not exists', async () => {
+  describe('findUserByProvider', () => {
+    it('should return user when exists', async () => {
+      const existingUser = { id: 1, appId: 1, provider: 'kakao', providerId: '123' };
+
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([existingUser]),
+          }),
+        }),
+      } as any);
+
+      const result = await findUserByProvider({
+        appId: 1,
+        provider: 'kakao',
+        providerId: '123',
+      });
+
+      expect(result).toEqual(existingUser);
+    });
+
+    it('should return null when not exists', async () => {
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      } as any);
+
+      const result = await findUserByProvider({
+        appId: 1,
+        provider: 'kakao',
+        providerId: '999',
+      });
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('createUser', () => {
+    it('should create new user', async () => {
       const newUser = {
         id: 1,
         appId: 1,
@@ -102,23 +144,13 @@ describe('services', () => {
         profileImage: 'https://example.com/image.jpg',
       };
 
-      // Existing user 조회: 없음
-      vi.mocked(db.select).mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([]),
-          }),
-        }),
-      } as any);
-
-      // Insert
       vi.mocked(db.insert).mockReturnValue({
         values: vi.fn().mockReturnValue({
           returning: vi.fn().mockResolvedValue([newUser]),
         }),
       } as any);
 
-      const result = await upsertUser({
+      const result = await createUser({
         appId: 1,
         provider: 'kakao',
         providerId: '123',
@@ -129,21 +161,12 @@ describe('services', () => {
 
       expect(result).toEqual(newUser);
     });
+  });
 
+  describe('updateUserLogin', () => {
     it('should update existing user', async () => {
-      const existingUser = { id: 1, appId: 1, provider: 'kakao', providerId: '123' };
-      const updatedUser = { ...existingUser, email: 'updated@example.com' };
+      const updatedUser = { id: 1, appId: 1, provider: 'kakao', providerId: '123', email: 'updated@example.com' };
 
-      // Existing user 조회: 있음
-      vi.mocked(db.select).mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([existingUser]),
-          }),
-        }),
-      } as any);
-
-      // Update
       vi.mocked(db.update).mockReturnValue({
         set: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
@@ -152,10 +175,7 @@ describe('services', () => {
         }),
       } as any);
 
-      const result = await upsertUser({
-        appId: 1,
-        provider: 'kakao',
-        providerId: '123',
+      const result = await updateUserLogin(1, {
         email: 'updated@example.com',
         nickname: '홍길동',
         profileImage: null,
