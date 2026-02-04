@@ -290,7 +290,7 @@ Phase 5: 알림 + OAuth 연동 (Integration)
 - [x] registerWod — should auto-set isBase=true for first WOD
 - [x] registerWod — should validate programData structure
 - [x] registerWod — should store rawText as-is
-- [ ] registerWod — should throw ValidationException for invalid programData
+- [x] registerWod — should throw ValidationException for invalid programData
 - [x] getWodsByDate — should return Base WOD for given date/box
 - [x] getWodsByDate — should return empty personalWods when none exist
 - [x] getWodsByDate — should return null baseWod when none exist
@@ -298,11 +298,11 @@ Phase 5: 알림 + OAuth 연동 (Integration)
 
 ### Phase 2: WOD Handlers
 
-- [ ] POST /wods — should register WOD with valid data
-- [ ] POST /wods — should auto-set isBase=true for first WOD
-- [ ] POST /wods — should throw ValidationException for invalid programData
-- [ ] GET /wods/:boxId/:date — should return Base and Personal WODs for date
-- [ ] GET /wods/:boxId/:date — should return empty arrays when no WODs
+- [x] POST /wods — should register WOD with valid data
+- [x] POST /wods — should auto-set isBase=true for first WOD
+- [x] POST /wods — should throw ValidationException for invalid programData
+- [x] GET /wods/:boxId/:date — should return Base and Personal WODs for date
+- [x] GET /wods/:boxId/:date — should return empty arrays when no WODs
 
 ### Phase 3: Normalization
 
@@ -326,11 +326,11 @@ Phase 5: 알림 + OAuth 연동 (Integration)
 
 - [x] createProposal — should create proposal when Personal WOD differs
 - [x] createProposal — should set status to 'pending'
-- [ ] createProposal — should not create for identical WODs
+- [x] createProposal — should not create for identical WODs
 - [x] approveProposal — should swap Base and Personal WOD
-- [ ] approveProposal — should set old Base isBase=false
-- [ ] approveProposal — should set new Base isBase=true
-- [ ] approveProposal — should update status to 'approved'
+- [x] approveProposal — should set old Base isBase=false
+- [x] approveProposal — should set new Base isBase=true
+- [x] approveProposal — should update status to 'approved'
 - [x] approveProposal — should throw ProposalNotFoundException for invalid id
 - [x] approveProposal — should throw UnauthorizedApprovalException for non-creator
 - [x] registerWod — should create Personal WOD when Base exists
@@ -342,27 +342,27 @@ Phase 5: 알림 + OAuth 연동 (Integration)
 
 ### Phase 3: Proposal Handlers
 
-- [ ] POST /wods/proposals — should create proposal with valid data
-- [ ] POST /wods/proposals/:id/approve — should approve when Base creator
-- [ ] POST /wods/proposals/:id/approve — should throw UnauthorizedApprovalException
-- [ ] POST /wods/proposals/:id/approve — should throw ProposalNotFoundException
-- [ ] POST /wods/proposals/:id/reject — should reject with valid id
+- [x] POST /wods/proposals — should create proposal with valid data
+- [x] POST /wods/proposals/:id/approve — should approve when Base creator
+- [x] POST /wods/proposals/:id/approve — should throw UnauthorizedApprovalException
+- [x] POST /wods/proposals/:id/approve — should throw ProposalNotFoundException
+- [x] POST /wods/proposals/:id/reject — should reject with valid id
 
 ### Phase 4: Selection Services
 
 - [x] selectWod — should create selection with snapshot
 - [x] selectWod — should copy programData to snapshotData
 - [x] selectWod — should throw NotFoundException for invalid WOD id
-- [ ] selectWod — should enforce UNIQUE(userId, boxId, date)
-- [ ] selectWod — should preserve snapshotData when Base changes
+- [x] selectWod — should enforce UNIQUE(userId, boxId, date)
+- [x] selectWod — should preserve snapshotData when Base changes
 - [x] getSelections — should return selections by date range
 - [x] getSelections — should return all selections when no date range specified
-- [ ] getSelections — should return empty array for no selections
+- [x] getSelections — should return empty array for no selections
 - [x] getSelections — should include snapshotData
 
 ### Phase 4: Selection Handlers
 
-- [ ] POST /wods/:wodId/select — should select WOD with valid data
-- [ ] POST /wods/:wodId/select — should throw NotFoundException
-- [ ] GET /wods/selections — should return selections for date range
-- [ ] GET /wods/selections — should return selections without date range
+- [x] POST /wods/:wodId/select — should select WOD with valid data
+- [x] POST /wods/:wodId/select — should throw NotFoundException
+- [x] GET /wods/selections — should return selections for date range
+- [x] GET /wods/selections — should return selections without date range
