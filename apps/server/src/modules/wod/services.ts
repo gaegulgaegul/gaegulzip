@@ -5,6 +5,7 @@ import { RegisterWodInput, WodWithComparison, WodsByDateResult, CreateProposalIn
 import { NotFoundException, BusinessException, ValidationException } from '../../utils/errors';
 import { compareWods } from './comparison';
 import { programDataSchema } from './validators';
+import * as wodProbe from './wod.probe';
 
 /**
  * WOD 등록 비즈니스 로직
@@ -48,6 +49,15 @@ export async function registerWod(data: RegisterWodInput): Promise<WodWithCompar
 
   // 4. Base WOD가 없으면 comparisonResult는 'identical'
   if (!existingBase) {
+    wodProbe.baseWodRegistered({ wodId: newWod.id, boxId: data.boxId, date: data.date, createdBy: data.createdBy });
+
+    // Phase 5: 박스 멤버 전체에게 WOD 등록 알림
+    // await sendPushNotification({
+    //   type: WodEventType.WOD_REGISTERED,
+    //   recipients: boxMembers,
+    //   data: { wodId: newWod.id, boxId: data.boxId, date: data.date }
+    // });
+
     return {
       ...newWod,
       programData: newWod.programData as any,
@@ -70,6 +80,8 @@ export async function registerWod(data: RegisterWodInput): Promise<WodWithCompar
       proposedWodId: newWod.id,
     });
   }
+
+  wodProbe.personalWodRegistered({ wodId: newWod.id, boxId: data.boxId, date: data.date, createdBy: data.createdBy, comparisonResult });
 
   return {
     ...newWod,
@@ -149,6 +161,15 @@ export async function createProposal(data: CreateProposalInput): Promise<Propose
     })
     .returning();
 
+  wodProbe.proposalCreated({ proposalId: proposal.id, baseWodId: data.baseWodId, proposedWodId: data.proposedWodId });
+
+  // Phase 5: Base WOD 등록자에게 차이 감지 알림
+  // await sendPushNotification({
+  //   type: WodEventType.WOD_DIFFERENCE_DETECTED,
+  //   recipients: [baseWod.createdBy],
+  //   data: { proposalId: proposal.id, baseWodId: data.baseWodId, proposedWodId: data.proposedWodId }
+  // });
+
   return {
     ...proposal,
     status: proposal.status as 'pending' | 'approved' | 'rejected',
@@ -213,6 +234,15 @@ export async function approveProposal(
       })
       .where(eq(proposedChanges.id, proposalId));
   });
+
+  wodProbe.proposalApproved({ proposalId, oldBaseWodId: proposal.baseWodId, newBaseWodId: proposal.proposedWodId, approvedBy: approverId });
+
+  // Phase 5: 기존 Base 선택자들에게 Base WOD 변경 알림
+  // await sendPushNotification({
+  //   type: WodEventType.BASE_WOD_CHANGED,
+  //   recipients: previousBaseSelectors,
+  //   data: { oldWodId: proposal.baseWodId, newWodId: proposal.proposedWodId, boxId, date }
+  // });
 }
 
 /**
@@ -296,6 +326,8 @@ export async function selectWod(data: SelectWodInput): Promise<WodSelection> {
       },
     })
     .returning();
+
+  wodProbe.wodSelected({ userId: data.userId, wodId: data.wodId, boxId: data.boxId, date: data.date });
 
   return {
     ...selection,

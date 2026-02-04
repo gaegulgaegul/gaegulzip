@@ -3,6 +3,7 @@ import { boxes, boxMembers } from './schema';
 import { eq, and, ilike, or, sql } from 'drizzle-orm';
 import { CreateBoxInput, JoinBoxInput, SearchBoxInput, BoxWithMemberCount } from './types';
 import { NotFoundException, BusinessException } from '../../utils/errors';
+import * as boxProbe from './box.probe';
 
 /**
  * 박스 생성
@@ -16,6 +17,8 @@ export async function createBox(data: CreateBoxInput) {
     description: data.description ?? null,
     createdBy: data.createdBy,
   }).returning();
+
+  boxProbe.created({ boxId: box.id, name: box.name, region: box.region, createdBy: box.createdBy });
 
   return box;
 }
@@ -60,6 +63,12 @@ export async function joinBox(data: JoinBoxInput) {
     boxId: data.boxId,
     userId: data.userId,
   }).returning();
+
+  if (previousBoxId) {
+    boxProbe.boxSwitched({ userId: data.userId, previousBoxId, newBoxId: data.boxId });
+  } else {
+    boxProbe.memberJoined({ boxId: data.boxId, userId: data.userId });
+  }
 
   return {
     membership: member,

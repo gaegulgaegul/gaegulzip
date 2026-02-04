@@ -3,6 +3,18 @@ export type WeightUnit = 'kg' | 'lb' | 'bw';
 export type ComparisonResult = 'identical' | 'similar' | 'different';
 export type ProposalStatus = 'pending' | 'approved' | 'rejected';
 
+/**
+ * WOD 이벤트 타입 (Phase 5 알림용)
+ */
+export enum WodEventType {
+  /** 오늘의 WOD가 등록되었습니다 */
+  WOD_REGISTERED = 'WOD_REGISTERED',
+  /** 오늘 WOD가 다르게 등록된 것 같습니다 */
+  WOD_DIFFERENCE_DETECTED = 'WOD_DIFFERENCE_DETECTED',
+  /** Base WOD가 변경되었습니다 */
+  BASE_WOD_CHANGED = 'BASE_WOD_CHANGED',
+}
+
 export interface Movement {
   name: string;
   reps?: number;
