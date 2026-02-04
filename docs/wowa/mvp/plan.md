@@ -60,7 +60,7 @@ WOD는 하나다 (Rx/Scaled)      →  Base WOD와 Personal WOD가 공존
 
 | Feature | Server | Mobile | Priority |
 |---------|--------|--------|----------|
-| Box 관리 (생성/가입) | Box + BoxMember 스키마, CRUD API | 박스 생성/가입 UI | P0 |
+| Box 관리 (검색/가입/변경) | Box(+region) + BoxMember 스키마, 검색/가입(자동탈퇴)/생성(자동가입) API | 박스 검색/가입/변경 UI (단일 박스 정책) | P0 |
 | WOD 등록 (텍스트) | WOD 등록 API, Base 자동 지정 | WOD 등록 화면 | P0 |
 | WOD 조회 (날짜별) | 날짜별 WOD 조회 API | 홈 화면 (오늘의 WOD) | P0 |
 | Base/Personal 분리 | 구조적 비교, Personal 자동 분류 | WOD 상세 (Base vs Personal) | P0 |
@@ -88,8 +88,8 @@ WOD는 하나다 (Rx/Scaled)      →  Base WOD와 Personal WOD가 공존
 
 | Step | Task | Details |
 |------|------|---------|
-| 1-1 | Box 스키마 설계 | `boxes`, `box_members` 테이블 (Drizzle) |
-| 1-2 | Box CRUD API | 박스 생성, 조회, 가입, 멤버 목록 |
+| 1-1 | Box 스키마 설계 | `boxes` (region 필드 포함), `box_members` 테이블 (Drizzle), 단일 박스 정책 |
+| 1-2 | Box API | 내 박스 확인, 박스 검색(이름+지역), 생성(+자동가입), 가입(+자동탈퇴), 상세조회, 멤버 목록 |
 | 1-3 | WOD 스키마 설계 | `wods` 테이블 (program_data JSONB, is_base) |
 | 1-4 | WOD 등록 API | POST /wod — 텍스트 입력, Base 자동 지정 |
 | 1-5 | WOD 조회 API | GET /wod/:boxId/:date — Base + Personal 반환 |
@@ -235,3 +235,134 @@ Phase 5: 알림 + OAuth 연동 (Integration)
 > Phase 1~3은 서버 TDD로 빠르게 진행.
 > Phase 4에서 모바일 화면 구현.
 > Phase 5에서 전체 통합.
+
+---
+
+## 9. Server TDD Test Checklist
+
+> 상세 작업 계획: `docs/wowa/mvp/server-work-plan.md`
+> TDD Cycle: Red → Green → Refactor
+> Test Command: `cd apps/server && pnpm test`
+
+### Phase 0: 구조 변경 (Structural)
+
+- [x] boxes 테이블에 region 컬럼 추가
+- [x] Box types에 region 필드 추가 (Box, CreateBoxInput, SearchBoxInput, BoxWithMemberCount, MyBoxResult)
+- [x] 기존 테스트 mock 데이터에 region 추가
+
+### Phase 1: Box Services
+
+- [x] createBox — should create box with valid data
+- [x] joinBox — should auto-leave previous box when joining new box
+- [x] joinBox — should return existing membership when joining same box
+- [x] searchBoxes — should search boxes by name (ILIKE)
+- [x] searchBoxes — should search boxes by region (ILIKE)
+- [x] searchBoxes — should search boxes by name and region (AND)
+- [x] searchBoxes — should return empty array when no match
+- [x] searchBoxes — should include memberCount in search results
+- [x] searchBoxes — should return empty array when no query params
+- [x] getCurrentBox — should return current box when user has membership
+- [x] getCurrentBox — should return null when user has no membership
+- [x] getCurrentBox — should include memberCount in response
+- [x] getCurrentBox — should include joinedAt timestamp
+- [x] getBoxMembers — should list all members of a box
+- [x] getBoxMembers — should include joinedAt timestamp
+- [x] getBoxMembers — should return empty array for box with no members
+
+### Phase 1: Box Handlers
+
+- [x] GET /boxes/me — should return current box when user has membership
+- [x] GET /boxes/me — should return null when user has no membership
+- [x] GET /boxes/search — should search boxes by name query param
+- [x] GET /boxes/search — should search boxes by region query param
+- [x] GET /boxes/search — should return empty array when no query params
+- [x] POST /boxes — should create box with name, region, and description
+- [x] POST /boxes — should auto-join creator after box creation
+- [x] POST /boxes/:boxId/join — should join box with valid boxId
+- [x] POST /boxes/:boxId/join — should include previousBoxId when switching boxes
+- [x] GET /boxes/:boxId — should return box details by id
+- [x] GET /boxes/:boxId — should include memberCount in response
+- [x] GET /boxes/:boxId/members — should list all members of a box
+
+### Phase 2: WOD Services
+
+- [x] registerWod — should create Base WOD when first for date/box
+- [x] registerWod — should auto-set isBase=true for first WOD
+- [x] registerWod — should validate programData structure
+- [x] registerWod — should store rawText as-is
+- [ ] registerWod — should throw ValidationException for invalid programData
+- [x] getWodsByDate — should return Base WOD for given date/box
+- [x] getWodsByDate — should return empty personalWods when none exist
+- [x] getWodsByDate — should return null baseWod when none exist
+- [x] getWodsByDate — should return Personal WODs with comparisonResult
+
+### Phase 2: WOD Handlers
+
+- [ ] POST /wods — should register WOD with valid data
+- [ ] POST /wods — should auto-set isBase=true for first WOD
+- [ ] POST /wods — should throw ValidationException for invalid programData
+- [ ] GET /wods/:boxId/:date — should return Base and Personal WODs for date
+- [ ] GET /wods/:boxId/:date — should return empty arrays when no WODs
+
+### Phase 3: Normalization
+
+- [x] normalizeExerciseName — should normalize 'pullup' to 'pull-up'
+- [x] normalizeExerciseName — should normalize 'c&j' to 'clean-and-jerk'
+- [x] normalizeExerciseName — should normalize 'box jump' to 'box-jump'
+- [x] normalizeExerciseName — should return lowercase and trimmed name
+- [x] normalizeExerciseName — should handle unknown exercises
+
+### Phase 3: Comparison
+
+- [x] compareWods — should return 'identical' for same structure
+- [x] compareWods — should return 'different' for different type
+- [x] compareWods — should return 'different' for different movements count
+- [x] compareWods — should return 'different' for >10% timeCap difference
+- [x] compareWods — should return 'similar' for >10% reps difference
+- [x] compareWods — should return 'similar' for >5% weight difference
+- [x] compareWods — should normalize exercise names before comparison
+
+### Phase 3: Proposal Services
+
+- [x] createProposal — should create proposal when Personal WOD differs
+- [x] createProposal — should set status to 'pending'
+- [ ] createProposal — should not create for identical WODs
+- [x] approveProposal — should swap Base and Personal WOD
+- [ ] approveProposal — should set old Base isBase=false
+- [ ] approveProposal — should set new Base isBase=true
+- [ ] approveProposal — should update status to 'approved'
+- [x] approveProposal — should throw ProposalNotFoundException for invalid id
+- [x] approveProposal — should throw UnauthorizedApprovalException for non-creator
+- [x] registerWod — should create Personal WOD when Base exists
+- [x] registerWod — should auto-create proposal when different
+- [x] registerWod — should not create proposal when identical
+- [x] rejectProposal — should throw NotFoundException for invalid proposal id
+- [x] rejectProposal — should throw BusinessException for non-creator rejection attempt
+- [x] rejectProposal — should update proposal status to rejected
+
+### Phase 3: Proposal Handlers
+
+- [ ] POST /wods/proposals — should create proposal with valid data
+- [ ] POST /wods/proposals/:id/approve — should approve when Base creator
+- [ ] POST /wods/proposals/:id/approve — should throw UnauthorizedApprovalException
+- [ ] POST /wods/proposals/:id/approve — should throw ProposalNotFoundException
+- [ ] POST /wods/proposals/:id/reject — should reject with valid id
+
+### Phase 4: Selection Services
+
+- [x] selectWod — should create selection with snapshot
+- [x] selectWod — should copy programData to snapshotData
+- [x] selectWod — should throw NotFoundException for invalid WOD id
+- [ ] selectWod — should enforce UNIQUE(userId, boxId, date)
+- [ ] selectWod — should preserve snapshotData when Base changes
+- [x] getSelections — should return selections by date range
+- [x] getSelections — should return all selections when no date range specified
+- [ ] getSelections — should return empty array for no selections
+- [x] getSelections — should include snapshotData
+
+### Phase 4: Selection Handlers
+
+- [ ] POST /wods/:wodId/select — should select WOD with valid data
+- [ ] POST /wods/:wodId/select — should throw NotFoundException
+- [ ] GET /wods/selections — should return selections for date range
+- [ ] GET /wods/selections — should return selections without date range
