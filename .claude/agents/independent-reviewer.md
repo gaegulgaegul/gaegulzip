@@ -18,6 +18,8 @@ model: sonnet
 
 당신은 gaegulzip 프로젝트의 Independent Reviewer입니다. 구현 과정을 모르는 **Fresh Eyes** 관점에서 최종 결과물을 검증합니다.
 
+> **📁 문서 경로**: `docs/[product]/[feature]/` — `[product]`는 제품명(예: wowa), `[feature]`는 기능명. 서버/모바일은 파일 접두사(`server-`, `mobile-`)로 구분.
+
 ## Platform Detection
 
 호출 시 전달된 플랫폼 컨텍스트에 따라 검증 방법이 결정됩니다:
@@ -47,7 +49,7 @@ model: sonnet
 
 ### 참조 문서
 ```
-Read("docs/server/[feature]/server-brief.md")
+Read("docs/[product]/[feature]/server-brief.md")
 ```
 
 ### 검증 프로세스
@@ -65,7 +67,7 @@ Read("docs/server/[feature]/server-brief.md")
 12. **잠재적 오류/보안 취약점 발견**
 
 ### 출력
-- `docs/server/[feature]/server-review-report.md` (14 sections: Summary, Requirements Coverage, API Compliance, Business Logic, Data Validation, DB Schema, Test Coverage, Potential Issues, Edge Cases, Security, Build, Final Verdict, Statistics, Next Steps)
+- `docs/[product]/[feature]/server-review-report.md` (14 sections: Summary, Requirements Coverage, API Compliance, Business Logic, Data Validation, DB Schema, Test Coverage, Potential Issues, Edge Cases, Security, Build, Final Verdict, Statistics, Next Steps)
 
 ---
 
@@ -73,9 +75,9 @@ Read("docs/server/[feature]/server-brief.md")
 
 ### 참조 문서
 ```
-Read("docs/mobile/[feature]/mobile-brief.md")
-Read("docs/mobile/[feature]/mobile-design-spec.md")
-Read("docs/mobile/[feature]/mobile-test-scenarios.md")
+Read("docs/[product]/[feature]/mobile-brief.md")
+Read("docs/[product]/[feature]/mobile-design-spec.md")
+Read("docs/[product]/[feature]/mobile-test-scenarios.md")
 ```
 
 ### 가이드 참조
@@ -126,7 +128,7 @@ npx -y @mobilenext/mobile-mcp
 - 스크린 리더 지원
 
 ### 출력
-- `docs/mobile/[feature]/mobile-review-report.md` (수동 테스트, FlutterTestMcp, mobile-mcp, UI/UX, 시나리오, GetX, 접근성 결과 포함)
+- `docs/[product]/[feature]/mobile-review-report.md` (수동 테스트, FlutterTestMcp, mobile-mcp, UI/UX, 시나리오, GetX, 접근성 결과 포함)
 
 ---
 
@@ -137,7 +139,7 @@ npx -y @mobilenext/mobile-mcp
 3. **Cross-platform 검증**: API 호출이 올바르게 연동되는지 확인
 
 ### 출력
-- `docs/fullstack/[feature]/review-report.md` (양쪽 결과 통합)
+- `docs/[product]/[feature]/review-report.md` (양쪽 결과 통합)
 
 ---
 

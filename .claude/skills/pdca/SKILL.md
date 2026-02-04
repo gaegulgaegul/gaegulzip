@@ -61,12 +61,19 @@ task-template: "[PDCA] {feature}"
 ## Config Reference
 
 Read `bkit.config.json` to determine:
+- `context.defaultLanguage` → **모든 출력(문서, 상태 메시지, 에이전트 응답)에 이 언어 사용**
 - `pdca.planDocPaths` → document output paths
 - `pdca.designDocPaths` → document output paths
 - `platforms.{platform}.agents` → agent mapping per phase
 - `pdca.statusFile` → `.pdca-status.json` path
 - `pdca.matchRateThreshold` → 90 (default)
 - `pdca.maxIterations` → 5 (default)
+
+## Language Rule
+
+**All output MUST be in the language specified by `bkit.config.json` → `context.defaultLanguage`.**
+When calling agents via Task tool, always append to the prompt:
+`\nIMPORTANT: Respond and write all documents in {defaultLanguage}. Code, paths, and technical terms stay in English.`
 
 ## Status Tracking
 
@@ -110,7 +117,7 @@ Read `bkit.config.json` to determine:
 
 ### plan (Plan Phase) — PO Agent → CTO Agent
 
-**Step 1: Product Owner creates user stories**
+**Step 1: Product Owner creates unified user story**
 
 Call `product-owner` agent via Task tool:
 
@@ -119,13 +126,10 @@ Task(subagent_type="product-owner", prompt="""
 Feature: {feature}
 Context: [PRD, research docs, or user's description]
 
-Create user stories. Do NOT determine platform yet.
-Write to a temporary location or include in response.
-Follow the PO agent's Fullstack mode: write both server and mobile user stories.
+Create a unified user story focusing on WHAT (user needs), not HOW (technical implementation).
+Do NOT determine platform yet. Do NOT include API specs or UI details.
 
-Output:
-- docs/server/{feature}/server-user-story.md
-- docs/mobile/{feature}/mobile-user-story.md
+Output: docs/{product}/{feature}/user-story.md
 """)
 ```
 
@@ -137,9 +141,8 @@ After PO completes, call `cto` agent via Task tool:
 Task(subagent_type="cto", prompt="""
 Feature: {feature}
 
-PO has written user stories. Read them and perform platform routing:
-- Read docs/server/{feature}/server-user-story.md
-- Read docs/mobile/{feature}/mobile-user-story.md
+PO has written user story. Read it and perform platform routing:
+- Read docs/{product}/{feature}/user-story.md
 
 Execute your ⓪ 플랫폼 라우팅 (4-step routing) to determine: Server / Mobile / Fullstack.
 
@@ -157,8 +160,7 @@ Output your decision. The result will be stored in .pdca-status.json as "platfor
       "platform": "{CTO's decision}",
       "startedAt": "now",
       "documents": {
-        "plan-server": "docs/server/{feature}/server-user-story.md",
-        "plan-mobile": "docs/mobile/{feature}/mobile-user-story.md"
+        "plan": "docs/{product}/{feature}/user-story.md"
       }
     }
   }
@@ -192,9 +194,9 @@ Read .pdca-status.json → features.{feature}.platform
 Task(subagent_type="tech-lead", prompt="""
 Feature: {feature}
 Platform: Server
-User Story: docs/server/{feature}/server-user-story.md
+User Story: docs/{product}/{feature}/user-story.md
 
-Create technical design brief.
+Create technical design brief (including API specs, DB schema, business logic).
 Output: docs/server/{feature}/server-brief.md
 """)
 ```
@@ -203,9 +205,9 @@ Output: docs/server/{feature}/server-brief.md
 ```
 Task(subagent_type="ui-ux-designer", prompt="""
 Feature: {feature}
-User Stories: docs/mobile/{feature}/mobile-user-story.md
+User Story: docs/{product}/{feature}/user-story.md
 
-Create design specification.
+Create design specification (including UI layouts, interactions, components).
 Output: docs/mobile/{feature}/mobile-design-spec.md
 """)
 
@@ -213,8 +215,8 @@ Output: docs/mobile/{feature}/mobile-design-spec.md
 Task(subagent_type="tech-lead", prompt="""
 Feature: {feature}
 Platform: Mobile
+User Story: docs/{product}/{feature}/user-story.md
 Design Spec: docs/mobile/{feature}/mobile-design-spec.md
-User Stories: docs/mobile/{feature}/mobile-user-story.md
 
 Create technical brief based on design spec.
 Output: docs/mobile/{feature}/mobile-brief.md
@@ -373,8 +375,9 @@ Output: docs/{platform}/{feature}/{platform}-cto-review.md
 4. Update `.pdca-status.json`: phase = "archived"
 
 **Documents to Archive** (check all locations per platform):
-- Server: `docs/server/{feature}/` (server-user-story, server-brief, server-work-plan, server-cto-review)
-- Mobile: `docs/mobile/{feature}/` (mobile-user-story, mobile-design-spec, mobile-brief, mobile-work-plan, mobile-cto-review)
+- Plan: `docs/{product}/{feature}/user-story.md`
+- Server: `docs/server/{feature}/` (server-brief, server-work-plan, server-cto-review)
+- Mobile: `docs/mobile/{feature}/` (mobile-design-spec, mobile-brief, mobile-work-plan, mobile-cto-review)
 - Analysis: `docs/03-analysis/{feature}.analysis.md`
 - Report: `docs/04-report/{feature}.report.md`
 
@@ -416,12 +419,13 @@ Match Rate: {matchRate}%
 ## Agent Integration Summary
 
 ```
-Plan:    PO ──────→ CTO (routing)
-              │           │
-              │           ↓ platform stored
-Design:  tech-lead ←─── platform ───→ ui-ux-designer → tech-lead(mobile)
+Plan:    PO (user-story.md) ──→ CTO (platform routing)
+              │                        │
+              │                        ↓ platform stored
+Design:  tech-lead ←── platform ──→ ui-ux-designer → tech-lead(mobile)
+         (server-brief)               (design-spec)    (mobile-brief)
               │                              │
-Do:      CTO (distribute) ──→ node-developer + flutter-developer
+Do:      CTO (work-plan) ──→ node-developer + flutter-developer
               │                    │                │
 Analyze: gap-detector ────→ CTO (review)
               │

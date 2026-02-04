@@ -25,8 +25,7 @@
       "docs/{platform}/{feature}/mobile-design-spec.md"
     ],
     "planDocPaths": [
-      "docs/{platform}/{feature}/server-user-story.md",
-      "docs/{platform}/{feature}/mobile-user-story.md",
+      "docs/{platform}/{feature}/user-story.md",
       "docs/{platform}/{feature}/plan.md"
     ],
     "statusFile": "docs/.pdca-status.json",
