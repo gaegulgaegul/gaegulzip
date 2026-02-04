@@ -1,0 +1,162 @@
+{
+  "timestamp": "2026-02-03T03:51:21.246Z",
+  "reason": "compaction",
+  "status": {
+    "version": "2.0",
+    "lastUpdated": "2026-02-03T03:51:14.532Z",
+    "activeFeatures": [
+      "wowa",
+      "box",
+      "server"
+    ],
+    "primaryFeature": "box",
+    "features": {
+      "wowa": {
+        "phase": "do",
+        "platform": "fullstack",
+        "startedAt": "2026-02-03T00:00:00.000Z",
+        "documents": {
+          "plan": "docs/wowa/mvp/plan.md",
+          "prd": "docs/wowa/mvp/prd.md",
+          "research": "docs/wowa/mvp/research.md",
+          "design-server": "docs/wowa/mvp/server-brief.md",
+          "design-mobile-spec": "docs/wowa/mvp/mobile-design-spec.md",
+          "design-mobile": "docs/wowa/mvp/mobile-brief.md"
+        },
+        "requirements": [],
+        "timestamps": {
+          "started": "2026-02-03T00:00:00.000Z",
+          "lastUpdated": "2026-02-03T01:15:01.564Z"
+        }
+      },
+      "box": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-03T02:36:13.723Z",
+          "lastUpdated": "2026-02-03T03:50:46.236Z"
+        },
+        "lastFile": "/Users/lms/dev/repository/feature-wowa-mvp/apps/server/src/modules/box/services.ts"
+      },
+      "server": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-03T02:36:27.557Z",
+          "lastUpdated": "2026-02-03T03:51:14.532Z"
+        },
+        "lastFile": "/Users/lms/dev/repository/feature-wowa-mvp/apps/server/tests/unit/box/services.test.ts"
+      }
+    },
+    "pipeline": {
+      "currentPhase": 1,
+      "level": "Dynamic",
+      "phaseHistory": []
+    },
+    "session": {
+      "startedAt": "2026-02-03T01:15:01.566Z",
+      "onboardingCompleted": false,
+      "lastActivity": "2026-02-03T03:51:14.532Z"
+    },
+    "history": [
+      {
+        "timestamp": "2026-02-03T02:36:13.724Z",
+        "feature": "box",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T02:36:16.706Z",
+        "feature": "box",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T02:36:27.557Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T02:37:45.542Z",
+        "feature": "box",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T02:38:10.074Z",
+        "feature": "box",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T02:40:59.383Z",
+        "feature": "box",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T02:41:42.078Z",
+        "feature": "box",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T02:41:49.763Z",
+        "feature": "box",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T02:41:56.947Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T02:42:51.020Z",
+        "feature": "box",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T02:42:55.851Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T02:43:15.513Z",
+        "feature": "box",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T03:50:31.258Z",
+        "feature": "box",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T03:50:46.236Z",
+        "feature": "box",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-03T03:51:14.532Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      }
+    ]
+  }
+}
