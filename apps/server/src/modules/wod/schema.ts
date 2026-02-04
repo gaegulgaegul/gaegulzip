@@ -24,8 +24,8 @@ export const wods = pgTable('wods', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   // Partial unique index: Base WOD는 box + date 조합당 최대 1개
-  // Note: SQL에서 생성 시 WHERE 절 추가 필요 (Drizzle ORM 한계로 마이그레이션에서 수동 추가)
-  uniqueBoxDateBase: unique('unique_box_date_base').on(table.boxId, table.date),
+  // Drizzle ORM은 partial unique index를 지원하지 않으므로 SQL 마이그레이션에서 수동 생성:
+  // CREATE UNIQUE INDEX unique_box_date_base ON wods (box_id, date) WHERE is_base = true;
   boxIdDateIdx: index('idx_wods_box_id_date').on(table.boxId, table.date),
   createdByIdx: index('idx_wods_created_by').on(table.createdBy),
 }));
