@@ -4,7 +4,10 @@ import { oauthLogin, refreshToken, logout } from '../../../src/modules/auth/hand
 import { oauthLoginSchema, refreshTokenSchema, logoutSchema } from '../../../src/modules/auth/validators';
 import {
   findAppByCode,
-  upsertUser,
+  findAppById,
+  findUserByProvider,
+  createUser,
+  updateUserLogin,
   generateJWT,
   generateRefreshToken,
   storeRefreshToken,
@@ -34,7 +37,10 @@ vi.mock('../../../src/modules/auth/validators', () => ({
 
 vi.mock('../../../src/modules/auth/services', () => ({
   findAppByCode: vi.fn(),
-  upsertUser: vi.fn(),
+  findAppById: vi.fn(),
+  findUserByProvider: vi.fn(),
+  createUser: vi.fn(),
+  updateUserLogin: vi.fn(),
   generateJWT: vi.fn(),
   generateRefreshToken: vi.fn(),
   storeRefreshToken: vi.fn(),
@@ -146,7 +152,8 @@ describe('oauthLogin handler', () => {
       profileImage: 'https://example.com/image.jpg',
     });
 
-    vi.mocked(upsertUser).mockResolvedValue({
+    vi.mocked(findUserByProvider).mockResolvedValue(null);
+    vi.mocked(createUser).mockResolvedValue({
       id: 1,
       appId: 1,
       provider: 'kakao',
@@ -294,7 +301,8 @@ describe('oauthLogin handler', () => {
       profileImage: 'https://naver.com/image.jpg',
     });
 
-    vi.mocked(upsertUser).mockResolvedValue({
+    vi.mocked(findUserByProvider).mockResolvedValue(null);
+    vi.mocked(createUser).mockResolvedValue({
       id: 1,
       appId: 1,
       provider: 'naver',
@@ -370,7 +378,8 @@ describe('oauthLogin handler', () => {
       profileImage: 'https://google.com/image.jpg',
     });
 
-    vi.mocked(upsertUser).mockResolvedValue({
+    vi.mocked(findUserByProvider).mockResolvedValue(null);
+    vi.mocked(createUser).mockResolvedValue({
       id: 1,
       appId: 1,
       provider: 'google',
@@ -448,7 +457,8 @@ describe('oauthLogin handler', () => {
       profileImage: null,
     });
 
-    vi.mocked(upsertUser).mockResolvedValue({
+    vi.mocked(findUserByProvider).mockResolvedValue(null);
+    vi.mocked(createUser).mockResolvedValue({
       id: 1,
       appId: 1,
       provider: 'apple',
@@ -516,6 +526,14 @@ describe('refreshToken handler', () => {
     };
 
     vi.clearAllMocks();
+
+    // refreshToken 핸들러는 jwt.decode → findAppById → verifyRefreshToken 순서로 호출
+    vi.mocked(findAppById).mockResolvedValue({
+      id: 1,
+      jwtSecret: 'test-secret',
+      accessTokenExpiresIn: '30m',
+      refreshTokenExpiresIn: '14d',
+    } as any);
   });
 
   it('should rotate refresh token successfully', async () => {
@@ -549,8 +567,7 @@ describe('refreshToken handler', () => {
     });
 
     vi.mocked(findRefreshTokenByJti).mockResolvedValue(mockStoredToken);
-    vi.mocked(findAppByCode).mockResolvedValue(mockApp as any);
-    vi.mocked(upsertUser).mockResolvedValue(mockUser as any);
+    vi.mocked(findAppById).mockResolvedValue(mockApp as any);
 
     vi.mocked(rotateRefreshToken).mockResolvedValue({
       newAccessToken: 'new-access-token',
@@ -682,6 +699,12 @@ describe('logout handler', () => {
     };
 
     vi.clearAllMocks();
+
+    // logout 핸들러는 jwt.decode → findAppById → verifyRefreshToken 순서로 호출
+    vi.mocked(findAppById).mockResolvedValue({
+      id: 1,
+      jwtSecret: 'test-secret',
+    } as any);
   });
 
   it('should revoke single refresh token', async () => {
