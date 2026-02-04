@@ -8,6 +8,8 @@ export const boxes = pgTable('boxes', {
   id: serial('id').primaryKey(),
   /** 박스 이름 (예: 'CrossFit Seoul') */
   name: varchar('name', { length: 255 }).notNull(),
+  /** 박스 지역 (예: '서울 강남구') */
+  region: varchar('region', { length: 255 }).notNull(),
   /** 박스 설명/소개 */
   description: text('description'),
   /** 박스 생성자 사용자 ID (FK 제약조건 없음, users.id 참조) */
@@ -18,6 +20,8 @@ export const boxes = pgTable('boxes', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   createdByIdx: index('idx_boxes_created_by').on(table.createdBy),
+  nameIdx: index('idx_boxes_name').on(table.name),
+  regionIdx: index('idx_boxes_region').on(table.region),
 }));
 
 /**
