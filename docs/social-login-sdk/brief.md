@@ -89,7 +89,7 @@
 - [ ] 패키지가 `SocialLoginProvider` 추상 클래스를 export한다
 - [ ] 패키지가 4개 프로바이더 구현체(Kakao, Naver, Google, Apple)를 포함한다
 - [ ] 패키지가 `AuthStateService` (인증 상태 관리), `AuthInterceptor` (자동 토큰 갱신), `AuthRepository` (API 통신)를 포함한다
-- [ ] 패키지가 `SocialLoginButton` 위젯을 포함한다 (design_system 패키지에서 이동)
+- [ ] 패키지가 `SocialLoginButton` 위젯을 re-export한다 (design_system 패키지에 유지, UI 컴포넌트 분리 원칙)
 - [ ] 패키지가 `AuthSdk.initialize(appCode, apiBaseUrl)` 메서드로 초기화된다
 - [ ] 패키지가 WOWA 앱에 특정한 로직(하드코딩된 라우트, 화면 이동 등)을 포함하지 않는다
 - [ ] 패키지가 `core`, `api` 패키지에 의존한다 (design_system은 필요 시 포함)

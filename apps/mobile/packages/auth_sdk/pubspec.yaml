@@ -26,6 +26,8 @@ dependencies:
     path: ../core
   api:
     path: ../api
+  design_system:
+    path: ../design_system
 
   # Social login SDKs
   kakao_flutter_sdk_user: ^1.9.0
