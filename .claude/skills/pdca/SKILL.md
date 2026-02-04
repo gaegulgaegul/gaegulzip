@@ -64,6 +64,8 @@ Read `bkit.config.json` to determine:
 - `context.defaultLanguage` → **모든 출력(문서, 상태 메시지, 에이전트 응답)에 이 언어 사용**
 - `pdca.planDocPaths` → document output paths
 - `pdca.designDocPaths` → document output paths
+- `pdca.analyzeDocPaths` → analysis document output paths
+- `pdca.reportDocPaths` → report document output paths
 - `platforms.{platform}.agents` → agent mapping per phase
 - `pdca.statusFile` → `.pdca-status.json` path
 - `pdca.matchRateThreshold` → 90 (default)
@@ -185,8 +187,8 @@ Read .pdca-status.json → features.{feature}.platform
 
 | Platform | Agents | Output |
 |----------|--------|--------|
-| **Server** | `server/tech-lead` | `docs/server/{feature}/server-brief.md` |
-| **Mobile** | `mobile/ui-ux-designer` → `mobile/tech-lead` | `docs/mobile/{feature}/mobile-design-spec.md`, `docs/mobile/{feature}/mobile-brief.md` |
+| **Server** | `server/tech-lead` | `docs/{product}/{feature}/server-brief.md` |
+| **Mobile** | `mobile/ui-ux-designer` → `mobile/tech-lead` | `docs/{product}/{feature}/mobile-design-spec.md`, `docs/{product}/{feature}/mobile-brief.md` |
 | **Fullstack** | All above (parallel where possible) | Both server + mobile docs |
 
 **Server** — call `tech-lead` (server):
@@ -197,7 +199,7 @@ Platform: Server
 User Story: docs/{product}/{feature}/user-story.md
 
 Create technical design brief (including API specs, DB schema, business logic).
-Output: docs/server/{feature}/server-brief.md
+Output: docs/{product}/{feature}/server-brief.md
 """)
 ```
 
@@ -208,7 +210,7 @@ Feature: {feature}
 User Story: docs/{product}/{feature}/user-story.md
 
 Create design specification (including UI layouts, interactions, components).
-Output: docs/mobile/{feature}/mobile-design-spec.md
+Output: docs/{product}/{feature}/mobile-design-spec.md
 """)
 
 # After ui-ux-designer completes:
@@ -216,10 +218,10 @@ Task(subagent_type="tech-lead", prompt="""
 Feature: {feature}
 Platform: Mobile
 User Story: docs/{product}/{feature}/user-story.md
-Design Spec: docs/mobile/{feature}/mobile-design-spec.md
+Design Spec: docs/{product}/{feature}/mobile-design-spec.md
 
 Create technical brief based on design spec.
-Output: docs/mobile/{feature}/mobile-brief.md
+Output: docs/{product}/{feature}/mobile-brief.md
 """)
 ```
 
@@ -239,6 +241,44 @@ Output: docs/mobile/{feature}/mobile-brief.md
 
 ### do (Do Phase) — CTO Distribution → Dev Agents
 
+**Step 0: Prerequisite Validation (MANDATORY — before any agent call)**
+
+CTO를 호출하기 **전에** 아래 선행조건을 모두 검증합니다. 하나라도 누락되면 **즉시 중단**하고 사용자에게 원인을 알려줍니다.
+
+```
+# 1. 플랫폼 결정 여부 확인
+Read(".pdca-status.json") → features.{feature}.platform
+IF platform is missing or empty:
+  ❌ STOP — 사용자에게 알림:
+  "Do 단계를 실행할 수 없습니다.
+   원인: 플랫폼이 결정되지 않았습니다. Plan 단계에서 CTO가 플랫폼 라우팅을 완료해야 합니다.
+   해결: `/pdca plan {feature}`를 먼저 실행하세요."
+
+# 2. Plan 문서 존재 확인
+Glob("docs/{product}/{feature}/user-story.md")
+IF not found:
+  ❌ STOP — 사용자에게 알림:
+  "Do 단계를 실행할 수 없습니다.
+   원인: user-story.md가 없습니다. Plan 단계가 완료되지 않았습니다.
+   해결: `/pdca plan {feature}`를 먼저 실행하세요."
+
+# 3. Design 문서 존재 확인 (플랫폼별)
+IF platform == "server" or "fullstack":
+  Glob("docs/{product}/{feature}/server-brief.md")
+  IF not found:
+    ❌ STOP — "원인: server-brief.md가 없습니다. Design 단계가 완료되지 않았습니다.
+     해결: `/pdca design {feature}`를 먼저 실행하세요."
+
+IF platform == "mobile" or "fullstack":
+  Glob("docs/{product}/{feature}/mobile-brief.md")
+  Glob("docs/{product}/{feature}/mobile-design-spec.md")
+  IF either not found:
+    ❌ STOP — "원인: mobile-brief.md 또는 mobile-design-spec.md가 없습니다. Design 단계가 완료되지 않았습니다.
+     해결: `/pdca design {feature}`를 먼저 실행하세요."
+
+# ✅ 모든 선행조건 충족 → Step 1로 진행
+```
+
 **Step 1: CTO creates work plan**
 
 ```
@@ -251,35 +291,96 @@ Determine how to split work between developers.
 Define parallel/sequential execution order.
 Define module contracts (Controller ↔ View connections).
 
-Output: docs/{platform}/{feature}/{platform}-work-plan.md
-(For fullstack: both docs/server/{feature}/server-work-plan.md and docs/mobile/{feature}/mobile-work-plan.md)
+Output: docs/{product}/{feature}/{platform}-work-plan.md
+(For fullstack: both docs/{product}/{feature}/server-work-plan.md and docs/{product}/{feature}/mobile-work-plan.md)
 """)
 ```
 
-**Step 2: Call dev agents based on platform and work plan**
+**Step 2: Read work-plan.md and invoke agents per execution group**
 
-| Platform | Agent | Task |
-|----------|-------|------|
-| **Server** | `node-developer` | Implement server feature per work-plan.md |
-| **Mobile** | `flutter-developer` | Implement mobile feature per work-plan.md |
-| **Fullstack** | Both (parallel) | Each implements their platform |
+CTO가 작성한 work-plan.md에서 **실행 그룹(execution groups)**을 읽고, 그룹 단위로 Task를 호출합니다.
+
+**핵심 규칙**:
+- 같은 실행 그룹의 Task는 **반드시 하나의 메시지에서 동시 호출** (병렬 실행)
+- 다음 실행 그룹은 **이전 그룹의 모든 Task 완료 후** 호출 (순차 대기)
+- 개발자는 1~N명까지 투입 가능 (Sub Agent 최대 100개)
+- Server와 Mobile 개발자가 같은 그룹에 섞일 수 있음 (크로스 플랫폼 병렬)
 
 ```
-# Server
+# 1. work-plan.md 읽기
+Read("docs/{product}/{feature}/{platform}-work-plan.md")
+# (Fullstack인 경우 server-work-plan.md와 mobile-work-plan.md 모두 읽기)
+
+# 2. 실행 그룹별 병렬 Task 호출
+
+# ── Group 1 (병렬): 하나의 메시지에서 모든 Task 동시 호출 ──
 Task(subagent_type="node-developer", prompt="""
 Feature: {feature}
-Work Plan: docs/server/{feature}/server-work-plan.md
-Brief: docs/server/{feature}/server-brief.md
+Module: {group1-module-A}
+Work Plan: docs/{product}/{feature}/server-work-plan.md
+Brief: docs/{product}/{feature}/server-brief.md
+
+Implement module {group1-module-A} following TDD cycle.
+""")
+
+Task(subagent_type="node-developer", prompt="""
+Feature: {feature}
+Module: {group1-module-B}
+Work Plan: docs/{product}/{feature}/server-work-plan.md
+Brief: docs/{product}/{feature}/server-brief.md
+
+Implement module {group1-module-B} following TDD cycle.
+""")
+
+Task(subagent_type="flutter-developer", prompt="""
+Feature: {feature}
+Module: {group1-mobile-module} (API 비의존 작업)
+Work Plan: docs/{product}/{feature}/mobile-work-plan.md
+Brief: docs/{product}/{feature}/mobile-brief.md
+Design Spec: docs/{product}/{feature}/mobile-design-spec.md
+
+Implement module {group1-mobile-module}.
+""")
+
+# ── Group 1 완료 대기 ──
+
+# ── Group 2 (병렬): Group 1 완료 후 하나의 메시지에서 동시 호출 ──
+Task(subagent_type="flutter-developer", prompt="""
+Feature: {feature}
+Module: {group2-module-A} (Server API 의존 작업)
+Work Plan: docs/{product}/{feature}/mobile-work-plan.md
+Brief: docs/{product}/{feature}/mobile-brief.md
+Design Spec: docs/{product}/{feature}/mobile-design-spec.md
+
+Implement module {group2-module-A}.
+""")
+
+Task(subagent_type="flutter-developer", prompt="""
+Feature: {feature}
+Module: {group2-module-B}
+...
+""")
+
+# ── 모든 그룹 완료까지 반복 ──
+```
+
+**실행 그룹이 1개뿐인 단순한 경우** (모듈 분리 불필요):
+```
+# Server만
+Task(subagent_type="node-developer", prompt="""
+Feature: {feature}
+Work Plan: docs/{product}/{feature}/server-work-plan.md
+Brief: docs/{product}/{feature}/server-brief.md
 
 Implement the feature following TDD cycle.
 """)
 
-# Mobile
+# Mobile만
 Task(subagent_type="flutter-developer", prompt="""
 Feature: {feature}
-Work Plan: docs/mobile/{feature}/mobile-work-plan.md
-Brief: docs/mobile/{feature}/mobile-brief.md
-Design Spec: docs/mobile/{feature}/mobile-design-spec.md
+Work Plan: docs/{product}/{feature}/mobile-work-plan.md
+Brief: docs/{product}/{feature}/mobile-brief.md
+Design Spec: docs/{product}/{feature}/mobile-design-spec.md
 
 Implement the feature.
 """)
@@ -307,11 +408,11 @@ Feature: {feature}
 Platform: {platform}
 
 Compare design documents vs implementation code.
-Design docs: docs/{platform}/{feature}/{platform}-brief.md
+Design docs: docs/{product}/{feature}/{platform}-brief.md
 Source dirs: (from bkit.config.json platforms.{platform}.sourceDirectories)
 
 Calculate Match Rate and list gaps.
-Output: docs/03-analysis/{feature}.analysis.md
+Output: docs/{product}/{feature}/analysis.md
 """)
 ```
 
@@ -328,7 +429,7 @@ Read implementation code and verify:
 - Mobile: analyze pass, design-spec compliance, GetX patterns
 - Fullstack: API contract consistency between server and mobile
 
-Output: docs/{platform}/{feature}/{platform}-cto-review.md
+Output: docs/{product}/{feature}/{platform}-cto-review.md
 """)
 ```
 
@@ -363,7 +464,7 @@ Output: docs/{platform}/{feature}/{platform}-cto-review.md
 4. Create Task: `[Report] {feature}`
 5. Update status: phase = "completed"
 
-**Output Path**: `docs/04-report/{feature}.report.md`
+**Output Path**: `docs/{product}/{feature}/report.md`
 
 ---
 
@@ -376,10 +477,10 @@ Output: docs/{platform}/{feature}/{platform}-cto-review.md
 
 **Documents to Archive** (check all locations per platform):
 - Plan: `docs/{product}/{feature}/user-story.md`
-- Server: `docs/server/{feature}/` (server-brief, server-work-plan, server-cto-review)
-- Mobile: `docs/mobile/{feature}/` (mobile-design-spec, mobile-brief, mobile-work-plan, mobile-cto-review)
-- Analysis: `docs/03-analysis/{feature}.analysis.md`
-- Report: `docs/04-report/{feature}.report.md`
+- Server: `docs/{product}/{feature}/` (server-brief, server-work-plan, server-cto-review)
+- Mobile: `docs/{product}/{feature}/` (mobile-design-spec, mobile-brief, mobile-work-plan, mobile-cto-review)
+- Analysis: `docs/{product}/{feature}/analysis.md`
+- Report: `docs/{product}/{feature}/report.md`
 
 ---
 

@@ -15,18 +15,24 @@
   ],
   "pdca": {
     "researchDocPaths": [
-      "docs/{platform}/{feature}/research.md",
-      "docs/{platform}/{feature}/server-research.md",
-      "docs/{platform}/{feature}/mobile-research.md"
+      "docs/{product}/{feature}/research.md",
+      "docs/{product}/{feature}/server-research.md",
+      "docs/{product}/{feature}/mobile-research.md"
     ],
     "designDocPaths": [
-      "docs/{platform}/{feature}/server-brief.md",
-      "docs/{platform}/{feature}/mobile-brief.md",
-      "docs/{platform}/{feature}/mobile-design-spec.md"
+      "docs/{product}/{feature}/server-brief.md",
+      "docs/{product}/{feature}/mobile-brief.md",
+      "docs/{product}/{feature}/mobile-design-spec.md"
     ],
     "planDocPaths": [
-      "docs/{platform}/{feature}/user-story.md",
-      "docs/{platform}/{feature}/plan.md"
+      "docs/{product}/{feature}/user-story.md",
+      "docs/{product}/{feature}/plan.md"
+    ],
+    "analyzeDocPaths": [
+      "docs/{product}/{feature}/analysis.md"
+    ],
+    "reportDocPaths": [
+      "docs/{product}/{feature}/report.md"
     ],
     "statusFile": "docs/.pdca-status.json",
     "matchRateThreshold": 90,

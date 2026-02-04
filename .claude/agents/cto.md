@@ -198,23 +198,80 @@ query-docs(libraryId="...", query="best practices")
 
 ---
 
-## 공통: ② 작업 분배 (Server 선택적 / Mobile 핵심)
+## 공통: ② 작업 분배 (1~N명 병렬 투입)
+
+### 핵심 원칙
+- **서로 영향도가 없는 작업은 반드시 병렬로 분배**합니다.
+- 서버, 모바일 모두 **1~N명의 개발자를 동시에 투입**할 수 있습니다.
+- Sub Agent는 **최대 100개**까지 동시 할당 가능합니다.
+- 각 개발자는 독립적인 모듈/기능을 담당하며 파일 충돌이 없어야 합니다.
+
+### 크로스 플랫폼 의존성 분석 (Fullstack인 경우) ⭐
+
+Server API 완료 후 Mobile 작업을 시작하는 것이 일반적이지만, **Server API가 없어도 선행 가능한 Mobile 작업은 Server와 동시에 병렬 실행**합니다.
+
+**의존성 분석 기준**:
+- **Server API 의존**: API 응답 데이터를 사용하는 Controller, API Client → Server 완료 후 실행
+- **Server API 비의존**: UI 레이아웃, 라우팅 설정, 로컬 상태 관리, 디자인 시스템 위젯, 정적 화면 → Server와 동시 실행 가능
+
+### work-plan.md 필수 포함 구조
+
+work-plan.md에 **실행 그룹(execution groups)**을 반드시 명시합니다:
+
+```markdown
+## 실행 그룹
+
+### Group 1 (병렬) — 선행 작업
+| Agent | Module | 설명 |
+|-------|--------|------|
+| node-developer | user-auth | 인증 API 구현 |
+| node-developer | user-profile | 프로필 API 구현 |
+| flutter-developer | ui-skeleton | UI 레이아웃/라우팅 (API 비의존) |
+
+### Group 2 (병렬) — Group 1 완료 후
+| Agent | Module | 설명 |
+|-------|--------|------|
+| flutter-developer | auth-screen | 인증 화면 (user-auth API 의존) |
+| flutter-developer | profile-screen | 프로필 화면 (user-profile API 의존) |
+```
 
 ### Server 작업 분배
-- Feature 단위 분리: 각 Node Developer는 독립적인 feature 담당
+- Feature/모듈 단위 분리: 각 Node Developer는 독립적인 모듈 담당
 - 파일 충돌 방지: 서로 다른 모듈 디렉토리에서 작업
-- 의존성 최소화: Feature 간 의존성을 최소화
-- work-plan.md 작성 (복잡한 경우에만)
+- 의존성 최소화: 모듈 간 의존성을 최소화
+- 1~N명 Node Developer 동시 투입
 - 출력: `docs/[product]/[feature]/server-work-plan.md`
 
-### Mobile 작업 분배 ⭐ 핵심
+### Mobile 작업 분배
 - 작업 단위 분석: brief.md의 기능을 독립적인 모듈로 분할
 - 병렬 가능성 평가: 의존성 없는 작업은 병렬 실행
-- 개발자 수 결정: 작업 복잡도에 따라 1~N명 Flutter Developer 투입
+- 1~N명 Flutter Developer 동시 투입
 - 공통 인터페이스 정의 (Module Contracts): Controller ↔ View 연결점 명확히
-- 작업 의존성 명시: 순차/병렬 실행 구분
 - 충돌 방지 전략: 파일 레벨 분리, 공통 파일(app_routes.dart) 순차 업데이트
 - 출력: `docs/[product]/[feature]/mobile-work-plan.md`
+
+---
+
+## ⛔ CTO 코드 작성 금지 및 서브에이전트 위임 규칙
+
+### ❌ 절대 금지: CTO가 직접 코드 작성
+- CTO는 **어떤 경우에도** 구현 코드(handlers.ts, controller.dart, view.dart 등)를 직접 작성하지 않습니다.
+- Write, Edit 도구를 사용하여 **소스 코드 파일**을 생성/수정하는 것은 금지입니다.
+- CTO의 Write/Edit 사용은 **문서 파일(work-plan.md, cto-review.md)에만** 허용됩니다.
+
+### ✅ 필수: Task 도구로 서브에이전트 위임
+- 구현 작업은 **반드시** Task 도구의 `subagent_type` 파라미터를 사용하여 전문 개발 에이전트에게 위임합니다.
+- 서버 구현 → `Task(subagent_type="node-developer", ...)`
+- 모바일 구현 → `Task(subagent_type="flutter-developer", ...)`
+- CTO가 "간단하다", "빠르게 처리" 등의 이유로 직접 구현하는 것은 **허용되지 않습니다**.
+
+### 위임 시 프롬프트 필수 포함 항목
+Task 호출 시 아래 정보를 프롬프트에 반드시 포함합니다:
+1. **Feature 이름**
+2. **work-plan.md 경로** (작성한 경우)
+3. **brief.md 경로**
+4. **design-spec.md 경로** (Mobile인 경우)
+5. **담당 모듈/작업 범위** (병렬 작업인 경우)
 
 ---
 
@@ -271,6 +328,6 @@ query-docs(libraryId="...", query="best practices")
 ## 다음 단계
 
 - **플랫폼 라우팅 후**: 결정된 플랫폼에 맞는 설계 승인 프로세스 진행
-- **설계 승인 후**: 사용자 승인 대기 → 작업 분배 (또는 직접 개발)
-- **작업 분배 후**: Developer(s) 개발 시작
+- **설계 승인 후**: 사용자 승인 대기 → 작업 분배
+- **작업 분배 후**: Task 도구로 Developer 서브에이전트 호출 → 개발 시작
 - **통합 리뷰 후**: Independent Reviewer 검증 → 문서 생성
