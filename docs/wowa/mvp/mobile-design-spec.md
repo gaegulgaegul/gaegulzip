@@ -1,61 +1,316 @@
-# WOWA Mobile UI/UX Design Specification
+# UI/UX 디자인 명세: WOWA MVP
 
 ## 개요
 
-WOWA는 CrossFit 박스에서 WOD(Workout of the Day) 정보를 **합의 기반**으로 관리하는 모바일 앱입니다. 역할 구분 없이 누구나 WOD를 등록할 수 있으며, 시스템은 중립적으로 Base WOD와 Personal WOD를 분리하여 표시합니다.
+WOWA는 크로스핏 박스에서 WOD(Workout of the Day) 정보를 **합의 기반**으로 관리하는 모바일 앱입니다. 역할 구분 없이 누구나 WOD를 등록할 수 있으며, 시스템은 중립적으로 "먼저 등록된" WOD를 Base로 표시합니다.
 
 **디자인 목표**:
-- Frame0 스케치 스타일로 친근하고 부담 없는 느낌
-- 합의 과정을 명확하게 시각화
-- Base vs Personal WOD 구분을 직관적으로 표현
-- 선택의 불변성을 강조하는 UX
+- Frame0 스케치 스타일로 친근하고 부담 없는 느낌 전달
+- "시스템이 판단하지 않는다"는 원칙을 시각적으로 구현
+- Base WOD와 Personal WOD의 차이를 명확히 구분하되 평등하게 표현
+- 합의 과정(변경 제안 → 승인)을 직관적으로 시각화
+- 선택의 불변성을 강조하여 신중한 결정 유도
 
 **핵심 UX 전략**:
-- "시스템이 판단하지 않는다"는 원칙을 UI로 구현
-- Base WOD는 "먼저 등록된" 사실을 강조 (권위 아닌 순서)
-- Personal WOD는 "다른 선택지"로 표현 (틀린 것이 아닌 대안)
-- 변경 제안은 "합의 요청"으로 프레이밍
-- 선택 확정 시 경고로 불변성 인지
+1. **순서 기반 권위**: Base WOD는 "가장 먼저 등록된" 사실을 배지로 표현 (권위 X, 시간순 O)
+2. **평등한 선택지**: Personal WOD는 "다른 버전"으로 프레이밍 (틀린 것 X, 대안 O)
+3. **합의 프로세스**: 변경 제안은 "검토 요청"으로 표현, 승인은 "새 Base 승격"으로 시각화
+4. **불변성 경고**: WOD 선택 시 잠금 아이콘 + 경고 배너로 신중한 결정 유도
+5. **투명한 커뮤니티**: 등록자 이름, 선택 인원 수 표시로 신뢰 형성
 
 ---
 
-## 화면 목록 및 라우트 구조
-
-### Screen Inventory
+## 화면 목록
 
 | 화면명 | 라우트 | 설명 | 우선순위 |
 |-------|--------|------|----------|
-| 로그인 | `/login` | 소셜 로그인 (기존 완료) | P0 |
-| 홈 (오늘의 WOD) | `/home` | 오늘 날짜 WOD 표시, 박스 선택 | P0 |
-| WOD 등록 | `/wod/register` | WOD 텍스트/구조 입력 폼 | P0 |
-| WOD 상세 | `/wod/:id/detail` | Base vs Personal 표시, 제안 UI | P0 |
-| WOD 선택 | `/wod/:date/select` | Base/Personal 중 선택 | P0 |
-| 변경 제안 | `/wod/:id/propose` | 변경 제안 폼 | P0 |
-| 변경 승인 | `/wod/:proposalId/approve` | 승인/거부 화면 | P0 |
-| 박스 관리 | `/box/manage` | 박스 목록, 생성, 가입 | P0 |
-| 박스 생성 | `/box/create` | 박스 생성 폼 | P1 |
-| 박스 가입 | `/box/join` | 초대 코드 입력 | P1 |
-| 설정 | `/settings` | 알림 설정, 프로필 | P1 |
+| 박스 검색 | `/box/search` | 이름/지역 검색, 가입, 신규 생성 진입 | P0 |
+| 박스 생성 | `/box/create` | 이름+지역 입력, 생성 시 자동 가입 | P0 |
+| 홈 (오늘의 WOD) | `/home` | 오늘 날짜 WOD 표시, Base+Personal 요약 | P0 |
+| WOD 등록 | `/wod/register` | WOD 텍스트 입력 폼 (타입, 시간, 운동 목록) | P0 |
+| WOD 상세 | `/wod/:date/detail` | Base vs Personal 비교, 변경 제안 UI | P0 |
+| WOD 선택 | `/wod/:date/select` | Base/Personal 중 선택 (라디오 버튼) | P0 |
+| 변경 승인 | `/proposal/:id/review` | Base 등록자가 제안 승인/거부 | P0 |
+| 설정 | `/settings` | 알림 설정, 박스 변경, 프로필 | P1 |
 
-### Navigation Flow
+### 네비게이션 플로우
 
 ```
-[로그인] → [홈]
-            ↓
-    ┌───────┼───────┐
-    ↓       ↓       ↓
-[WOD 등록] [WOD 상세] [박스 관리]
-    ↓       ↓           ↓
-[WOD 선택] [변경 제안]  [박스 생성/가입]
-            ↓
-        [변경 승인]
+[로그인 완료] → 박스 확인 (GET /boxes/me)
+                  ├── 박스 없음 → [박스 검색] → 가입 → [홈]
+                  │                           └── 없으면 → [박스 생성] → [홈]
+                  └── 박스 있음 → [홈]
+                                   ↓
+                           ┌───────┼───────┐
+                           ↓       ↓       ↓
+                      [WOD 등록] [WOD 상세] [설정 → 박스 변경]
+                           ↓       ↓
+                      [WOD 선택] [변경 승인] (Base 등록자만)
 ```
 
 ---
 
-## 화면 상세 설계
+## 화면 구조
 
-### 1. 홈 화면 (Home Screen)
+### Screen 1: 박스 검색 (Box Search)
+
+**라우트**: `/box/search`
+
+**목적**: 이름/지역으로 박스 검색, 탭하여 가입, 없으면 신규 생성 진입
+
+**진입 조건**:
+- 첫 로그인 후 가입된 박스 없을 때 (자동 진입, 뒤로가기 버튼 없음)
+- 설정에서 "박스 변경" 탭했을 때 (뒤로가기 버튼 있음)
+
+#### 레이아웃 계층
+
+```
+Scaffold
+└── AppBar
+    ├── Leading: IconButton (뒤로가기, 박스 있을 때만)
+    └── Title: Text("박스 찾기")
+└── Body: Column
+    ├── Padding (spacingLg)
+    │   ├── _SearchInputs (이름 + 지역 검색 필드)
+    │   └── SizedBox(height: spacingLg)
+    ├── Expanded
+    │   └── Obx(() => _SearchResults) // 검색 결과 또는 안내
+    └── Padding (spacingLg, bottom: spacingXl)
+        └── SketchButton (신규 생성 버튼)
+```
+
+#### 위젯 상세
+
+**_SearchInputs (검색 필드)**
+```dart
+Column(
+  children: [
+    SketchInput(
+      label: '박스 이름',
+      hint: '예: CrossFit 강남',
+      controller: controller.nameController,
+      prefixIcon: Icon(Icons.search, color: base500),
+      onChanged: (_) => controller.search(), // debounce 300ms
+    ),
+    SizedBox(height: spacingMd),
+    SketchInput(
+      label: '지역',
+      hint: '예: 서울 강남구',
+      controller: controller.regionController,
+      prefixIcon: Icon(Icons.location_on, color: base500),
+      onChanged: (_) => controller.search(),
+    ),
+  ],
+)
+```
+- 입력 시 자동 검색 (debounce 300ms)
+- 이름, 지역 중 하나만 입력해도 검색 가능
+
+**_SearchResults (검색 결과)**
+
+**상태 1: 검색어 없음**
+```dart
+Center(
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(Icons.search, size: 64, color: base300),
+      SizedBox(height: spacingLg),
+      Text('박스 이름이나 지역을 입력하세요',
+           style: bodyMedium, color: base500),
+    ],
+  ),
+)
+```
+
+**상태 2: 검색 중**
+```dart
+Center(
+  child: SketchProgressBar(value: null, style: circular),
+)
+```
+
+**상태 3: 결과 없음**
+```dart
+Center(
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(Icons.search_off, size: 64, color: base300),
+      SizedBox(height: spacingLg),
+      Text('검색 결과가 없습니다', style: titleMedium),
+      SizedBox(height: spacingSm),
+      Text('아래에서 새 박스를 만들어 보세요',
+           style: bodySmall, color: base500),
+    ],
+  ),
+)
+```
+
+**상태 4: 결과 목록**
+```dart
+ListView.separated(
+  itemCount: controller.searchResults.length,
+  separatorBuilder: (_, __) => SizedBox(height: spacingMd),
+  padding: EdgeInsets.symmetric(horizontal: spacingLg),
+  itemBuilder: (context, index) {
+    final box = controller.searchResults[index];
+    return SketchCard(
+      onTap: () => controller.joinBox(box),
+      body: Row(
+        children: [
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: accentLight,
+            child: Text(box.name[0], style: titleMedium),
+          ),
+          SizedBox(width: spacingMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(box.name, style: titleSmall),
+                SizedBox(height: spacingXs),
+                Text(box.region, style: bodySmall, color: base500),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text('${box.memberCount}명',
+                   style: bodySmall, color: base500),
+              Icon(Icons.chevron_right, color: base500),
+            ],
+          ),
+        ],
+      ),
+    );
+  },
+)
+```
+
+**신규 생성 버튼**
+```dart
+SketchButton(
+  text: '찾는 박스가 없나요? 새로 만들기',
+  icon: Icon(Icons.add_business),
+  style: SketchButtonStyle.outline,
+  size: SketchButtonSize.large,
+  onPressed: () => Get.toNamed(Routes.BOX_CREATE),
+)
+```
+
+#### 인터랙션
+
+- **검색 필드 입력**: 300ms debounce 후 자동 검색 (GET `/boxes/search?name=&region=`)
+- **결과 카드 탭**: 기존 박스가 있으면 박스 변경 확인 모달 → 가입 (POST `/boxes/:boxId/join`)
+  - 기존 박스 자동 탈퇴 후 새 박스 가입
+  - 성공 시 홈 화면으로 이동
+- **박스 변경 확인 모달** (기존 박스가 있을 때만):
+```dart
+SketchModal.show(
+  context: context,
+  title: '박스 변경',
+  child: Column(
+    children: [
+      Text("현재 '${controller.currentBox.value?.name}'에서 탈퇴하고"),
+      Text("'${newBox.name}'에 가입합니다."),
+      SizedBox(height: spacingSm),
+      Text('기존 박스의 데이터는 유지됩니다.',
+           style: bodySmall, color: base500),
+    ],
+  ),
+  actions: [
+    SketchButton(
+      text: '취소',
+      style: SketchButtonStyle.outline,
+      onPressed: () => Navigator.pop(context),
+    ),
+    SketchButton(
+      text: '변경',
+      onPressed: () {
+        Navigator.pop(context);
+        controller.confirmJoin(newBox);
+      },
+    ),
+  ],
+);
+```
+- **새로 만들기**: 박스 생성 화면으로 이동
+
+---
+
+### Screen 2: 박스 생성 (Box Create)
+
+**라우트**: `/box/create`
+
+**목적**: 새 박스 생성 (생성 시 자동 가입, 기존 박스 자동 탈퇴)
+
+#### 레이아웃 계층
+
+```
+Scaffold
+└── AppBar
+    ├── Leading: IconButton (뒤로가기)
+    └── Title: Text("박스 생성")
+└── Body: Form
+    └── SingleChildScrollView (padding: spacingLg)
+        └── Column
+            ├── SketchInput (박스 이름)
+            ├── SizedBox(height: spacingLg)
+            ├── SketchInput (지역)
+            ├── SizedBox(height: spacing2Xl)
+            └── SketchButton (생성하기)
+```
+
+#### 위젯 상세
+
+```dart
+Column(
+  children: [
+    SketchInput(
+      label: '박스 이름',
+      hint: '예: CrossFit 강남',
+      controller: controller.nameController,
+      errorText: controller.nameError.value.isEmpty
+          ? null
+          : controller.nameError.value,
+    ),
+    SizedBox(height: spacingLg),
+    SketchInput(
+      label: '지역',
+      hint: '예: 서울 강남구',
+      controller: controller.regionController,
+      prefixIcon: Icon(Icons.location_on, color: base500),
+      errorText: controller.regionError.value.isEmpty
+          ? null
+          : controller.regionError.value,
+    ),
+    SizedBox(height: spacing2Xl),
+    Obx(() => SketchButton(
+      text: '생성하기',
+      icon: Icon(Icons.check),
+      size: SketchButtonSize.large,
+      isLoading: controller.isLoading.value,
+      onPressed: controller.canSubmit.value
+          ? controller.create
+          : null,
+    )),
+  ],
+)
+```
+
+#### 인터랙션
+
+- **생성**: POST `/boxes` (자동 가입 포함), 기존 박스 자동 탈퇴
+- **성공**: 홈 화면으로 이동 (Get.offAllNamed)
+- **에러**: 이름/지역 필수 필드 누락 시 errorText 표시
+- **중복 에러**: 409 응답 시 "이미 같은 이름의 박스가 존재합니다. 검색해보세요." 스낵바
+
+---
+
+### Screen 3: 홈 (Home)
 
 **라우트**: `/home`
 
@@ -71,33 +326,52 @@ Scaffold
     └── Actions:
         ├── SketchIconButton (알림, badgeCount 표시)
         └── SketchIconButton (설정)
-└── Body: RefreshIndicator
+└── Body: RefreshIndicator (onRefresh: controller.refresh)
     └── SingleChildScrollView
         └── Column (padding: spacingLg)
-            ├── _BoxSelector (박스 선택 드롭다운)
+            ├── _CurrentBoxHeader (박스 이름 + 지역)
             ├── SizedBox(height: spacing2Xl)
-            ├── _DateHeader (날짜 표시 + 날짜 선택)
+            ├── _DateHeader (날짜 표시 + 좌우 화살표)
             ├── SizedBox(height: spacingXl)
             ├── Obx(() => _WodCardSection) // Base WOD + Personal WODs
             └── SizedBox(height: spacing2Xl)
-            └── _QuickActionButtons (등록/선택 버튼)
+            └── _QuickActionButtons (등록/상세/선택 버튼)
 ```
 
 #### 위젯 상세
 
-**_BoxSelector (박스 선택)**
+**_CurrentBoxHeader (현재 박스 표시)**
 ```dart
-SketchDropdown<Box>(
-  value: controller.selectedBox.value,
-  items: controller.boxes,
-  itemBuilder: (box) => Text(box.name),
-  hint: '박스를 선택하세요',
-  onChanged: controller.onBoxChanged,
+SketchContainer(
+  fillColor: base100,
+  child: Row(
+    children: [
+      CircleAvatar(
+        radius: 20,
+        backgroundColor: accentLight,
+        child: Text(
+          controller.currentBox.value.name[0],
+          style: titleSmall,
+        ),
+      ),
+      SizedBox(width: spacingMd),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(controller.currentBox.value.name,
+                 style: titleSmall),
+            Text(controller.currentBox.value.region,
+                 style: bodySmall, color: base500),
+          ],
+        ),
+      ),
+    ],
+  ),
 )
 ```
-- 현재 선택된 박스 표시
-- 박스 전환 시 자동으로 해당 박스의 WOD 로드
-- 박스가 없으면 "박스에 가입하거나 생성하세요" 힌트
+- 현재 가입된 단일 박스 표시 (이름 + 지역)
+- 박스 변경은 설정 화면에서 수행 (단일 박스 정책)
 
 **_DateHeader (날짜 헤더)**
 ```dart
@@ -114,8 +388,18 @@ Row(
         child: SketchContainer(
           child: Column(
             children: [
-              Text('2026년 2월 3일', style: titleMedium),
-              Text('월요일', style: bodySmall, color: base500),
+              Text(
+                controller.formattedDate.value, // '2026년 2월 4일'
+                style: titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                controller.dayOfWeek.value, // '화요일'
+                style: bodySmall,
+                color: controller.isToday.value
+                    ? accentPrimary
+                    : base500,
+              ),
             ],
           ),
         ),
@@ -128,7 +412,7 @@ Row(
   ],
 )
 ```
-- 좌우 화살표로 날짜 이동
+- 좌우 화살표로 날짜 이동 (하루 단위)
 - 가운데 날짜 탭하면 DatePicker 표시
 - 오늘 날짜는 accentPrimary 색상으로 강조
 
@@ -148,9 +432,12 @@ SketchCard(
     children: [
       Icon(Icons.fitness_center, size: 64, color: base300),
       SizedBox(height: spacingLg),
-      Text('아직 등록된 WOD가 없습니다', style: titleMedium),
+      Text('아직 등록된 WOD가 없습니다',
+           style: titleMedium, textAlign: TextAlign.center),
       SizedBox(height: spacingSm),
-      Text('첫 번째로 등록하면 Base WOD가 됩니다', style: bodySmall),
+      Text('첫 번째로 등록하면 Base WOD가 됩니다',
+           style: bodySmall, color: base500,
+           textAlign: TextAlign.center),
       SizedBox(height: spacingXl),
       SketchButton(
         text: 'WOD 등록하기',
@@ -176,8 +463,17 @@ Column(
           selected: true,
         ),
         SizedBox(width: spacingSm),
-        Text('${controller.baseWod.value.registeredBy}님이 등록',
-             style: bodySmall, color: base500),
+        Text(
+          '${controller.baseWod.value.registeredBy}님이 등록',
+          style: bodySmall,
+          color: base500,
+        ),
+        Spacer(),
+        Text(
+          '${controller.baseWod.value.selectedCount}명 선택',
+          style: bodySmall,
+          color: base500,
+        ),
       ],
     ),
     SizedBox(height: spacingMd),
@@ -185,6 +481,8 @@ Column(
     // WOD 카드
     SketchCard(
       elevation: 2,
+      borderColor: accentPrimary,
+      strokeWidth: strokeBold,
       onTap: controller.goToDetail,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,9 +490,15 @@ Column(
           // WOD 타입 + 시간
           Row(
             children: [
-              SketchChip(label: controller.baseWod.value.type), // AMRAP, ForTime 등
+              SketchChip(
+                label: controller.baseWod.value.type,
+                selected: false,
+              ),
               SizedBox(width: spacingSm),
-              Text('${controller.baseWod.value.timeCap}분', style: bodyMedium),
+              Text(
+                '${controller.baseWod.value.timeCap}분',
+                style: bodyMedium,
+              ),
             ],
           ),
           SizedBox(height: spacingLg),
@@ -206,7 +510,8 @@ Column(
               child: Row(
                 children: [
                   Container(
-                    width: 8, height: 8,
+                    width: 8,
+                    height: 8,
                     decoration: BoxDecoration(
                       color: accentPrimary,
                       shape: BoxShape.circle,
@@ -215,7 +520,8 @@ Column(
                   SizedBox(width: spacingMd),
                   Expanded(
                     child: Text(
-                      '${movement.reps} ${movement.name}${movement.weight != null ? " @ ${movement.weight}${movement.unit}" : ""}',
+                      '${movement.reps} ${movement.name}'
+                      '${movement.weight != null ? " @ ${movement.weight}${movement.unit}" : ""}',
                       style: bodyLarge,
                     ),
                   ),
@@ -232,8 +538,10 @@ Column(
       SizedBox(height: spacingXl),
       Row(
         children: [
-          Text('다른 버전 (${controller.personalWods.length})',
-               style: titleSmall),
+          Text(
+            '다른 버전 (${controller.personalWods.length})',
+            style: titleSmall,
+          ),
           Spacer(),
           SketchButton(
             text: '모두 보기',
@@ -263,9 +571,22 @@ Row(
     SizedBox(width: spacingMd),
     Expanded(
       child: SketchButton(
+        text: '상세 보기',
+        icon: Icon(Icons.info_outline),
+        style: SketchButtonStyle.outline,
+        onPressed: controller.hasWod.value
+            ? controller.goToDetail
+            : null,
+      ),
+    ),
+    SizedBox(width: spacingMd),
+    Expanded(
+      child: SketchButton(
         text: 'WOD 선택',
         icon: Icon(Icons.check_circle),
-        onPressed: controller.hasWod ? controller.goToSelect : null,
+        onPressed: controller.hasWod.value
+            ? controller.goToSelect
+            : null,
       ),
     ),
   ],
@@ -276,12 +597,12 @@ Row(
 
 - **Pull-to-refresh**: 새로고침으로 최신 WOD 조회
 - **WOD 카드 탭**: 상세 화면으로 이동
-- **날짜 변경**: 좌우 화살표 또는 날짜 탭으로 DatePicker
-- **박스 변경**: 드롭다운에서 박스 선택 시 자동 새로고침
+- **날짜 변경**: 좌우 화살표로 날짜 이동, 날짜 탭으로 DatePicker
+- **박스 변경**: 설정 화면에서 박스 변경 가능
 
 ---
 
-### 2. WOD 등록 화면 (WOD Registration Screen)
+### Screen 4: WOD 등록 (WOD Registration)
 
 **라우트**: `/wod/register`
 
@@ -298,12 +619,12 @@ Scaffold
 └── Body: Form
     └── SingleChildScrollView
         └── Column (padding: spacingLg)
-            ├── _WodTypeSelector (타입 선택)
+            ├── _WodTypeSelector (타입 선택 - Chip)
             ├── SizedBox(height: spacingXl)
             ├── _TimeCapInput (시간 입력)
             ├── SizedBox(height: spacingXl)
             ├── _MovementListBuilder (운동 목록)
-            ├── SizedBox(height: spacingXl)
+            ├── SizedBox(height: spacing2Xl)
             └── SketchButton (등록하기, isLoading)
 ```
 
@@ -319,15 +640,13 @@ Column(
     Wrap(
       spacing: spacingMd,
       runSpacing: spacingMd,
-      children: [
-        'AMRAP', 'For Time', 'EMOM', 'Strength', 'Custom'
-      ].map((type) =>
-        Obx(() => SketchChip(
-          label: type,
-          selected: controller.selectedType.value == type,
-          onSelected: (_) => controller.selectType(type),
-        ))
-      ).toList(),
+      children: ['AMRAP', 'For Time', 'EMOM', 'Strength', 'Custom']
+          .map((type) => Obx(() => SketchChip(
+                label: type,
+                selected: controller.selectedType.value == type,
+                onSelected: (_) => controller.selectType(type),
+              )))
+          .toList(),
     ),
   ],
 )
@@ -340,7 +659,13 @@ SketchInput(
   hint: '예: 15',
   controller: controller.timeCapController,
   keyboardType: TextInputType.number,
-  suffixIcon: Text('분'),
+  suffixIcon: Padding(
+    padding: EdgeInsets.only(right: spacingMd),
+    child: Text('분', style: bodyMedium),
+  ),
+  errorText: controller.timeCapError.value.isEmpty
+      ? null
+      : controller.timeCapError.value,
 )
 ```
 
@@ -355,7 +680,7 @@ Column(
         Text('운동 목록', style: titleSmall),
         SketchButton(
           text: '추가',
-          icon: Icon(Icons.add),
+          icon: Icon(Icons.add, size: 16),
           size: SketchButtonSize.small,
           onPressed: controller.addMovement,
         ),
@@ -368,13 +693,13 @@ Column(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       onReorder: controller.reorderMovements,
-      children: controller.movements.map((movement) =>
-        _MovementCard(
-          key: ValueKey(movement.id),
-          movement: movement,
-          onDelete: () => controller.removeMovement(movement.id),
-        ),
-      ).toList(),
+      children: controller.movements
+          .map((movement) => _MovementCard(
+                key: ValueKey(movement.id),
+                movement: movement,
+                onDelete: () => controller.removeMovement(movement.id),
+              ))
+          .toList(),
     )),
   ],
 )
@@ -399,7 +724,7 @@ SketchCard(
             ),
           ),
           IconButton(
-            icon: Icon(Icons.delete_outline),
+            icon: Icon(Icons.delete_outline, color: error),
             onPressed: onDelete,
           ),
         ],
@@ -447,7 +772,9 @@ Obx(() => SketchButton(
   text: '등록하기',
   icon: Icon(Icons.check),
   isLoading: controller.isLoading.value,
-  onPressed: controller.canSubmit ? controller.submit : null,
+  onPressed: controller.canSubmit.value
+      ? controller.submit
+      : null,
   size: SketchButtonSize.large,
 ))
 ```
@@ -459,18 +786,15 @@ Obx(() => SketchButton(
 - **운동 재배치**: 드래그 핸들로 순서 변경
 - **운동 삭제**: 삭제 아이콘으로 제거
 - **미리보기**: 우측 상단 아이콘으로 입력 내용 미리보기 모달
-- **등록**: 유효성 검증 후 API 호출, 성공 시 홈으로 이동
-
-#### 에러 상태
-
-- 필수 필드 누락: SketchInput errorText 표시
-- API 에러: SketchModal로 에러 메시지 표시
+- **등록**: 유효성 검증 후 API 호출 (POST `/wods`)
+  - 성공 시 홈으로 이동
+  - Base WOD로 자동 지정 또는 Personal WOD로 분류 (서버에서 판단)
 
 ---
 
-### 3. WOD 상세 화면 (WOD Detail Screen)
+### Screen 5: WOD 상세 (WOD Detail)
 
-**라우트**: `/wod/:id/detail`
+**라우트**: `/wod/:date/detail`
 
 **목적**: Base WOD와 Personal WODs를 비교하고 변경 제안 수행
 
@@ -488,7 +812,7 @@ Scaffold
         ├── SizedBox(height: spacing2Xl)
         ├── Obx(() => _PersonalWodsSection) // Personal WODs 리스트
         ├── SizedBox(height: spacing2Xl)
-        └── _ActionButtons (변경 제안, WOD 선택)
+        └── _ActionButtons (WOD 선택, 새 WOD 등록)
 ```
 
 #### 위젯 상세
@@ -506,13 +830,19 @@ Column(
           selected: true,
         ),
         Spacer(),
-        Text('${controller.baseWod.value.selectedCount}명 선택',
-             style: bodySmall, color: base500),
+        Text(
+          '${controller.baseWod.value.selectedCount}명 선택',
+          style: bodySmall,
+          color: base500,
+        ),
       ],
     ),
     SizedBox(height: spacingSm),
-    Text('${controller.baseWod.value.registeredBy}님이 등록',
-         style: bodySmall, color: base500),
+    Text(
+      '${controller.baseWod.value.registeredBy}님이 등록',
+      style: bodySmall,
+      color: base500,
+    ),
     SizedBox(height: spacingLg),
 
     SketchCard(
@@ -533,13 +863,22 @@ Column(
             Icon(Icons.pending, color: warning),
             SizedBox(width: spacingMd),
             Expanded(
-              child: Text('변경 제안 대기 중', style: bodyMedium),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('변경 제안이 있습니다',
+                       style: titleSmall.copyWith(color: warning)),
+                  SizedBox(height: spacingXs),
+                  Text('검토 후 승인/거부할 수 있습니다',
+                       style: bodySmall, color: base700),
+                ],
+              ),
             ),
             if (controller.isBaseCreator.value)
               SketchButton(
-                text: '승인하기',
+                text: '검토',
                 size: SketchButtonSize.small,
-                onPressed: controller.goToApprove,
+                onPressed: controller.goToReview,
               ),
           ],
         ),
@@ -557,8 +896,11 @@ if (controller.personalWods.isNotEmpty)
     children: [
       Text('다른 버전 (Personal WODs)', style: titleMedium),
       SizedBox(height: spacingMd),
-      Text('Base WOD와 다르게 등록된 버전입니다',
-           style: bodySmall, color: base500),
+      Text(
+        'Base WOD와 다르게 등록된 버전입니다',
+        style: bodySmall,
+        color: base500,
+      ),
       SizedBox(height: spacingLg),
 
       ...controller.personalWods.map((personalWod) =>
@@ -574,11 +916,17 @@ if (controller.personalWods.isNotEmpty)
                     selected: false,
                   ),
                   SizedBox(width: spacingSm),
-                  Text('${personalWod.registeredBy}님',
-                       style: bodySmall, color: base500),
+                  Text(
+                    '${personalWod.registeredBy}님',
+                    style: bodySmall,
+                    color: base500,
+                  ),
                   Spacer(),
-                  Text('${personalWod.selectedCount}명 선택',
-                       style: bodySmall, color: base500),
+                  Text(
+                    '${personalWod.selectedCount}명 선택',
+                    style: bodySmall,
+                    color: base500,
+                  ),
                 ],
               ),
               SizedBox(height: spacingSm),
@@ -589,8 +937,8 @@ if (controller.personalWods.isNotEmpty)
                   children: [
                     _WodContentWidget(wod: personalWod),
                     SizedBox(height: spacingMd),
-
-                    // Diff 표시 (Base와 다른 부분 강조)
+                    Divider(),
+                    SizedBox(height: spacingMd),
                     _DiffHighlight(
                       baseWod: controller.baseWod.value,
                       personalWod: personalWod,
@@ -613,7 +961,7 @@ Column(
   children: [
     Row(
       children: [
-        SketchChip(label: wod.type),
+        SketchChip(label: wod.type, selected: false),
         SizedBox(width: spacingSm),
         Text('${wod.timeCap}분', style: bodyMedium),
       ],
@@ -625,7 +973,8 @@ Column(
         child: Row(
           children: [
             Container(
-              width: 8, height: 8,
+              width: 8,
+              height: 8,
               decoration: BoxDecoration(
                 color: accentPrimary,
                 shape: BoxShape.circle,
@@ -634,7 +983,8 @@ Column(
             SizedBox(width: spacingMd),
             Expanded(
               child: Text(
-                '${movement.reps} ${movement.name}${movement.weight != null ? " @ ${movement.weight}${movement.unit}" : ""}',
+                '${movement.reps} ${movement.name}'
+                '${movement.weight != null ? " @ ${movement.weight}${movement.unit}" : ""}',
                 style: bodyLarge,
               ),
             ),
@@ -651,7 +1001,10 @@ Column(
 Column(
   crossAxisAlignment: CrossAxisAlignment.start,
   children: [
-    Text('Base WOD와 다른 점:', style: bodySmall.copyWith(fontWeight: medium)),
+    Text(
+      'Base WOD와 다른 점:',
+      style: bodySmall.copyWith(fontWeight: medium),
+    ),
     SizedBox(height: spacingXs),
     Wrap(
       spacing: spacingXs,
@@ -680,11 +1033,11 @@ Column(
     ),
     SizedBox(height: spacingMd),
     SketchButton(
-      text: 'Base 변경 제안',
-      icon: Icon(Icons.edit),
+      text: '새 WOD 등록',
+      icon: Icon(Icons.add),
       style: SketchButtonStyle.outline,
       size: SketchButtonSize.large,
-      onPressed: controller.goToPropose,
+      onPressed: controller.goToRegister,
     ),
   ],
 )
@@ -692,15 +1045,15 @@ Column(
 
 #### 인터랙션
 
-- **Base WOD 탭**: 확대 보기 또는 변경 없음
+- **Base WOD 탭**: 변경 없음 (확대 보기 불필요)
 - **Personal WOD 탭**: Diff 하이라이트 토글
-- **변경 제안 버튼**: 변경 제안 화면으로 이동
+- **검토 버튼**: 변경 승인 화면으로 이동 (Base 등록자만 표시)
 - **WOD 선택 버튼**: WOD 선택 화면으로 이동
-- **승인하기 버튼**: 변경 승인 화면으로 이동 (Base 등록자만 표시)
+- **새 WOD 등록 버튼**: WOD 등록 화면으로 이동
 
 ---
 
-### 4. WOD 선택 화면 (WOD Selection Screen)
+### Screen 6: WOD 선택 (WOD Selection)
 
 **라우트**: `/wod/:date/select`
 
@@ -738,11 +1091,16 @@ SketchContainer(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('선택 후 변경할 수 없습니다',
-                 style: titleSmall.copyWith(color: warning)),
+            Text(
+              '선택 후 변경할 수 없습니다',
+              style: titleSmall.copyWith(color: warning),
+            ),
             SizedBox(height: spacingXs),
-            Text('신중하게 선택해 주세요. 선택 후에는 WOD를 변경할 수 없습니다.',
-                 style: bodySmall, color: base700),
+            Text(
+              '신중하게 선택해 주세요. 선택 후에는 WOD를 변경할 수 없습니다.',
+              style: bodySmall,
+              color: base700,
+            ),
           ],
         ),
       ),
@@ -759,7 +1117,8 @@ Obx(() => Column(
     _WodOptionCard(
       wod: controller.baseWod.value,
       isBase: true,
-      isSelected: controller.selectedWodId.value == controller.baseWod.value.id,
+      isSelected: controller.selectedWodId.value ==
+          controller.baseWod.value.id,
       onSelect: () => controller.selectWod(controller.baseWod.value.id),
     ),
 
@@ -796,7 +1155,8 @@ GestureDetector(
           children: [
             // 라디오 버튼 (시각적 표현)
             Container(
-              width: 24, height: 24,
+              width: 24,
+              height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
@@ -818,20 +1178,28 @@ GestureDetector(
               selected: isBase,
             ),
             Spacer(),
-            Text('${wod.selectedCount}명 선택',
-                 style: bodySmall, color: base500),
+            Text(
+              '${wod.selectedCount}명 선택',
+              style: bodySmall,
+              color: base500,
+            ),
           ],
         ),
         SizedBox(height: spacingMd),
-        Text('${wod.registeredBy}님이 등록',
-             style: bodySmall, color: base500),
+        Text(
+          '${wod.registeredBy}님이 등록',
+          style: bodySmall,
+          color: base500,
+        ),
         SizedBox(height: spacingLg),
 
-        // WOD 내용 (간략)
+        // WOD 내용
         _WodContentWidget(wod: wod),
 
         // Personal WOD면 Diff 표시
         if (!isBase) ...[
+          SizedBox(height: spacingMd),
+          Divider(),
           SizedBox(height: spacingMd),
           _DiffHighlight(
             baseWod: controller.baseWod.value,
@@ -862,151 +1230,57 @@ SketchButton(
 - **WOD 카드 탭**: 해당 WOD 선택 (라디오 버튼 효과)
 - **확정 버튼**: 최종 확인 모달 표시 후 API 호출
 - **최종 확인 모달**:
-  ```dart
-  final confirmed = await SketchModal.show<bool>(
-    context: context,
-    title: '최종 확인',
-    child: Column(
-      children: [
-        Icon(Icons.warning_amber, size: 64, color: warning),
-        SizedBox(height: spacingLg),
-        Text('정말 이 WOD로 기록하시겠습니까?',
-             style: titleMedium),
-        SizedBox(height: spacingSm),
-        Text('선택 후에는 변경할 수 없습니다.',
-             style: bodySmall, color: error),
-      ],
-    ),
-    actions: [
-      SketchButton(
-        text: '취소',
-        style: SketchButtonStyle.outline,
-        onPressed: () => Navigator.pop(context, false),
-      ),
-      SketchButton(
-        text: '확정',
-        onPressed: () => Navigator.pop(context, true),
-      ),
-    ],
-  );
-  ```
-
----
-
-### 5. 변경 제안 화면 (Propose Change Screen)
-
-**라우트**: `/wod/:id/propose`
-
-**목적**: Base WOD에 대한 변경 제안 제출
-
-#### 레이아웃 계층
-
-```
-Scaffold
-└── AppBar
-    ├── Leading: IconButton (뒤로가기)
-    └── Title: Text("Base 변경 제안")
-└── Body: SingleChildScrollView
-    └── Column (padding: spacingLg)
-        ├── _CurrentBaseWod (현재 Base WOD 표시)
-        ├── SizedBox(height: spacing2Xl)
-        ├── _ProposedChangesForm (변경 제안 폼)
-        ├── SizedBox(height: spacing2Xl)
-        ├── _DiffPreview (변경 사항 미리보기)
-        ├── SizedBox(height: spacing2Xl)
-        └── SketchButton (제안하기)
-```
-
-#### 위젯 상세
-
-**_CurrentBaseWod (현재 Base WOD)**
 ```dart
-Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    Text('현재 Base WOD', style: titleMedium),
-    SizedBox(height: spacingMd),
-    SketchCard(
-      elevation: 1,
-      body: _WodContentWidget(wod: controller.baseWod.value),
-    ),
-  ],
-)
-```
-
-**_ProposedChangesForm (제안 폼)**
-```dart
-Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    Text('제안하는 변경 사항', style: titleMedium),
-    SizedBox(height: spacingMd),
-
-    // Base WOD 데이터를 초기값으로 사용하는 등록 폼 재사용
-    _WodTypeSelector(),
-    SizedBox(height: spacingLg),
-    _TimeCapInput(),
-    SizedBox(height: spacingLg),
-    _MovementListBuilder(),
-  ],
-)
-```
-
-**_DiffPreview (변경 사항 미리보기)**
-```dart
-Obx(() {
-  final diff = controller.calculateDiff();
-  if (diff.isEmpty) {
-    return SizedBox.shrink();
-  }
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+final confirmed = await SketchModal.show<bool>(
+  context: context,
+  title: '최종 확인',
+  child: Column(
     children: [
-      Text('변경될 내용', style: titleSmall),
-      SizedBox(height: spacingMd),
-      SketchContainer(
-        fillColor: info.withOpacity(0.05),
-        borderColor: info,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: diff.map((change) =>
-            Padding(
-              padding: EdgeInsets.only(bottom: spacingXs),
-              child: Row(
-                children: [
-                  Icon(Icons.arrow_forward, size: 16, color: info),
-                  SizedBox(width: spacingMd),
-                  Expanded(
-                    child: Text(
-                      change.description, // 예: '시간: 15분 → 20분'
-                      style: bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ).toList(),
-        ),
+      Icon(Icons.warning_amber, size: 64, color: warning),
+      SizedBox(height: spacingLg),
+      Text(
+        '정말 이 WOD로 기록하시겠습니까?',
+        style: titleMedium,
+        textAlign: TextAlign.center,
+      ),
+      SizedBox(height: spacingSm),
+      Text(
+        '선택 후에는 변경할 수 없습니다.',
+        style: bodySmall,
+        color: error,
+        textAlign: TextAlign.center,
       ),
     ],
-  );
-})
+  ),
+  actions: [
+    SketchButton(
+      text: '취소',
+      style: SketchButtonStyle.outline,
+      onPressed: () => Navigator.pop(context, false),
+    ),
+    SketchButton(
+      text: '확정',
+      onPressed: () => Navigator.pop(context, true),
+    ),
+  ],
+  barrierDismissible: false,
+);
+
+if (confirmed == true) {
+  await controller.submitSelection(); // POST /wods/:id/select
+  Get.offAllNamed(Routes.HOME); // 홈으로 이동
+}
 ```
-
-#### 인터랙션
-
-- **폼 입력**: Base WOD 데이터를 수정하여 제안 작성
-- **실시간 Diff**: 입력 변경 시 자동으로 변경 사항 계산 및 표시
-- **제안하기 버튼**: 유효성 검증 후 API 호출, 성공 시 상세 화면으로 복귀
 
 ---
 
-### 6. 변경 승인 화면 (Approve Change Screen)
+### Screen 7: 변경 승인 (Proposal Review)
 
-**라우트**: `/wod/:proposalId/approve`
+**라우트**: `/proposal/:id/review`
 
-**목적**: Base WOD 등록자가 변경 제안을 승인/거부
+**목적**: Base WOD 등록자가 Personal WOD 제안을 검토하고 승인/거부
+
+**진입 조건**: Base WOD 등록자만 진입 가능 (알림 또는 상세 화면에서)
 
 #### 레이아웃 계층
 
@@ -1033,17 +1307,26 @@ SketchCard(
     children: [
       CircleAvatar(
         radius: 24,
-        backgroundImage: NetworkImage(controller.proposer.profileImage),
+        backgroundColor: accentLight,
+        child: Text(
+          controller.proposer.name[0],
+          style: titleMedium,
+        ),
       ),
       SizedBox(width: spacingMd),
       Expanded(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${controller.proposer.name}님의 제안',
-                 style: titleSmall),
-            Text('${controller.proposal.createdAt}',
-                 style: bodySmall, color: base500),
+            Text(
+              '${controller.proposer.name}님의 제안',
+              style: titleSmall,
+            ),
+            Text(
+              controller.proposal.createdAt, // '2시간 전'
+              style: bodySmall,
+              color: base500,
+            ),
           ],
         ),
       ),
@@ -1152,271 +1435,77 @@ Row(
 
 #### 인터랙션
 
-- **승인 버튼**: 확인 모달 후 Base WOD 교체 API 호출
+- **승인 버튼**: 확인 모달 후 Base WOD 교체 API 호출 (PUT `/proposals/:id/approve`)
   - 성공 시 기존 Base 선택자에게 알림 발송
   - 상세 화면으로 복귀
-- **거부 버튼**: 제안 거부 API 호출, 제안자에게 알림
+- **거부 버튼**: 제안 거부 API 호출 (PUT `/proposals/:id/reject`)
+  - 제안자에게 알림
+  - 상세 화면으로 복귀
 - **승인 확인 모달**:
-  ```dart
-  SketchModal.show(
-    title: '변경 승인',
-    child: Text('이 제안을 승인하면 Base WOD가 변경됩니다.\n기존 Base WOD를 선택한 사용자에게 알림이 전송됩니다.'),
-    actions: [...],
-  );
-  ```
-
----
-
-### 7. 박스 관리 화면 (Box Management Screen)
-
-**라우트**: `/box/manage`
-
-**목적**: 가입한 박스 목록 보기, 새 박스 생성, 초대 코드로 가입
-
-#### 레이아웃 계층
-
-```
-Scaffold
-└── AppBar
-    ├── Leading: IconButton (뒤로가기)
-    └── Title: Text("박스 관리")
-└── Body: SingleChildScrollView
-    └── Column (padding: spacingLg)
-        ├── _MyBoxesList (가입한 박스 목록)
-        ├── SizedBox(height: spacing2Xl)
-        └── _BoxActions (박스 생성/가입 버튼)
-```
-
-#### 위젯 상세
-
-**_MyBoxesList (가입한 박스 목록)**
 ```dart
-Obx(() {
-  if (controller.boxes.isEmpty) {
-    return SketchCard(
-      body: Column(
-        children: [
-          Icon(Icons.fitness_center, size: 64, color: base300),
-          SizedBox(height: spacingLg),
-          Text('가입한 박스가 없습니다', style: titleMedium),
-          SizedBox(height: spacingSm),
-          Text('박스를 생성하거나 초대 코드로 가입하세요',
-               style: bodySmall, color: base500),
-        ],
-      ),
-    );
-  }
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+SketchModal.show(
+  context: context,
+  title: '변경 승인',
+  child: Column(
     children: [
-      Text('내 박스 (${controller.boxes.length})', style: titleMedium),
-      SizedBox(height: spacingMd),
-      ...controller.boxes.map((box) =>
-        Padding(
-          padding: EdgeInsets.only(bottom: spacingMd),
-          child: SketchCard(
-            onTap: () => controller.selectBox(box),
-            body: Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: accentLight,
-                  child: Text(box.name[0], style: titleMedium),
-                ),
-                SizedBox(width: spacingMd),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(box.name, style: titleSmall),
-                      Text('${box.memberCount}명',
-                           style: bodySmall, color: base500),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right, color: base500),
-              ],
-            ),
-          ),
-        ),
-      ).toList(),
+      Text(
+        '이 제안을 승인하면 Base WOD가 변경됩니다.',
+        style: bodyLarge,
+        textAlign: TextAlign.center,
+      ),
+      SizedBox(height: spacingSm),
+      Text(
+        '기존 Base WOD를 선택한 사용자에게 알림이 전송됩니다.',
+        style: bodySmall,
+        color: base500,
+        textAlign: TextAlign.center,
+      ),
     ],
-  );
-})
-```
-
-**_BoxActions (박스 액션 버튼)**
-```dart
-Column(
-  children: [
+  ),
+  actions: [
     SketchButton(
-      text: '박스 생성',
-      icon: Icon(Icons.add_business),
-      size: SketchButtonSize.large,
-      onPressed: () => Get.toNamed(Routes.BOX_CREATE),
-    ),
-    SizedBox(height: spacingMd),
-    SketchButton(
-      text: '초대 코드로 가입',
-      icon: Icon(Icons.qr_code_scanner),
+      text: '취소',
       style: SketchButtonStyle.outline,
-      size: SketchButtonSize.large,
-      onPressed: () => Get.toNamed(Routes.BOX_JOIN),
+      onPressed: () => Navigator.pop(context),
+    ),
+    SketchButton(
+      text: '승인',
+      onPressed: () {
+        Navigator.pop(context);
+        controller.confirmApprove();
+      },
     ),
   ],
-)
+);
 ```
 
 ---
 
-### 8. 박스 생성 화면 (Box Create Screen)
+### Screen 8: 설정 (Settings)
 
-**라우트**: `/box/create`
+**라우트**: `/settings`
 
-**목적**: 새 박스 생성
+**목적**: 알림 설정, 박스 변경, 프로필 관리
 
-#### 레이아웃 계층
+**우선순위**: P1 (MVP 이후)
+
+#### 레이아웃 계층 (간략)
 
 ```
 Scaffold
 └── AppBar
     ├── Leading: IconButton (뒤로가기)
-    └── Title: Text("박스 생성")
-└── Body: Form
-    └── SingleChildScrollView (padding: spacingLg)
-        └── Column
-            ├── SketchInput (박스 이름)
-            ├── SizedBox(height: spacingLg)
-            ├── SketchInput (설명, multiline)
-            ├── SizedBox(height: spacing2Xl)
-            └── SketchButton (생성하기)
-```
-
-#### 위젯 상세
-
-```dart
-Column(
-  children: [
-    SketchInput(
-      label: '박스 이름',
-      hint: '예: CrossFit Seoul',
-      controller: controller.nameController,
-      errorText: controller.nameError.value,
-    ),
-    SizedBox(height: spacingLg),
-    SketchInput(
-      label: '설명 (선택)',
-      hint: '박스에 대한 간단한 설명',
-      controller: controller.descriptionController,
-      maxLines: 3,
-    ),
-    SizedBox(height: spacing2Xl),
-    Obx(() => SketchButton(
-      text: '생성하기',
-      icon: Icon(Icons.check),
-      size: SketchButtonSize.large,
-      isLoading: controller.isLoading.value,
-      onPressed: controller.canSubmit ? controller.create : null,
-    )),
-  ],
-)
+    └── Title: Text("설정")
+└── Body: ListView
+    ├── SketchCard (프로필 정보)
+    ├── SketchCard (박스 변경 버튼)
+    ├── SketchCard (알림 설정)
+    └── SketchButton (로그아웃)
 ```
 
 ---
 
-### 9. 박스 가입 화면 (Box Join Screen)
-
-**라우트**: `/box/join`
-
-**목적**: 초대 코드로 박스 가입
-
-#### 레이아웃 계층
-
-```
-Scaffold
-└── AppBar
-    ├── Leading: IconButton (뒤로가기)
-    └── Title: Text("박스 가입")
-└── Body: SingleChildScrollView (padding: spacingLg)
-    └── Column
-        ├── SketchInput (초대 코드)
-        ├── SizedBox(height: spacingLg)
-        ├── SketchButton (검증하기)
-        ├── SizedBox(height: spacing2Xl)
-        ├── Obx(() => _BoxPreview) // 검증된 박스 미리보기
-        ├── SizedBox(height: spacingXl)
-        └── Obx(() => SketchButton) // 가입하기
-```
-
-#### 위젯 상세
-
-```dart
-Column(
-  children: [
-    SketchInput(
-      label: '초대 코드',
-      hint: 'ABCD-1234-EFGH',
-      controller: controller.codeController,
-      prefixIcon: Icon(Icons.key),
-      errorText: controller.codeError.value,
-    ),
-    SizedBox(height: spacingLg),
-    SketchButton(
-      text: '검증하기',
-      icon: Icon(Icons.search),
-      style: SketchButtonStyle.outline,
-      onPressed: controller.verify,
-    ),
-
-    SizedBox(height: spacing2Xl),
-
-    // 검증 성공 시 박스 미리보기
-    if (controller.verifiedBox.value != null) ...[
-      SketchCard(
-        elevation: 2,
-        borderColor: success,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.check_circle, color: success),
-                SizedBox(width: spacingSm),
-                Text('초대 코드 확인됨',
-                     style: bodyMedium.copyWith(color: success)),
-              ],
-            ),
-            SizedBox(height: spacingLg),
-            Text(controller.verifiedBox.value.name,
-                 style: titleMedium),
-            SizedBox(height: spacingSm),
-            Text(controller.verifiedBox.value.description ?? '',
-                 style: bodySmall, color: base500),
-            SizedBox(height: spacingSm),
-            Text('${controller.verifiedBox.value.memberCount}명',
-                 style: bodySmall, color: base500),
-          ],
-        ),
-      ),
-
-      SizedBox(height: spacingXl),
-
-      SketchButton(
-        text: '가입하기',
-        icon: Icon(Icons.login),
-        size: SketchButtonSize.large,
-        isLoading: controller.isLoading.value,
-        onPressed: controller.join,
-      ),
-    ],
-  ],
-)
-```
-
----
-
-## 디자인 결정 사항 (Design Decisions)
+## 디자인 결정 사항
 
 ### 1. 색상 코딩 전략
 
@@ -1424,14 +1513,14 @@ Column(
 - **Base WOD**:
   - Border: `accentPrimary` (#DF7D5F)
   - Stroke: `strokeBold` (3px)
-  - Background: `white`
   - Badge: `SketchChip(selected: true)` with star icon
+  - 의미: "먼저 등록된" 사실을 강조 (권위 X, 순서 O)
 
 - **Personal WOD**:
   - Border: `base300` (#DCDCDC)
   - Stroke: `strokeStandard` (2px)
-  - Background: `white`
   - Badge: `SketchChip(selected: false)` no icon
+  - 의미: "다른 선택지"로 평등하게 표현
 
 **의미론적 색상**:
 - 성공/승인: `success` (#4CAF50)
@@ -1442,11 +1531,13 @@ Column(
 ### 2. WOD 타입 배지
 
 모든 WOD 타입은 `SketchChip`로 표시:
-- AMRAP: `accentPrimary` 배경
-- For Time: `info` 배경
-- EMOM: `success` 배경
-- Strength: `warning` 배경
-- Custom: `base500` 배경
+- AMRAP: 기본 색상 (accentPrimary)
+- For Time: 기본 색상
+- EMOM: 기본 색상
+- Strength: 기본 색상
+- Custom: 기본 색상
+
+(타입별 색상 구분 불필요 — 일관성 유지)
 
 ### 3. Movement 리스트 시각화
 
@@ -1492,7 +1583,152 @@ SketchIconButton(
 
 ---
 
-## 반응형 고려사항
+## 색상 팔레트 (Frame0 스타일)
+
+### Primary Colors
+- **Primary**: `Color(0xFFDF7D5F)` (#DF7D5F) — 주요 액션, Base WOD 강조
+- **PrimaryLight**: `Color(0xFFF19E7E)` (#F19E7E) — Avatar 배경, 밝은 강조
+- **PrimaryDark**: `Color(0xFFC86947)` (#C86947) — 눌림 상태
+
+### Grayscale
+- **White**: `Color(0xFFFFFFFF)` (#FFFFFF) — 배경
+- **Base100**: `Color(0xFFF7F7F7)` (#F7F7F7) — 밝은 배경
+- **Base300**: `Color(0xFFDCDCDC)` (#DCDCDC) — Personal WOD 테두리
+- **Base500**: `Color(0xFF8E8E8E)` (#8E8E8E) — 보조 텍스트
+- **Base700**: `Color(0xFF5E5E5E)` (#5E5E5E) — 어두운 보조 텍스트
+- **Base900**: `Color(0xFF343434)` (#343434) — 주요 텍스트
+- **Black**: `Color(0xFF000000)` (#000000) — 강조 텍스트
+
+### Semantic Colors
+- **Success**: `Color(0xFF4CAF50)` (#4CAF50) — 승인, 성공 상태
+- **Warning**: `Color(0xFFFFC107)` (#FFC107) — 경고, 대기 상태
+- **Error**: `Color(0xFFF44336)` (#F44336) — 에러, 거부 상태
+- **Info**: `Color(0xFF2196F3)` (#2196F3) — 정보, 중립
+
+---
+
+## 타이포그래피
+
+### Font Family
+- **Primary**: Roboto (Flutter 기본)
+- **Fallback**: System UI
+
+### Type Scale (Frame0 기반)
+
+| 스타일 | fontSize | fontWeight | height | 용도 |
+|--------|----------|------------|--------|------|
+| displayLarge | 57 | 400 | 64/57 | 특별한 강조 (미사용) |
+| displayMedium | 45 | 400 | 52/45 | 특별한 강조 (미사용) |
+| displaySmall | 36 | 400 | 44/36 | 특별한 강조 (미사용) |
+| headlineLarge | 32 | 400 | 40/32 | 페이지 제목 |
+| headlineMedium | 28 | 400 | 36/28 | 섹션 제목 |
+| headlineSmall | 24 | 400 | 32/24 | 카드 제목 |
+| **titleLarge** | 22 | 500 | 28/22 | **AppBar 제목** |
+| **titleMedium** | 16 | 500 | 24/16 | **카드 제목, 섹션 헤더** |
+| **titleSmall** | 14 | 500 | 20/14 | **리스트 제목, Chip** |
+| **bodyLarge** | 16 | 400 | 24/16 | **본문 텍스트** |
+| **bodyMedium** | 14 | 400 | 20/14 | **본문 (작음)** |
+| **bodySmall** | 12 | 400 | 16/12 | **캡션, 보조 텍스트** |
+| **labelLarge** | 14 | 500 | 20/14 | **버튼** |
+| labelMedium | 12 | 500 | 16/12 | 작은 버튼 |
+| labelSmall | 11 | 500 | 16/11 | 태그, 라벨 |
+
+### 주로 사용하는 스타일
+- AppBar 제목: `titleLarge`
+- WOD 타입 배지: `titleSmall`
+- WOD 내용: `bodyLarge`
+- 등록자/선택 인원: `bodySmall` + `color: base500`
+- 버튼: `labelLarge`
+
+---
+
+## 스페이싱 시스템 (8dp 그리드)
+
+| 토큰 | 값 | 용도 |
+|------|-----|------|
+| **spacingXs** | 4px | 아주 작은 간격 (Chip 내부) |
+| **spacingSm** | 8px | 작은 간격 (Movement 리스트) |
+| **spacingMd** | 12px | 중간 간격 (Input 필드 사이) |
+| **spacingLg** | 16px | **기본 간격 (화면 패딩)** |
+| **spacingXl** | 24px | 큰 간격 (섹션 구분) |
+| **spacing2Xl** | 32px | 아주 큰 간격 (주요 섹션) |
+| spacing3Xl | 48px | 특별한 강조 |
+| spacing4Xl | 64px | 최대 간격 |
+
+### 컴포넌트별 스페이싱
+- **화면 패딩**: `spacingLg` (16px) — 좌우상하
+- **위젯 간 간격**: `spacingSm` (8px), `spacingLg` (16px), `spacingXl` (24px)
+- **섹션 구분**: `spacing2Xl` (32px)
+- **Card 내부 패딩**: `spacingLg` (16px) — 기본값
+- **버튼 내부 패딩**: horizontal: 24px, vertical: 12px (SketchButton 기본값)
+
+---
+
+## Border & Elevation
+
+### Stroke (선 두께)
+- **strokeThin**: 1px — 아이콘, 텍스트 밑줄
+- **strokeStandard**: 2px — **Personal WOD 테두리 (기본)**
+- **strokeBold**: 3px — **Base WOD 테두리 (강조)**
+- **strokeThick**: 4px — 특별한 강조 (미사용)
+
+### Border Radius
+SketchContainer/SketchCard는 기본적으로 스케치 스타일이므로 radius 없음.
+필요 시 디자인 토큰 참조:
+- **radiusSm**: 2px
+- **radiusMd**: 4px
+- **radiusLg**: 8px
+- **radiusPill**: 9999px — 버튼, Chip
+
+### Elevation (그림자)
+SketchCard elevation 속성:
+- **0**: 그림자 없음 (평면)
+- **1**: 기본 카드 (Personal WOD)
+- **2**: 중간 강조 (Base WOD)
+- **3**: 높은 강조 (선택된 카드)
+
+---
+
+## 인터랙션 상태
+
+### 버튼 상태
+- **Default**: Primary 색상, elevation: 0 (SketchButton 기본)
+- **Pressed**: 색상 어두움 (darken 10%)
+- **Disabled**: OnSurface 12% 투명도
+- **Loading**: CircularProgressIndicator + 텍스트
+
+### TextField 상태
+- **Default**: Border 2px, base300
+- **Focused**: Border 2px, accentPrimary
+- **Error**: Border 2px, error 색상, 하단 에러 메시지
+- **Disabled**: Border 2px, base300, 투명도 40%
+
+### 터치 피드백
+- **Ripple Effect**: InkWell 사용 (SketchCard onTap)
+- **Splash Color**: accentPrimary 12% 투명도
+- **Highlight Color**: accentPrimary 8% 투명도
+
+---
+
+## 애니메이션
+
+### 화면 전환
+- **Route Transition**: Fade In (250ms) — GetX 기본
+- **Duration**: 300ms
+- **Curve**: Curves.easeInOut
+
+### 상태 변경
+- **Fade In/Out**: Duration: 200ms, Curve: Curves.easeIn
+- **AnimatedSwitcher**: 로딩 ↔ 컨텐츠 전환
+- **AnimatedSize**: Empty ↔ Filled 전환
+
+### 로딩
+- **CircularProgressIndicator**: SketchProgressBar(value: null, style: circular)
+- **Button Loading**: SketchButton(isLoading: true)
+
+---
+
+## 반응형 레이아웃
 
 ### Mobile-First (Primary Target)
 
@@ -1500,16 +1736,16 @@ SketchIconButton(
 
 **주요 고려사항**:
 - Single column layout
-- Minimum touch target: 48x48px
+- Minimum touch target: 48x48px (Material Design 권장)
 - Safe area 고려 (notch, home indicator)
 - 가로 모드 지원 불필요 (Portrait only)
 
-### Tablet (Secondary, Post-MVP)
+### Tablet (Post-MVP)
 
 **화면 크기 범위**: 600px ~ 1024px (width)
 
 **적응형 전략**:
-- 2-column layout for comparison screens (WOD Detail, Approve)
+- 2-column layout for comparison screens (WOD Detail, Review)
 - Increased padding: `spacingLg` → `spacing2Xl`
 - Larger card max-width: 600px
 
@@ -1545,7 +1781,7 @@ SketchIconButton(
 Semantics(
   label: 'Base WOD 상세 보기',
   button: true,
-  child: SketchCard(...),
+  child: SketchCard(onTap: ...),
 )
 ```
 
@@ -1558,15 +1794,13 @@ Semantics(
 ```dart
 abstract class Routes {
   static const LOGIN = '/login';
+  static const BOX_SEARCH = '/box/search';
+  static const BOX_CREATE = '/box/create';
   static const HOME = '/home';
   static const WOD_REGISTER = '/wod/register';
-  static const WOD_DETAIL = '/wod/:id/detail';
+  static const WOD_DETAIL = '/wod/:date/detail';
   static const WOD_SELECT = '/wod/:date/select';
-  static const WOD_PROPOSE = '/wod/:id/propose';
-  static const WOD_APPROVE = '/wod/:proposalId/approve';
-  static const BOX_MANAGE = '/box/manage';
-  static const BOX_CREATE = '/box/create';
-  static const BOX_JOIN = '/box/join';
+  static const PROPOSAL_REVIEW = '/proposal/:id/review';
   static const SETTINGS = '/settings';
 }
 ```
@@ -1576,52 +1810,15 @@ abstract class Routes {
 **Default Transition**: `Transition.fadeIn` (250ms)
 
 **특별한 경우**:
-- 모달 화면 (Propose, Approve): `Transition.downToUp`
+- 모달 화면 (Register, Review): `Transition.downToUp`
 - 뒤로가기: `Transition.rightToLeft`
 - 설정: `Transition.leftToRight`
 
-### Deep Linking Considerations
+### Deep Linking Considerations (Post-MVP)
 
 **지원할 Deep Link**:
 - `wowa://wod/{date}` → 해당 날짜 홈 화면
-- `wowa://box/{boxId}` → 박스 선택 후 홈
-- `wowa://box/join?code={inviteCode}` → 박스 가입 화면
-
----
-
-## 애니메이션 전략
-
-### Sketch Drawing Animation (Post-MVP)
-
-**AnimatedSketchPainter** 사용:
-```dart
-AnimatedSketchPainter(
-  child: _WodContentWidget(wod: wod),
-  duration: Duration(milliseconds: 800),
-  curve: Curves.easeInOut,
-)
-```
-
-- WOD 카드 첫 로드 시 "손으로 그리는" 효과
-- 선택/해제 시 테두리 애니메이션
-
-### State Transitions
-
-**로딩 → 컨텐츠**:
-```dart
-AnimatedSwitcher(
-  duration: Duration(milliseconds: 300),
-  child: isLoading ? SketchProgressBar(...) : _WodCard(...),
-)
-```
-
-**Empty → Filled**:
-```dart
-AnimatedSize(
-  duration: Duration(milliseconds: 250),
-  child: _WodCardSection(),
-)
-```
+- `wowa://box/{boxId}` → 해당 박스 가입 후 홈
 
 ---
 
@@ -1644,21 +1841,17 @@ AnimatedSize(
 
 **추가 구현 필요한 컴포넌트** (design-specialist 구현):
 
-1. **SketchDatePicker**
+1. **DatePicker (Flutter 기본 사용)**
    - 목적: 날짜 선택 UI
-   - 재사용: 홈 화면, WOD 조회
-   - 우선순위: P1
+   - 구현: `showDatePicker()` 사용 (Material Design 기본)
+   - 재사용: 홈 화면
+   - 우선순위: P0
 
-2. **SketchBadge**
+2. **Badge (SketchIconButton에 포함)**
    - 목적: 알림 개수 표시
-   - 재사용: AppBar 아이콘, WOD 카드
-   - 우선순위: P1
-   - 참고: 현재 SketchIconButton에 badgeCount 있음
-
-3. **SketchTimePicker**
-   - 목적: 시간(분) 입력 UI
-   - 재사용: WOD 등록 화면
-   - 우선순위: P2 (SketchInput으로 대체 가능)
+   - 구현: `SketchIconButton(badgeCount: ...)` 이미 구현됨
+   - 재사용: AppBar 아이콘
+   - 우선순위: 구현 완료
 
 ---
 
@@ -1687,16 +1880,15 @@ AnimatedSize(
 
 ## 다음 단계
 
-**design-spec.md 작성 완료**
+**mobile-design-spec.md 작성 완료**
 
 다음 단계:
-1. **tech-lead**: 기술 아키텍처 설계 (`technical-design.md`)
-2. **design-specialist**: Design System 신규 컴포넌트 구현 (필요시)
-3. **mobile-developer**: API 모델 생성 및 화면 구현
-4. **backend-developer**: WOD/Box API 엔드포인트 구현
+1. **tech-lead**: 기술 아키텍처 설계 (`mobile-technical-design.md`)
+2. **mobile-developer**: API 모델 생성 및 화면 구현
+3. **backend-developer**: WOD/Box API 엔드포인트 구현
 
 ---
 
-**작성일**: 2026-02-03
-**버전**: 1.0.0
-**상태**: Draft
+**작성일**: 2026-02-04
+**버전**: 2.0.0
+**상태**: Approved

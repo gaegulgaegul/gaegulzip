@@ -1,394 +1,727 @@
-# WOWA Mobile Technical Architecture Brief
+# 기술 아키텍처 설계: WOWA MVP (Mobile)
 
-> Feature: wowa
-> Created: 2026-02-03
-> Status: Draft
-> Phase: Technical Design
-> Platform: Mobile (Flutter)
-
----
-
-## 1. Overview
-
-WOWA 모바일 앱의 기술 아키텍처 설계서. `mobile-design-spec.md`의 9개 화면 설계를 기반으로 GetX 패턴, Freezed 모델, Dio 클라이언트, 라우팅을 정의한다.
-
-**참조 문서**:
-- UI/UX 설계: `docs/mobile/wowa/mobile-design-spec.md`
-- 서버 API 계약: `docs/server/wowa/server-brief.md`
-- 모바일 가이드: `apps/mobile/CLAUDE.md`
+> Feature: wowa-mvp
+> Created: 2026-02-04
+> Phase: Technical Architecture Design
+> Platform: Flutter (GetX)
 
 ---
 
-## 2. Module Architecture
+## 개요
+
+WOWA MVP의 모바일 기술 아키텍처를 정의합니다. mobile-design-spec.md의 UI/UX 설계를 기반으로 GetX 상태 관리, API 통합, 라우팅 설계를 제공합니다.
+
+**핵심 기술 전략**:
+- GetX 상태 관리로 반응형 UI 구현
+- Freezed 모델로 타입 안전성 확보
+- Repository 패턴으로 비즈니스 로직 분리
+- const 최적화 및 Obx 범위 최소화로 성능 최적화
+
+**기술 스택**:
+- Framework: Flutter 3.x
+- State Management: GetX
+- HTTP Client: Dio
+- Code Generation: Freezed + json_serializable
+- Design System: Frame0 스케치 스타일 (packages/design_system)
+
+---
+
+## 모듈 구조 (apps/wowa/lib/app/modules/)
+
+### 박스 관리 (Box)
 
 ```
-apps/wowa/lib/app/
-├── modules/
-│   ├── login/                    # (기존 완료)
-│   │   ├── controllers/login_controller.dart
-│   │   ├── views/login_view.dart
-│   │   └── bindings/login_binding.dart
-│   │
-│   ├── home/                     # 홈 (오늘의 WOD)
-│   │   ├── controllers/home_controller.dart
-│   │   ├── views/home_view.dart
-│   │   └── bindings/home_binding.dart
-│   │
-│   ├── wod_registration/         # WOD 등록
-│   │   ├── controllers/wod_registration_controller.dart
-│   │   ├── views/wod_registration_view.dart
-│   │   └── bindings/wod_registration_binding.dart
-│   │
-│   ├── wod_detail/               # WOD 상세
-│   │   ├── controllers/wod_detail_controller.dart
-│   │   ├── views/wod_detail_view.dart
-│   │   └── bindings/wod_detail_binding.dart
-│   │
-│   ├── wod_selection/            # WOD 선택
-│   │   ├── controllers/wod_selection_controller.dart
-│   │   ├── views/wod_selection_view.dart
-│   │   └── bindings/wod_selection_binding.dart
-│   │
-│   ├── propose_change/           # 변경 제안
-│   │   ├── controllers/propose_change_controller.dart
-│   │   ├── views/propose_change_view.dart
-│   │   └── bindings/propose_change_binding.dart
-│   │
-│   ├── approve_change/           # 변경 승인
-│   │   ├── controllers/approve_change_controller.dart
-│   │   ├── views/approve_change_view.dart
-│   │   └── bindings/approve_change_binding.dart
-│   │
-│   ├── box_management/           # 박스 관리
-│   │   ├── controllers/box_management_controller.dart
-│   │   ├── views/box_management_view.dart
-│   │   └── bindings/box_management_binding.dart
-│   │
-│   ├── box_create/               # 박스 생성
-│   │   ├── controllers/box_create_controller.dart
-│   │   ├── views/box_create_view.dart
-│   │   └── bindings/box_create_binding.dart
-│   │
-│   └── box_join/                 # 박스 가입
-│       ├── controllers/box_join_controller.dart
-│       ├── views/box_join_view.dart
-│       └── bindings/box_join_binding.dart
-│
-├── data/
-│   └── repositories/
-│       └── auth_repository.dart  # (기존)
-│
-├── services/
-│   ├── social_login/             # (기존)
-│   └── app_state_service.dart    # 전역 상태 (현재 박스, 사용자)
-│
-└── routes/
-    ├── app_routes.dart           # 라우트 상수
-    └── app_pages.dart            # GetPage 등록
+modules/box/
+├── controllers/
+│   ├── box_search_controller.dart      # 박스 검색 및 가입
+│   └── box_create_controller.dart      # 박스 생성
+├── views/
+│   ├── box_search_view.dart            # 박스 검색 화면
+│   └── box_create_view.dart            # 박스 생성 화면
+└── bindings/
+    ├── box_search_binding.dart
+    └── box_create_binding.dart
 ```
 
-**API 패키지 구조** (`packages/api/`):
+### WOD 관리 (WOD)
 
 ```
-packages/api/lib/
-├── src/
-│   ├── client/
-│   │   ├── api_client.dart          # Dio 인스턴스 설정
-│   │   └── interceptors/
-│   │       ├── auth_interceptor.dart     # JWT 토큰 첨부
-│   │       ├── refresh_interceptor.dart  # 토큰 갱신
-│   │       └── error_interceptor.dart    # 에러 변환
-│   │
-│   ├── models/
-│   │   ├── box/
-│   │   │   ├── box_model.dart           # Box Freezed 모델
-│   │   │   └── box_member_model.dart    # BoxMember Freezed 모델
-│   │   ├── wod/
-│   │   │   ├── wod_model.dart           # Wod Freezed 모델
-│   │   │   ├── program_data_model.dart  # ProgramData Freezed 모델
-│   │   │   ├── movement_model.dart      # Movement Freezed 모델
-│   │   │   └── wod_selection_model.dart # WodSelection Freezed 모델
-│   │   ├── proposal/
-│   │   │   └── proposed_change_model.dart
-│   │   └── common/
-│   │       └── user_profile_model.dart  # 공통 사용자 프로필
-│   │
-│   └── services/
-│       ├── box_api_service.dart      # Box API 호출
-│       └── wod_api_service.dart      # WOD API 호출
-│
-└── api.dart                          # barrel export
+modules/wod/
+├── controllers/
+│   ├── home_controller.dart            # 홈 (오늘의 WOD)
+│   ├── wod_register_controller.dart    # WOD 등록
+│   ├── wod_detail_controller.dart      # WOD 상세
+│   ├── wod_select_controller.dart      # WOD 선택
+│   └── proposal_review_controller.dart # 변경 승인 (Base 등록자만)
+├── views/
+│   ├── home_view.dart
+│   ├── wod_register_view.dart
+│   ├── wod_detail_view.dart
+│   ├── wod_select_view.dart
+│   └── proposal_review_view.dart
+└── bindings/
+    ├── home_binding.dart
+    ├── wod_register_binding.dart
+    ├── wod_detail_binding.dart
+    ├── wod_select_binding.dart
+    └── proposal_review_binding.dart
+```
+
+### 설정 (Settings)
+
+```
+modules/settings/
+├── controllers/
+│   └── settings_controller.dart
+├── views/
+│   └── settings_view.dart
+└── bindings/
+    └── settings_binding.dart
 ```
 
 ---
 
-## 3. Route Definitions
+## GetX 상태 관리 설계
 
-### 3.1 Route Constants
+### 1. BoxSearchController
+
+**파일**: `apps/wowa/lib/app/modules/box/controllers/box_search_controller.dart`
+
+#### 반응형 상태 (.obs)
 
 ```dart
-// app_routes.dart (기존 확장)
-abstract class Routes {
-  // 기존
-  static const LOGIN = '/login';
-  static const HOME = '/home';
-  static const SETTINGS = '/settings';
+/// 검색 중 로딩 상태
+final isLoading = false.obs;
 
-  // WOD
-  static const WOD_REGISTER = '/wod/register';
-  static const WOD_DETAIL = '/wod/detail';
-  static const WOD_SELECT = '/wod/select';
-  static const WOD_PROPOSE = '/wod/propose';
-  static const WOD_APPROVE = '/wod/approve';
+/// 검색 결과 박스 목록
+final searchResults = <BoxModel>[].obs;
 
-  // Box
-  static const BOX_MANAGE = '/box/manage';
-  static const BOX_CREATE = '/box/create';
-  static const BOX_JOIN = '/box/join';
+/// 현재 가입된 박스 (설정에서 박스 변경 시만 표시)
+final currentBox = Rxn<BoxModel>();
+
+/// 박스 이름 검색어
+final nameQuery = ''.obs;
+
+/// 박스 지역 검색어
+final regionQuery = ''.obs;
+```
+
+**설계 근거**:
+- `isLoading`: 검색 API 호출 중 CircularProgressIndicator 표시
+- `searchResults`: ListView에 반응형 렌더링
+- `currentBox`: 설정에서 진입 시 박스 변경 확인 모달 표시 (기존 박스 자동 탈퇴)
+- `nameQuery`, `regionQuery`: TextField 입력값, debounce 300ms
+
+#### 비반응형 상태
+
+```dart
+/// 박스 검색 이름 입력 컨트롤러
+late final TextEditingController nameController;
+
+/// 박스 검색 지역 입력 컨트롤러
+late final TextEditingController regionController;
+
+/// Repository (의존성 주입)
+late final BoxRepository _repository;
+```
+
+**설계 근거**:
+- TextEditingController는 UI 변경 불필요 (TextField가 자체 관리)
+- Repository는 비즈니스 로직 분리
+
+#### 메서드 인터페이스
+
+```dart
+/// 초기화 (진입 경로에 따라 currentBox 설정)
+@override
+void onInit() {
+  super.onInit();
+  nameController = TextEditingController();
+  regionController = TextEditingController();
+  _repository = Get.find<BoxRepository>();
+
+  // 설정에서 진입 시 현재 박스 조회
+  _loadCurrentBox();
+}
+
+/// 현재 박스 조회 (설정에서 진입 시)
+Future<void> _loadCurrentBox() async {
+  try {
+    final box = await _repository.getCurrentBox();
+    currentBox.value = box;
+  } catch (e) {
+    // 가입된 박스 없음 (정상 플로우)
+    currentBox.value = null;
+  }
+}
+
+/// 박스 검색 (debounce 300ms)
+Future<void> search() async {
+  final name = nameController.text.trim();
+  final region = regionController.text.trim();
+
+  nameQuery.value = name;
+  regionQuery.value = region;
+
+  // 둘 다 비어있으면 검색하지 않음
+  if (name.isEmpty && region.isEmpty) {
+    searchResults.clear();
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    final results = await _repository.searchBoxes(
+      name: name.isEmpty ? null : name,
+      region: region.isEmpty ? null : region,
+    );
+    searchResults.value = results;
+  } on NetworkException catch (e) {
+    Get.snackbar(
+      '네트워크 오류',
+      '인터넷 연결을 확인해주세요',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } catch (e) {
+    Get.snackbar(
+      '오류',
+      '박스 검색에 실패했습니다',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+/// 박스 가입 (기존 박스 자동 탈퇴)
+Future<void> joinBox(BoxModel box) async {
+  // 기존 박스가 있으면 확인 모달
+  if (currentBox.value != null) {
+    final confirmed = await _showBoxChangeConfirmModal(box);
+    if (confirmed != true) return;
+  }
+
+  isLoading.value = true;
+  try {
+    await _repository.joinBox(box.id);
+
+    Get.snackbar(
+      '가입 완료',
+      '${box.name}에 가입되었습니다',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+
+    // 홈으로 이동 (기존 스택 전부 제거)
+    Get.offAllNamed(Routes.HOME);
+  } on NetworkException catch (e) {
+    Get.snackbar(
+      '네트워크 오류',
+      '인터넷 연결을 확인해주세요',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } catch (e) {
+    Get.snackbar(
+      '오류',
+      '박스 가입에 실패했습니다',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+/// 박스 변경 확인 모달
+Future<bool?> _showBoxChangeConfirmModal(BoxModel newBox) async {
+  return await SketchModal.show<bool>(
+    context: Get.context!,
+    title: '박스 변경',
+    child: Column(
+      children: [
+        Text("현재 '${currentBox.value!.name}'에서 탈퇴하고"),
+        Text("'${newBox.name}'에 가입합니다."),
+        const SizedBox(height: 8),
+        const Text(
+          '기존 박스의 데이터는 유지됩니다.',
+          style: TextStyle(fontSize: 12, color: Color(0xFF8E8E8E)),
+        ),
+      ],
+    ),
+    actions: [
+      SketchButton(
+        text: '취소',
+        style: SketchButtonStyle.outline,
+        onPressed: () => Navigator.pop(Get.context!, false),
+      ),
+      SketchButton(
+        text: '변경',
+        onPressed: () => Navigator.pop(Get.context!, true),
+      ),
+    ],
+  );
+}
+
+/// 정리
+@override
+void onClose() {
+  nameController.dispose();
+  regionController.dispose();
+  super.onClose();
 }
 ```
 
-### 3.2 GetPage Registrations
+---
+
+### 2. BoxCreateController
+
+**파일**: `apps/wowa/lib/app/modules/box/controllers/box_create_controller.dart`
+
+#### 반응형 상태 (.obs)
 
 ```dart
-// app_pages.dart (추가될 페이지)
-GetPage(
-  name: Routes.HOME,
-  page: () => const HomeView(),
-  binding: HomeBinding(),
-  transition: Transition.fadeIn,
-  transitionDuration: const Duration(milliseconds: 300),
-),
-GetPage(
-  name: Routes.WOD_REGISTER,
-  page: () => const WodRegistrationView(),
-  binding: WodRegistrationBinding(),
-  transition: Transition.rightToLeft,
-),
-GetPage(
-  name: Routes.WOD_DETAIL,
-  page: () => const WodDetailView(),
-  binding: WodDetailBinding(),
-  transition: Transition.rightToLeft,
-),
-GetPage(
-  name: Routes.WOD_SELECT,
-  page: () => const WodSelectionView(),
-  binding: WodSelectionBinding(),
-  transition: Transition.rightToLeft,
-),
-GetPage(
-  name: Routes.WOD_PROPOSE,
-  page: () => const ProposeChangeView(),
-  binding: ProposeChangeBinding(),
-  transition: Transition.rightToLeft,
-),
-GetPage(
-  name: Routes.WOD_APPROVE,
-  page: () => const ApproveChangeView(),
-  binding: ApproveChangeBinding(),
-  transition: Transition.rightToLeft,
-),
-GetPage(
-  name: Routes.BOX_MANAGE,
-  page: () => const BoxManagementView(),
-  binding: BoxManagementBinding(),
-  transition: Transition.rightToLeft,
-),
-GetPage(
-  name: Routes.BOX_CREATE,
-  page: () => const BoxCreateView(),
-  binding: BoxCreateBinding(),
-  transition: Transition.rightToLeft,
-),
-GetPage(
-  name: Routes.BOX_JOIN,
-  page: () => const BoxJoinView(),
-  binding: BoxJoinBinding(),
-  transition: Transition.rightToLeft,
-),
+/// 생성 중 로딩 상태
+final isLoading = false.obs;
+
+/// 박스 이름 에러 메시지
+final nameError = ''.obs;
+
+/// 박스 지역 에러 메시지
+final regionError = ''.obs;
+
+/// 제출 가능 여부
+final canSubmit = false.obs;
 ```
 
-### 3.3 Navigation Flow
+**설계 근거**:
+- `isLoading`: 생성 API 호출 중 버튼 로딩 상태
+- `nameError`, `regionError`: TextField 하단 에러 메시지
+- `canSubmit`: 버튼 활성화/비활성화 (이름+지역 모두 입력 시 true)
 
+#### 비반응형 상태
+
+```dart
+/// 박스 이름 입력 컨트롤러
+late final TextEditingController nameController;
+
+/// 박스 지역 입력 컨트롤러
+late final TextEditingController regionController;
+
+/// 박스 설명 입력 컨트롤러 (선택)
+late final TextEditingController descriptionController;
+
+/// Repository
+late final BoxRepository _repository;
 ```
-Login → Home (offAllNamed, 로그인 스택 제거)
-Home → WOD Register (toNamed)
-Home → WOD Detail (toNamed, arguments: wodId)
-Home → Box Manage (toNamed)
-WOD Detail → WOD Select (toNamed, arguments: {date, boxId})
-WOD Detail → WOD Propose (toNamed, arguments: wodId)
-WOD Propose → WOD Approve (알림으로 진입, toNamed, arguments: proposalId)
-Box Manage → Box Create (toNamed)
-Box Manage → Box Join (toNamed)
-Box Create → Box Manage (back)
-Box Join → Box Manage (back)
-WOD Register → Home (back, with refresh)
-WOD Select → Home (back, with refresh)
+
+#### 메서드 인터페이스
+
+```dart
+/// 초기화
+@override
+void onInit() {
+  super.onInit();
+  nameController = TextEditingController();
+  regionController = TextEditingController();
+  descriptionController = TextEditingController();
+  _repository = Get.find<BoxRepository>();
+
+  // 입력 값 변경 시 유효성 검증
+  nameController.addListener(_validateInputs);
+  regionController.addListener(_validateInputs);
+}
+
+/// 입력 유효성 검증
+void _validateInputs() {
+  final name = nameController.text.trim();
+  final region = regionController.text.trim();
+
+  nameError.value = name.isEmpty ? '박스 이름을 입력하세요' : '';
+  regionError.value = region.isEmpty ? '지역을 입력하세요' : '';
+
+  canSubmit.value = name.isNotEmpty && region.isNotEmpty;
+}
+
+/// 박스 생성 (+ 자동 가입)
+Future<void> create() async {
+  final name = nameController.text.trim();
+  final region = regionController.text.trim();
+  final description = descriptionController.text.trim();
+
+  if (!canSubmit.value) return;
+
+  isLoading.value = true;
+  try {
+    final box = await _repository.createBox(
+      name: name,
+      region: region,
+      description: description.isEmpty ? null : description,
+    );
+
+    Get.snackbar(
+      '생성 완료',
+      '${box.name}이(가) 생성되었습니다',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+
+    // 홈으로 이동 (기존 스택 전부 제거)
+    Get.offAllNamed(Routes.HOME);
+  } on NetworkException catch (e) {
+    Get.snackbar(
+      '네트워크 오류',
+      '인터넷 연결을 확인해주세요',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } on BusinessException catch (e) {
+    // 409: 중복 박스 에러
+    if (e.code == 'DUPLICATE_BOX') {
+      Get.snackbar(
+        '중복된 박스',
+        '이미 같은 이름의 박스가 존재합니다. 검색해보세요.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } else {
+      Get.snackbar(
+        '오류',
+        e.message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  } catch (e) {
+    Get.snackbar(
+      '오류',
+      '박스 생성에 실패했습니다',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+/// 정리
+@override
+void onClose() {
+  nameController.dispose();
+  regionController.dispose();
+  descriptionController.dispose();
+  super.onClose();
+}
 ```
 
 ---
 
-## 4. API Models (Freezed)
+### 3. HomeController
 
-### 4.1 Box Models
+**파일**: `apps/wowa/lib/app/modules/wod/controllers/home_controller.dart`
+
+#### 반응형 상태 (.obs)
+
+```dart
+/// 현재 가입된 박스
+final currentBox = Rxn<BoxModel>();
+
+/// 선택된 날짜 (기본값: 오늘)
+final selectedDate = DateTime.now().obs;
+
+/// Base WOD
+final baseWod = Rxn<WodModel>();
+
+/// Personal WODs
+final personalWods = <WodModel>[].obs;
+
+/// 로딩 상태
+final isLoading = false.obs;
+
+/// WOD 존재 여부
+final hasWod = false.obs;
+
+/// 알림 개수
+final unreadCount = 0.obs;
+```
+
+**설계 근거**:
+- `selectedDate`: 날짜 변경 시 WOD 다시 조회
+- `baseWod`, `personalWods`: WOD 카드 섹션 렌더링
+- `hasWod`: 버튼 활성화/비활성화 (상세보기, WOD 선택)
+- `unreadCount`: AppBar 알림 배지
+
+#### 비반응형 상태
+
+```dart
+/// Repository
+late final BoxRepository _boxRepository;
+late final WodRepository _wodRepository;
+```
+
+#### Computed Properties
+
+```dart
+/// 날짜 포맷 (2026년 2월 4일)
+String get formattedDate => DateFormat('yyyy년 M월 d일').format(selectedDate.value);
+
+/// 요일 (화요일)
+String get dayOfWeek => DateFormat('EEEE', 'ko').format(selectedDate.value);
+
+/// 오늘 날짜 여부
+bool get isToday {
+  final now = DateTime.now();
+  final date = selectedDate.value;
+  return now.year == date.year && now.month == date.month && now.day == date.day;
+}
+```
+
+#### 메서드 인터페이스
+
+```dart
+/// 초기화
+@override
+void onInit() {
+  super.onInit();
+  _boxRepository = Get.find<BoxRepository>();
+  _wodRepository = Get.find<WodRepository>();
+
+  // 현재 박스 조회 후 오늘의 WOD 조회
+  _loadInitialData();
+}
+
+/// 초기 데이터 로드
+Future<void> _loadInitialData() async {
+  isLoading.value = true;
+  try {
+    // 1. 현재 박스 조회
+    final box = await _boxRepository.getCurrentBox();
+    currentBox.value = box;
+
+    // 2. 오늘의 WOD 조회
+    await _loadWodForDate(selectedDate.value);
+  } on NetworkException catch (e) {
+    Get.snackbar(
+      '네트워크 오류',
+      '인터넷 연결을 확인해주세요',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } catch (e) {
+    Get.snackbar(
+      '오류',
+      '데이터를 불러오는데 실패했습니다',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+/// 특정 날짜의 WOD 조회
+Future<void> _loadWodForDate(DateTime date) async {
+  try {
+    final dateStr = DateFormat('yyyy-MM-dd').format(date);
+    final wods = await _wodRepository.getWodsByDate(
+      boxId: currentBox.value!.id,
+      date: dateStr,
+    );
+
+    baseWod.value = wods.baseWod;
+    personalWods.value = wods.personalWods;
+    hasWod.value = wods.baseWod != null;
+  } catch (e) {
+    // 날짜 변경 시 에러는 무시 (WOD 없을 수 있음)
+    baseWod.value = null;
+    personalWods.clear();
+    hasWod.value = false;
+  }
+}
+
+/// 이전 날짜로 이동
+void previousDay() {
+  selectedDate.value = selectedDate.value.subtract(const Duration(days: 1));
+  _loadWodForDate(selectedDate.value);
+}
+
+/// 다음 날짜로 이동
+void nextDay() {
+  selectedDate.value = selectedDate.value.add(const Duration(days: 1));
+  _loadWodForDate(selectedDate.value);
+}
+
+/// DatePicker 표시
+Future<void> showDatePicker() async {
+  final picked = await Get.dialog<DateTime>(
+    DatePickerDialog(
+      initialDate: selectedDate.value,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    ),
+  );
+
+  if (picked != null && picked != selectedDate.value) {
+    selectedDate.value = picked;
+    _loadWodForDate(selectedDate.value);
+  }
+}
+
+/// Pull-to-refresh
+Future<void> refresh() async {
+  await _loadWodForDate(selectedDate.value);
+}
+
+/// WOD 등록 화면으로 이동
+void goToRegister() {
+  Get.toNamed(
+    Routes.WOD_REGISTER,
+    arguments: {
+      'boxId': currentBox.value!.id,
+      'date': DateFormat('yyyy-MM-dd').format(selectedDate.value),
+    },
+  );
+}
+
+/// WOD 상세 화면으로 이동
+void goToDetail() {
+  if (!hasWod.value) return;
+
+  Get.toNamed(
+    Routes.WOD_DETAIL,
+    arguments: {
+      'boxId': currentBox.value!.id,
+      'date': DateFormat('yyyy-MM-dd').format(selectedDate.value),
+    },
+  );
+}
+
+/// WOD 선택 화면으로 이동
+void goToSelect() {
+  if (!hasWod.value) return;
+
+  Get.toNamed(
+    Routes.WOD_SELECT,
+    arguments: {
+      'boxId': currentBox.value!.id,
+      'date': DateFormat('yyyy-MM-dd').format(selectedDate.value),
+    },
+  );
+}
+```
+
+---
+
+## API 통합 설계
+
+### API 모델 (packages/api/lib/src/models/)
+
+Senior Developer가 구현합니다.
+
+#### Box Models
 
 ```dart
 // packages/api/lib/src/models/box/box_model.dart
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'box_model.freezed.dart';
+part 'box_model.g.dart';
+
 @freezed
 class BoxModel with _$BoxModel {
-  const factory BoxModel({
+  factory BoxModel({
     required int id,
     required String name,
+    required String region,
     String? description,
-    required String inviteCode,
-    required int createdBy,
-    int? memberCount,
-    required DateTime createdAt,
-    required DateTime updatedAt,
+    required int memberCount,
+    DateTime? joinedAt, // 내 박스 조회 시만 포함
   }) = _BoxModel;
 
   factory BoxModel.fromJson(Map<String, dynamic> json) =>
       _$BoxModelFromJson(json);
 }
-```
 
-```dart
-// packages/api/lib/src/models/box/box_member_model.dart
+// packages/api/lib/src/models/box/create_box_request.dart
+
 @freezed
-class BoxMemberModel with _$BoxMemberModel {
-  const factory BoxMemberModel({
-    required int id,
-    required int boxId,
-    required int userId,
-    required String role,
-    required DateTime joinedAt,
-    UserProfileModel? user,
-  }) = _BoxMemberModel;
+class CreateBoxRequest with _$CreateBoxRequest {
+  factory CreateBoxRequest({
+    required String name,
+    required String region,
+    String? description,
+  }) = _CreateBoxRequest;
 
-  factory BoxMemberModel.fromJson(Map<String, dynamic> json) =>
-      _$BoxMemberModelFromJson(json);
+  factory CreateBoxRequest.fromJson(Map<String, dynamic> json) =>
+      _$CreateBoxRequestFromJson(json);
 }
 ```
 
-```dart
-// packages/api/lib/src/models/common/user_profile_model.dart
-@freezed
-class UserProfileModel with _$UserProfileModel {
-  const factory UserProfileModel({
-    required int id,
-    String? nickname,
-    String? profileImage,
-  }) = _UserProfileModel;
-
-  factory UserProfileModel.fromJson(Map<String, dynamic> json) =>
-      _$UserProfileModelFromJson(json);
-}
-```
-
-### 4.2 WOD Models
+#### WOD Models
 
 ```dart
-// packages/api/lib/src/models/wod/movement_model.dart
+// packages/api/lib/src/models/wod/movement.dart
+
 @freezed
-class MovementModel with _$MovementModel {
-  const factory MovementModel({
+class Movement with _$Movement {
+  factory Movement({
     required String name,
     int? reps,
     double? weight,
-    String? unit,
-  }) = _MovementModel;
+    String? unit, // 'kg' | 'lb' | 'bw'
+  }) = _Movement;
 
-  factory MovementModel.fromJson(Map<String, dynamic> json) =>
-      _$MovementModelFromJson(json);
+  factory Movement.fromJson(Map<String, dynamic> json) =>
+      _$MovementFromJson(json);
 }
-```
 
-```dart
-// packages/api/lib/src/models/wod/program_data_model.dart
+// packages/api/lib/src/models/wod/program_data.dart
+
 @freezed
-class ProgramDataModel with _$ProgramDataModel {
-  const factory ProgramDataModel({
-    required String type,          // AMRAP | ForTime | EMOM | Strength | Custom
+class ProgramData with _$ProgramData {
+  factory ProgramData({
+    required String type, // 'AMRAP' | 'ForTime' | 'EMOM' | 'Strength' | 'Custom'
     int? timeCap,
     int? rounds,
-    @Default([]) List<MovementModel> movements,
-  }) = _ProgramDataModel;
+    required List<Movement> movements,
+  }) = _ProgramData;
 
-  factory ProgramDataModel.fromJson(Map<String, dynamic> json) =>
-      _$ProgramDataModelFromJson(json);
+  factory ProgramData.fromJson(Map<String, dynamic> json) =>
+      _$ProgramDataFromJson(json);
 }
-```
 
-```dart
 // packages/api/lib/src/models/wod/wod_model.dart
+
 @freezed
 class WodModel with _$WodModel {
-  const factory WodModel({
+  factory WodModel({
     required int id,
     required int boxId,
-    required String date,            // "2026-02-03" (ISO date)
-    required ProgramDataModel programData,
-    String? rawText,
+    required String date, // YYYY-MM-DD
+    required ProgramData programData,
+    required String rawText,
     required bool isBase,
     required int createdBy,
-    String? comparisonResult,        // identical | similar | different
-    required DateTime createdAt,
+    String? registeredBy, // 등록자 닉네임 (서버에서 조인)
+    int? selectedCount, // 선택한 사용자 수 (서버에서 계산)
+    required String createdAt,
   }) = _WodModel;
 
   factory WodModel.fromJson(Map<String, dynamic> json) =>
       _$WodModelFromJson(json);
 }
-```
 
-```dart
-// packages/api/lib/src/models/wod/wod_selection_model.dart
+// packages/api/lib/src/models/wod/register_wod_request.dart
+
 @freezed
-class WodSelectionModel with _$WodSelectionModel {
-  const factory WodSelectionModel({
-    required int id,
-    required int userId,
-    required int wodId,
+class RegisterWodRequest with _$RegisterWodRequest {
+  factory RegisterWodRequest({
     required int boxId,
     required String date,
-    required ProgramDataModel snapshotData,
-    required DateTime createdAt,
-  }) = _WodSelectionModel;
+    required ProgramData programData,
+    required String rawText,
+  }) = _RegisterWodRequest;
 
-  factory WodSelectionModel.fromJson(Map<String, dynamic> json) =>
-      _$WodSelectionModelFromJson(json);
+  factory RegisterWodRequest.fromJson(Map<String, dynamic> json) =>
+      _$RegisterWodRequestFromJson(json);
 }
-```
 
-### 4.3 Proposal Models
-
-```dart
-// packages/api/lib/src/models/proposal/proposed_change_model.dart
-@freezed
-class ProposedChangeModel with _$ProposedChangeModel {
-  const factory ProposedChangeModel({
-    required int id,
-    required int wodId,
-    required int proposedBy,
-    required ProgramDataModel proposedProgramData,
-    required String status,          // pending | approved | rejected
-    int? resolvedBy,
-    DateTime? resolvedAt,
-    required DateTime createdAt,
-  }) = _ProposedChangeModel;
-
-  factory ProposedChangeModel.fromJson(Map<String, dynamic> json) =>
-      _$ProposedChangeModelFromJson(json);
-}
-```
-
-### 4.4 API Response Wrappers
-
-```dart
 // packages/api/lib/src/models/wod/wod_list_response.dart
+
 @freezed
 class WodListResponse with _$WodListResponse {
-  const factory WodListResponse({
+  factory WodListResponse({
     WodModel? baseWod,
     @Default([]) List<WodModel> personalWods,
   }) = _WodListResponse;
@@ -398,802 +731,404 @@ class WodListResponse with _$WodListResponse {
 }
 ```
 
-```dart
-// packages/api/lib/src/models/box/box_members_response.dart
-@freezed
-class BoxMembersResponse with _$BoxMembersResponse {
-  const factory BoxMembersResponse({
-    @Default([]) List<BoxMemberModel> members,
-    @Default(0) int totalCount,
-  }) = _BoxMembersResponse;
+### API Clients (packages/api/lib/src/clients/)
 
-  factory BoxMembersResponse.fromJson(Map<String, dynamic> json) =>
-      _$BoxMembersResponseFromJson(json);
-}
-```
+Senior Developer가 구현합니다.
+
+#### BoxApiClient
 
 ```dart
-// packages/api/lib/src/models/wod/approve_response.dart
-@freezed
-class ApproveResponse with _$ApproveResponse {
-  const factory ApproveResponse({
-    required bool approved,
-    required int oldBaseWodId,
-    required int newBaseWodId,
-    required DateTime updatedAt,
-  }) = _ApproveResponse;
+// packages/api/lib/src/clients/box_api_client.dart
 
-  factory ApproveResponse.fromJson(Map<String, dynamic> json) =>
-      _$ApproveResponseFromJson(json);
-}
-```
+import 'package:dio/dio.dart';
+import 'package:get/get.dart';
+import '../models/box/box_model.dart';
+import '../models/box/create_box_request.dart';
 
----
+class BoxApiClient {
+  final Dio _dio = Get.find<Dio>();
 
-## 5. Dio Client Setup
-
-### 5.1 ApiClient
-
-```dart
-// packages/api/lib/src/client/api_client.dart
-class ApiClient {
-  late final Dio dio;
-
-  ApiClient({required String baseUrl, required TokenStorage tokenStorage}) {
-    dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      headers: {'Content-Type': 'application/json'},
-    ));
-
-    dio.interceptors.addAll([
-      AuthInterceptor(tokenStorage: tokenStorage),
-      RefreshInterceptor(dio: dio, tokenStorage: tokenStorage),
-      ErrorInterceptor(),
-    ]);
+  /// 내 현재 박스 조회
+  Future<BoxModel?> getCurrentBox() async {
+    final response = await _dio.get('/boxes/me');
+    final data = response.data['box'];
+    return data != null ? BoxModel.fromJson(data) : null;
   }
-}
-```
 
-### 5.2 Auth Interceptor
-
-```dart
-// packages/api/lib/src/client/interceptors/auth_interceptor.dart
-/// 요청 헤더에 JWT Access Token 자동 첨부
-class AuthInterceptor extends Interceptor {
-  final TokenStorage tokenStorage;
-
-  @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final token = tokenStorage.accessToken;
-    if (token != null) {
-      options.headers['Authorization'] = 'Bearer $token';
-    }
-    handler.next(options);
+  /// 박스 검색
+  Future<List<BoxModel>> searchBoxes({
+    String? name,
+    String? region,
+  }) async {
+    final response = await _dio.get(
+      '/boxes/search',
+      queryParameters: {
+        if (name != null) 'name': name,
+        if (region != null) 'region': region,
+      },
+    );
+    final List boxes = response.data['boxes'];
+    return boxes.map((b) => BoxModel.fromJson(b)).toList();
   }
-}
-```
 
-### 5.3 Refresh Interceptor
-
-```dart
-// packages/api/lib/src/client/interceptors/refresh_interceptor.dart
-/// 401 응답 시 Refresh Token으로 자동 갱신 후 재시도
-class RefreshInterceptor extends QueuedInterceptor {
-  @override
-  void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401) {
-      // 1. refreshToken으로 새 accessToken 요청
-      // 2. 성공 시 원래 요청 재시도
-      // 3. 실패 시 로그인 화면으로 이동
-    }
-    handler.next(err);
+  /// 박스 생성 (+ 자동 가입)
+  Future<BoxModel> createBox(CreateBoxRequest request) async {
+    final response = await _dio.post('/boxes', data: request.toJson());
+    return BoxModel.fromJson(response.data['box']);
   }
-}
-```
 
-### 5.4 Error Interceptor
-
-```dart
-// packages/api/lib/src/client/interceptors/error_interceptor.dart
-/// DioException을 앱 내부 예외로 변환
-class ErrorInterceptor extends Interceptor {
-  @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
-    switch (err.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.receiveTimeout:
-        throw NetworkException(message: '네트워크 연결 시간 초과');
-      case DioExceptionType.badResponse:
-        _handleBadResponse(err.response!);
-      default:
-        throw NetworkException(message: '네트워크 오류가 발생했습니다');
-    }
+  /// 박스 가입 (+ 기존 박스 자동 탈퇴)
+  Future<void> joinBox(int boxId) async {
+    await _dio.post('/boxes/$boxId/join');
   }
-}
-```
-
-### 5.5 API Services
-
-```dart
-// packages/api/lib/src/services/box_api_service.dart
-class BoxApiService {
-  final Dio _dio;
-
-  /// 박스 생성
-  Future<BoxModel> createBox({required String name, String? description});
-
-  /// 박스 가입 (초대 코드)
-  Future<BoxMemberModel> joinBox({required String inviteCode});
 
   /// 박스 상세 조회
-  Future<BoxModel> getBox({required int boxId});
-
-  /// 박스 멤버 목록
-  Future<BoxMembersResponse> getMembers({required int boxId});
+  Future<BoxModel> getBoxById(int boxId) async {
+    final response = await _dio.get('/boxes/$boxId');
+    return BoxModel.fromJson(response.data);
+  }
 }
 ```
 
+#### WodApiClient
+
 ```dart
-// packages/api/lib/src/services/wod_api_service.dart
-class WodApiService {
-  final Dio _dio;
+// packages/api/lib/src/clients/wod_api_client.dart
+
+import 'package:dio/dio.dart';
+import 'package:get/get.dart';
+import '../models/wod/wod_model.dart';
+import '../models/wod/register_wod_request.dart';
+import '../models/wod/wod_list_response.dart';
+
+class WodApiClient {
+  final Dio _dio = Get.find<Dio>();
 
   /// WOD 등록
-  Future<WodModel> registerWod({
-    required int boxId,
-    required String date,
-    required ProgramDataModel programData,
-    String? rawText,
-  });
+  Future<WodModel> registerWod(RegisterWodRequest request) async {
+    final response = await _dio.post('/wods', data: request.toJson());
+    return WodModel.fromJson(response.data);
+  }
 
-  /// 날짜별 WOD 조회
+  /// 날짜별 WOD 조회 (Base + Personal)
   Future<WodListResponse> getWodsByDate({
     required int boxId,
     required String date,
-  });
+  }) async {
+    final response = await _dio.get('/wods/$boxId/$date');
+    return WodListResponse.fromJson(response.data);
+  }
 
-  /// 변경 제안
-  Future<ProposedChangeModel> proposeChange({
-    required int wodId,
-    required ProgramDataModel proposedProgramData,
-  });
-
-  /// 변경 승인
-  Future<ApproveResponse> approveChange({
-    required int wodId,
-    required int proposalId,
-  });
-
-  /// WOD 선택 (기록)
-  Future<WodSelectionModel> selectWod({
+  /// WOD 선택
+  Future<void> selectWod({
     required int wodId,
     required int boxId,
     required String date,
-  });
-
-  /// 선택 조회
-  Future<WodSelectionModel?> getSelection({
-    required int boxId,
-    required String date,
-  });
-}
-```
-
----
-
-## 6. GetX Controllers
-
-### 6.1 AppStateService (전역 상태)
-
-```dart
-// app/services/app_state_service.dart
-/// 앱 전역 상태 관리 (현재 사용자, 선택된 박스)
-class AppStateService extends GetxService {
-  // 상태
-  final currentUser = Rxn<UserProfileModel>();
-  final currentBox = Rxn<BoxModel>();
-  final boxes = <BoxModel>[].obs;
-
-  // 메서드
-  Future<void> loadUserBoxes();
-  void switchBox(BoxModel box);
-  void clearState();  // 로그아웃 시
-}
-```
-
-> `GetxService`는 앱 생명주기 동안 유지. `Get.put<AppStateService>(AppStateService(), permanent: true)`로 등록.
-
-### 6.2 HomeController
-
-```dart
-class HomeController extends GetxController {
-  // 의존성
-  final WodApiService _wodApi;
-  final AppStateService _appState;
-
-  // 반응 상태
-  final selectedDate = DateTime.now().obs;
-  final isLoading = false.obs;
-  final baseWod = Rxn<WodModel>();
-  final personalWods = <WodModel>[].obs;
-  final selection = Rxn<WodSelectionModel>();
-
-  // Computed
-  bool get hasWod => baseWod.value != null;
-  bool get hasSelection => selection.value != null;
-  BoxModel? get currentBox => _appState.currentBox.value;
-
-  // 메서드
-  void onBoxChanged(BoxModel? box);       // 박스 전환 → WOD 새로고침
-  void onDateChanged(DateTime date);      // 날짜 변경 → WOD 새로고침
-  Future<void> loadWods();                // API 호출
-  Future<void> loadSelection();           // 선택 조회
-  void goToRegister();                    // WOD 등록 화면
-  void goToDetail(int wodId);            // WOD 상세 화면
-  void goToSelect();                      // WOD 선택 화면
-
-  // 생명주기
-  @override
-  void onInit() {
-    super.onInit();
-    ever(_appState.currentBox, (_) => loadWods());  // 박스 변경 감지
-    loadWods();
-  }
-}
-```
-
-### 6.3 WodRegistrationController
-
-```dart
-class WodRegistrationController extends GetxController {
-  // 의존성
-  final WodApiService _wodApi;
-  final AppStateService _appState;
-
-  // 반응 상태
-  final selectedType = 'AMRAP'.obs;       // WOD 타입
-  final timeCap = Rxn<int>();             // 시간 제한
-  final rounds = Rxn<int>();              // 라운드 수
-  final movements = <MovementModel>[].obs; // 운동 목록
-  final rawText = ''.obs;                 // 원본 텍스트
-  final isSubmitting = false.obs;
-
-  // 비반응 상태
-  final timeCapController = TextEditingController();
-  final roundsController = TextEditingController();
-
-  // 메서드
-  void addMovement();                     // 빈 운동 추가
-  void removeMovement(int index);         // 운동 삭제
-  void reorderMovement(int old, int new); // 순서 변경
-  void updateMovement(int index, MovementModel m); // 운동 수정
-  bool validate();                        // 입력 검증
-  Future<void> submit();                  // WOD 등록 API 호출 → 성공 시 Home으로 back
-
-  @override
-  void onClose() {
-    timeCapController.dispose();
-    roundsController.dispose();
-    super.onClose();
-  }
-}
-```
-
-### 6.4 WodDetailController
-
-```dart
-class WodDetailController extends GetxController {
-  // 의존성
-  final WodApiService _wodApi;
-
-  // 반응 상태
-  final wod = Rxn<WodModel>();            // 선택된 WOD
-  final baseWod = Rxn<WodModel>();        // Base WOD (비교용)
-  final personalWods = <WodModel>[].obs;  // Personal WODs
-  final proposals = <ProposedChangeModel>[].obs;
-  final isLoading = false.obs;
-
-  // Arguments
-  late final int wodId;
-
-  // 메서드
-  Future<void> loadWodDetail();
-  void goToPropose();                     // 변경 제안 화면
-  void goToSelect();                      // WOD 선택 화면
-  void goToApprove(int proposalId);      // 변경 승인 화면
-
-  @override
-  void onInit() {
-    super.onInit();
-    wodId = Get.arguments as int;
-    loadWodDetail();
-  }
-}
-```
-
-### 6.5 WodSelectionController
-
-```dart
-class WodSelectionController extends GetxController {
-  // 의존성
-  final WodApiService _wodApi;
-
-  // 반응 상태
-  final selectedWodId = Rxn<int>();       // 선택한 WOD ID
-  final baseWod = Rxn<WodModel>();
-  final personalWods = <WodModel>[].obs;
-  final isSubmitting = false.obs;
-  final isConfirmed = false.obs;          // 불변성 경고 확인
-
-  // Arguments
-  late final String date;
-  late final int boxId;
-
-  // 메서드
-  void selectWod(int wodId);             // 라디오 선택
-  void toggleConfirmation();             // 불변성 경고 체크박스
-  Future<void> confirmSelection();       // 선택 확정 API 호출
-
-  @override
-  void onInit() {
-    super.onInit();
-    final args = Get.arguments as Map<String, dynamic>;
-    date = args['date'];
-    boxId = args['boxId'];
-    loadWods();
-  }
-}
-```
-
-### 6.6 ProposeChangeController
-
-```dart
-class ProposeChangeController extends GetxController {
-  // 의존성
-  final WodApiService _wodApi;
-
-  // 반응 상태
-  final currentBase = Rxn<WodModel>();    // 현재 Base WOD
-  final selectedType = ''.obs;
-  final timeCap = Rxn<int>();
-  final rounds = Rxn<int>();
-  final movements = <MovementModel>[].obs;
-  final isSubmitting = false.obs;
-
-  // Arguments
-  late final int wodId;
-
-  // 메서드
-  void initFromBase();                    // Base WOD 값으로 초기화
-  bool validate();
-  Future<void> submitProposal();          // 변경 제안 API 호출
-
-  @override
-  void onInit() {
-    super.onInit();
-    wodId = Get.arguments as int;
-    loadBaseAndInit();
-  }
-}
-```
-
-### 6.7 ApproveChangeController
-
-```dart
-class ApproveChangeController extends GetxController {
-  // 의존성
-  final WodApiService _wodApi;
-
-  // 반응 상태
-  final proposal = Rxn<ProposedChangeModel>();
-  final baseWod = Rxn<WodModel>();
-  final isLoading = false.obs;
-  final isSubmitting = false.obs;
-
-  // Arguments
-  late final int proposalId;
-
-  // 메서드
-  Future<void> loadProposal();
-  Future<void> approve();                 // 승인 → Base 교체
-  Future<void> reject();                  // 거부 → 유지
-}
-```
-
-### 6.8 BoxManagementController
-
-```dart
-class BoxManagementController extends GetxController {
-  // 의존성
-  final BoxApiService _boxApi;
-  final AppStateService _appState;
-
-  // 반응 상태
-  final isLoading = false.obs;
-
-  // Computed
-  List<BoxModel> get boxes => _appState.boxes;
-
-  // 메서드
-  Future<void> loadBoxes();
-  void goToCreate();
-  void goToJoin();
-  void selectBox(BoxModel box);           // 박스 선택 후 Home으로
-}
-```
-
-### 6.9 BoxCreateController
-
-```dart
-class BoxCreateController extends GetxController {
-  // 반응 상태
-  final isSubmitting = false.obs;
-
-  // 비반응 상태
-  final nameController = TextEditingController();
-  final descriptionController = TextEditingController();
-
-  // 메서드
-  bool validate();
-  Future<void> createBox();               // API 호출 → 성공 시 back
-
-  @override
-  void onClose() {
-    nameController.dispose();
-    descriptionController.dispose();
-    super.onClose();
-  }
-}
-```
-
-### 6.10 BoxJoinController
-
-```dart
-class BoxJoinController extends GetxController {
-  // 반응 상태
-  final isSubmitting = false.obs;
-  final errorMessage = ''.obs;
-
-  // 비반응 상태
-  final inviteCodeController = TextEditingController();
-
-  // 메서드
-  bool validate();
-  Future<void> joinBox();                 // API 호출 → 성공 시 back
-
-  @override
-  void onClose() {
-    inviteCodeController.dispose();
-    super.onClose();
-  }
-}
-```
-
----
-
-## 7. Bindings
-
-### 패턴
-
-모든 Binding은 `Get.lazyPut`으로 Controller를 등록한다. API 서비스 의존성이 필요한 경우 함께 등록.
-
-```dart
-// 예시: HomeBinding
-class HomeBinding extends Bindings {
-  @override
-  void dependencies() {
-    Get.lazyPut<HomeController>(() => HomeController(
-      wodApi: Get.find<WodApiService>(),
-      appState: Get.find<AppStateService>(),
-    ));
-  }
-}
-```
-
-### 전역 서비스 초기화
-
-앱 시작 시 (`main.dart`) 전역 서비스를 등록:
-
-```dart
-Future<void> initServices() async {
-  // API 클라이언트
-  Get.put(ApiClient(
-    baseUrl: Environment.apiBaseUrl,
-    tokenStorage: Get.find<TokenStorage>(),
-  ), permanent: true);
-
-  // API 서비스
-  Get.put(BoxApiService(dio: Get.find<ApiClient>().dio), permanent: true);
-  Get.put(WodApiService(dio: Get.find<ApiClient>().dio), permanent: true);
-
-  // 앱 전역 상태
-  Get.put(AppStateService(), permanent: true);
-}
-```
-
----
-
-## 8. State Management Strategy
-
-### 8.1 전역 상태 (AppStateService)
-
-| 상태 | 타입 | 용도 |
-|------|------|------|
-| `currentUser` | `Rxn<UserProfileModel>` | 로그인된 사용자 |
-| `currentBox` | `Rxn<BoxModel>` | 현재 선택된 박스 |
-| `boxes` | `RxList<BoxModel>` | 가입한 박스 목록 |
-
-> 로그인 성공 → `AppStateService.loadUserBoxes()` → 첫 번째 박스 자동 선택
-
-### 8.2 화면 로컬 상태
-
-| Controller | 로컬 상태 | 공유 안 함 |
-|-----------|---------|-----------|
-| HomeController | `selectedDate`, `baseWod`, `personalWods` | 날짜별 WOD 캐시는 화면 내에서만 |
-| WodRegistrationController | `movements`, `selectedType` | 등록 폼 상태 |
-| WodSelectionController | `selectedWodId`, `isConfirmed` | 선택 확인 상태 |
-
-### 8.3 박스 전환 흐름
-
-```
-사용자가 BoxSelector에서 다른 박스 선택
-  → AppStateService.switchBox(newBox)
-  → HomeController의 ever() 리스너 트리거
-  → loadWods() 호출 (새 박스의 오늘 WOD 로드)
-  → UI 자동 갱신 (Obx)
-```
-
-### 8.4 날짜 변경 흐름
-
-```
-사용자가 DateHeader에서 날짜 변경
-  → HomeController.onDateChanged(newDate)
-  → selectedDate.value = newDate
-  → loadWods() 호출
-  → UI 자동 갱신
-```
-
-### 8.5 WOD 캐시 전략
-
-MVP에서는 캐시 없이 API 호출. 이유:
-- WOD가 실시간으로 변경될 수 있음 (변경 승인 등)
-- 데이터 양이 많지 않음 (하루 1-3개 WOD)
-- Post-MVP에서 `GetStorage` 기반 캐시 고려
-
----
-
-## 9. Data Flow
-
-### 9.1 Login → Home
-
-```
-LoginController.handleXxxLogin()
-  → SDK에서 accessToken 획득
-  → POST /auth/oauth (서버)
-  → TokenStorage에 JWT 저장
-  → AppStateService.loadUserBoxes()
-  → Get.offAllNamed(Routes.HOME)
-```
-
-### 9.2 Box 선택 → WOD 표시
-
-```
-HomeView._BoxSelector에서 박스 선택
-  → AppStateService.switchBox(box)
-  → HomeController.loadWods()
-  → GET /wods/:boxId/:date
-  → baseWod.value = response.baseWod
-  → personalWods.value = response.personalWods
-  → Obx로 WodCard 자동 갱신
-```
-
-### 9.3 WOD 등록 → Home 갱신
-
-```
-WodRegistrationView에서 submit
-  → WodRegistrationController.submit()
-  → POST /wods (서버)
-  → 서버가 isBase 자동 판단
-  → Get.back(result: true)
-  → HomeController에서 result 감지 → loadWods()
-```
-
-### 9.4 변경 제안 → 승인 알림
-
-```
-ProposeChangeController.submitProposal()
-  → POST /wods/:id/propose
-  → 서버가 Base 등록자에게 FCM 발송
-  → Base 등록자의 알림 탭 → ApproveChangeView 진입
-  → approve() → POST /wods/:id/approve
-  → 서버가 Base 교체 + 기존 선택자에게 FCM
-```
-
-### 9.5 WOD 선택 → 기록 확정
-
-```
-WodSelectionView에서 WOD 선택 + 불변성 확인
-  → WodSelectionController.confirmSelection()
-  → POST /wods/:id/select
-  → 서버가 snapshotData 저장 (불변)
-  → Get.back(result: true)
-  → HomeController에서 선택 상태 갱신
-```
-
----
-
-## 10. Error Handling
-
-### 10.1 예외 타입 (core 패키지 확장)
-
-기존 `AuthException`, `NetworkException` 외 추가:
-
-```dart
-// packages/core/lib/src/exceptions/business_exception.dart
-/// 비즈니스 로직 예외 (서버에서 400 응답)
-class BusinessException implements Exception {
-  final String code;
-  final String message;
-
-  const BusinessException({required this.code, required this.message});
-}
-```
-
-### 10.2 Controller 에러 처리 패턴
-
-```dart
-Future<void> loadWods() async {
-  try {
-    isLoading.value = true;
-    final response = await _wodApi.getWodsByDate(
-      boxId: currentBox!.id,
-      date: _formatDate(selectedDate.value),
+  }) async {
+    await _dio.post(
+      '/wods/$wodId/select',
+      data: {'boxId': boxId, 'date': date},
     );
-    baseWod.value = response.baseWod;
-    personalWods.value = response.personalWods;
-  } on NetworkException catch (e) {
-    Get.snackbar('네트워크 오류', e.message);
-  } on AuthException catch (e) {
-    if (e.code == 'expired_token') return;  // RefreshInterceptor가 처리
-    Get.offAllNamed(Routes.LOGIN);
-  } on BusinessException catch (e) {
-    Get.snackbar('오류', e.message);
-  } catch (e) {
-    Get.snackbar('오류', '알 수 없는 오류가 발생했습니다');
-  } finally {
-    isLoading.value = false;
+  }
+
+  /// 대기 중인 변경 제안 확인
+  Future<bool> hasPendingProposal({required int baseWodId}) async {
+    final response = await _dio.get('/wods/proposals',
+      queryParameters: {
+        'baseWodId': baseWodId,
+        'status': 'pending',
+      },
+    );
+    final List proposals = response.data['proposals'];
+    return proposals.isNotEmpty;
+  }
+
+  /// 변경 제안 승인
+  Future<void> approveProposal({required int proposalId}) async {
+    await _dio.post('/wods/proposals/$proposalId/approve');
+  }
+
+  /// 변경 제안 거부
+  Future<void> rejectProposal({required int proposalId}) async {
+    await _dio.post('/wods/proposals/$proposalId/reject');
   }
 }
 ```
 
-### 10.3 View 에러 표시 패턴
+### Repository 패턴 (apps/wowa/lib/app/data/repositories/)
+
+Junior Developer가 구현합니다.
+
+#### BoxRepository
 
 ```dart
-// 로딩 상태
-Obx(() => controller.isLoading.value
-    ? const Center(child: SketchProgressBar(style: SketchProgressBarStyle.circular))
-    : _buildContent())
+// apps/wowa/lib/app/data/repositories/box_repository.dart
 
-// 빈 상태
-Obx(() => controller.hasWod
-    ? _buildWodCard()
-    : _buildEmptyState())
+import 'package:api/api.dart';
+import 'package:core/core.dart';
+import 'package:get/get.dart';
 
-// 에러 후 재시도
-SketchButton(
-  text: '다시 시도',
-  onPressed: controller.loadWods,
-  style: SketchButtonStyle.outline,
-)
+class BoxRepository {
+  final BoxApiClient _client = Get.find<BoxApiClient>();
+
+  /// 현재 박스 조회
+  Future<BoxModel?> getCurrentBox() async {
+    try {
+      return await _client.getCurrentBox();
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        throw NetworkException(message: '네트워크 연결이 불안정합니다');
+      }
+      rethrow;
+    }
+  }
+
+  /// 박스 검색
+  Future<List<BoxModel>> searchBoxes({
+    String? name,
+    String? region,
+  }) async {
+    try {
+      return await _client.searchBoxes(name: name, region: region);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        throw NetworkException(message: '네트워크 연결이 불안정합니다');
+      }
+      rethrow;
+    }
+  }
+
+  /// 박스 생성
+  Future<BoxModel> createBox({
+    required String name,
+    required String region,
+    String? description,
+  }) async {
+    try {
+      final request = CreateBoxRequest(
+        name: name,
+        region: region,
+        description: description,
+      );
+      return await _client.createBox(request);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 409) {
+        throw BusinessException(
+          message: '이미 같은 이름의 박스가 존재합니다',
+          code: 'DUPLICATE_BOX',
+        );
+      }
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        throw NetworkException(message: '네트워크 연결이 불안정합니다');
+      }
+      rethrow;
+    }
+  }
+
+  /// 박스 가입
+  Future<void> joinBox(int boxId) async {
+    try {
+      await _client.joinBox(boxId);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw NotFoundException(message: '박스를 찾을 수 없습니다');
+      }
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        throw NetworkException(message: '네트워크 연결이 불안정합니다');
+      }
+      rethrow;
+    }
+  }
+}
+```
+
+### build_runner 실행
+
+Senior Developer가 API 모델 작성 후 실행:
+
+```bash
+cd /Users/lms/dev/repository/feature-wowa-mvp
+melos generate
+```
+
+생성되는 파일:
+- `*.freezed.dart` — Freezed 코드 생성
+- `*.g.dart` — json_serializable 코드 생성
+
+---
+
+## 라우팅 설계
+
+### Route Names
+
+**파일**: `apps/wowa/lib/app/routes/app_routes.dart`
+
+```dart
+abstract class Routes {
+  static const LOGIN = '/login';
+
+  // Box
+  static const BOX_SEARCH = '/box/search';
+  static const BOX_CREATE = '/box/create';
+
+  // WOD
+  static const HOME = '/home';
+  static const WOD_REGISTER = '/wod/register';
+  static const WOD_DETAIL = '/wod/detail';
+  static const WOD_SELECT = '/wod/select';
+  static const PROPOSAL_REVIEW = '/proposal/review';
+
+  // Settings
+  static const SETTINGS = '/settings';
+}
+```
+
+### Route Definitions
+
+**파일**: `apps/wowa/lib/app/routes/app_pages.dart`
+
+```dart
+import 'package:get/get.dart';
+
+class AppPages {
+  static const INITIAL = Routes.LOGIN;
+
+  static final routes = [
+    // Login (이미 구현됨)
+    GetPage(
+      name: Routes.LOGIN,
+      page: () => const LoginView(),
+      binding: LoginBinding(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+    // Box
+    GetPage(
+      name: Routes.BOX_SEARCH,
+      page: () => const BoxSearchView(),
+      binding: BoxSearchBinding(),
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: Routes.BOX_CREATE,
+      page: () => const BoxCreateView(),
+      binding: BoxCreateBinding(),
+      transition: Transition.downToUp,
+    ),
+
+    // WOD
+    GetPage(
+      name: Routes.HOME,
+      page: () => const HomeView(),
+      binding: HomeBinding(),
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: Routes.WOD_REGISTER,
+      page: () => const WodRegisterView(),
+      binding: WodRegisterBinding(),
+      transition: Transition.downToUp,
+    ),
+    GetPage(
+      name: Routes.WOD_DETAIL,
+      page: () => const WodDetailView(),
+      binding: WodDetailBinding(),
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: Routes.WOD_SELECT,
+      page: () => const WodSelectView(),
+      binding: WodSelectBinding(),
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: Routes.PROPOSAL_REVIEW,
+      page: () => const ProposalReviewView(),
+      binding: ProposalReviewBinding(),
+      transition: Transition.fadeIn,
+    ),
+
+    // Settings
+    GetPage(
+      name: Routes.SETTINGS,
+      page: () => const SettingsView(),
+      binding: SettingsBinding(),
+      transition: Transition.leftToRight,
+    ),
+  ];
+}
 ```
 
 ---
 
-## 11. Implementation Checklist
+## 작업 분배 계획
 
-Phase 4 구현 순서 (plan.md 기반):
+### Phase 1: Box 관리
 
-### Step 4-1: API 모델 (Freezed)
+#### Senior Developer 작업
+1. API 모델 작성 (packages/api/)
+   - `BoxModel`, `CreateBoxRequest`
+2. `BoxApiClient` 구현 (packages/api/)
+   - `getCurrentBox()`, `searchBoxes()`, `createBox()`, `joinBox()`
+3. `melos generate` 실행 (Freezed 코드 생성)
+4. `BoxSearchController` 작성 (apps/wowa/)
+   - 검색 로직, 박스 가입 로직, 박스 변경 확인 모달
+5. `BoxCreateController` 작성 (apps/wowa/)
+   - 유효성 검증, 박스 생성 로직
+6. `BoxSearchBinding`, `BoxCreateBinding` 작성
 
-- [ ] `MovementModel` 생성 + fromJson
-- [ ] `ProgramDataModel` 생성 + fromJson
-- [ ] `WodModel` 생성 + fromJson
-- [ ] `WodListResponse` 생성
-- [ ] `WodSelectionModel` 생성
-- [ ] `ProposedChangeModel` 생성
-- [ ] `ApproveResponse` 생성
-- [ ] `BoxModel` 생성 + fromJson
-- [ ] `BoxMemberModel` 생성
-- [ ] `BoxMembersResponse` 생성
-- [ ] `UserProfileModel` 생성
-- [ ] `melos generate` 실행 확인
+#### Junior Developer 작업
+1. `BoxRepository` 작성 (apps/wowa/)
+   - Senior의 `BoxApiClient` 메서드 호출, 에러 처리
+2. `BoxSearchView` 작성 (apps/wowa/)
+   - TextField, 검색 결과 ListView, 박스 변경 확인 모달
+3. `BoxCreateView` 작성 (apps/wowa/)
+   - SketchInput, 생성 버튼
+4. `app_routes.dart`, `app_pages.dart` 업데이트
 
-### Step 4-2: Dio 클라이언트 설정
-
-- [ ] `ApiClient` 클래스 구현
-- [ ] `AuthInterceptor` 구현
-- [ ] `RefreshInterceptor` 구현
-- [ ] `ErrorInterceptor` 구현
-- [ ] `TokenStorage` 구현 (GetStorage 기반)
-- [ ] `BoxApiService` 구현
-- [ ] `WodApiService` 구현
-- [ ] `AppStateService` 구현
-
-### Step 4-3: 홈 화면
-
-- [ ] `Routes` 상수 추가 (app_routes.dart)
-- [ ] `HomeController` 구현
-- [ ] `HomeBinding` 구현
-- [ ] `HomeView` 구현 (BoxSelector, DateHeader, WodCard, QuickActions)
-- [ ] `GetPage` 등록 (app_pages.dart)
-- [ ] 로그인 → 홈 네비게이션 연결
-
-### Step 4-4: WOD 등록 화면
-
-- [ ] `WodRegistrationController` 구현
-- [ ] `WodRegistrationBinding` 구현
-- [ ] `WodRegistrationView` 구현 (TypeSelector, MovementListBuilder, Preview)
-
-### Step 4-5: WOD 상세 화면
-
-- [ ] `WodDetailController` 구현
-- [ ] `WodDetailBinding` 구현
-- [ ] `WodDetailView` 구현 (Base/Personal 표시, Diff 하이라이트)
-- [ ] `ProposeChangeController` + View + Binding
-- [ ] `ApproveChangeController` + View + Binding
-
-### Step 4-6: WOD 선택 화면
-
-- [ ] `WodSelectionController` 구현
-- [ ] `WodSelectionBinding` 구현
-- [ ] `WodSelectionView` 구현 (라디오 선택, 불변성 경고, 확정)
-
-### Box 관리 (홈 화면과 병렬 가능)
-
-- [ ] `BoxManagementController` + View + Binding
-- [ ] `BoxCreateController` + View + Binding
-- [ ] `BoxJoinController` + View + Binding
+**작업 의존성**: Junior는 Senior의 Controller + API Client 완성 후 시작
 
 ---
 
-## 12. Performance Optimization
+## 검증 기준
 
-### const 생성자
-
-- 모든 StatelessWidget에 `const` 생성자 사용
-- 고정 텍스트, 아이콘, 간격(SizedBox)은 const
-
-### Obx 스코프 최소화
-
-```dart
-// Good: 변경되는 부분만 Obx로 감싸기
-Column(
-  children: [
-    const Text('오늘의 WOD'),                    // const (리빌드 안 함)
-    Obx(() => Text(controller.selectedDate.value.toString())), // 날짜만 리빌드
-    Obx(() => _buildWodCard(controller.baseWod.value)),        // WOD만 리빌드
-  ],
-)
-```
-
-### GetBuilder 활용
-
-- 리스트 항목처럼 빈번히 변경되지 않는 UI는 `GetBuilder` + `update()` 고려
-- Movement 리스트 편집 등 복잡한 폼에서 유용
+- [ ] GetX 패턴 준수 (Controller, View, Binding 분리)
+- [ ] 반응형 상태 정확히 정의 (.obs)
+- [ ] const 최적화 적용 (정적 위젯)
+- [ ] Obx 범위 최소화 (변경되는 부분만)
+- [ ] 에러 처리 완비 (NetworkException, BusinessException)
+- [ ] 라우팅 정확히 설정 (named routes, arguments)
+- [ ] CLAUDE.md 표준 준수 (주석 한글, import 패턴)
 
 ---
 
-## 13. References
+## 참고 자료
 
-| 문서 | 경로 |
-|------|------|
-| UI/UX 설계 | `docs/mobile/wowa/mobile-design-spec.md` |
-| 서버 API | `docs/server/wowa/server-brief.md` |
-| 모바일 가이드 | `apps/mobile/CLAUDE.md` |
-| GetX 가이드 | `.claude/guide/mobile/getx_best_practices.md` |
-| Flutter 가이드 | `.claude/guide/mobile/flutter_best_practices.md` |
-| 디자인 시스템 | `.claude/guide/mobile/design_system.md` |
-| 에러 처리 | `.claude/guide/mobile/error_handling.md` |
-| 디렉토리 구조 | `.claude/guide/mobile/directory_structure.md` |
+### Design System
+- Design Tokens: `/Users/lms/dev/repository/feature-wowa-mvp/.claude/guide/mobile/design-tokens.json`
+- Design System Guide: `/Users/lms/dev/repository/feature-wowa-mvp/.claude/guide/mobile/design_system.md`
+
+### Flutter Guides
+- Flutter Best Practices: `/Users/lms/dev/repository/feature-wowa-mvp/.claude/guide/mobile/flutter_best_practices.md`
+- GetX Best Practices: `/Users/lms/dev/repository/feature-wowa-mvp/.claude/guide/mobile/getx_best_practices.md`
+- Common Patterns: `/Users/lms/dev/repository/feature-wowa-mvp/.claude/guide/mobile/common_patterns.md`
+- Error Handling: `/Users/lms/dev/repository/feature-wowa-mvp/.claude/guide/mobile/error_handling.md`
+
+### Project References
+- User Story: `/Users/lms/dev/repository/feature-wowa-mvp/docs/wowa/mvp/user-story.md`
+- Mobile Design Spec: `/Users/lms/dev/repository/feature-wowa-mvp/docs/wowa/mvp/mobile-design-spec.md`
+- Server Brief: `/Users/lms/dev/repository/feature-wowa-mvp/docs/wowa/mvp/server-brief.md`
+- Mobile Catalog: `/Users/lms/dev/repository/feature-wowa-mvp/docs/wowa/mobile-catalog.md`
+
+---
+
+**작성일**: 2026-02-04
+**버전**: 2.0.0
+**상태**: Design Complete
+
+다음 단계: CTO 검증 후 Senior/Junior Developer에게 작업 분배
