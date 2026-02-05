@@ -16,6 +16,7 @@ import {
   sendPushSchema,
   listAlertsSchema,
   listMyNotificationsSchema,
+  getAlertQuerySchema,
 } from '../../../src/modules/push-alert/validators';
 import {
   upsertDevice,
@@ -31,7 +32,9 @@ import {
   createReceiptsForUsers,
   findNotificationsByUser,
   countUnreadNotifications,
+  countNotificationsByUser,
   markNotificationAsRead,
+  countAlerts,
 } from '../../../src/modules/push-alert/services';
 import { findAppByCode } from '../../../src/modules/auth/services';
 import * as fcm from '../../../src/modules/push-alert/fcm';
@@ -52,6 +55,9 @@ vi.mock('../../../src/modules/push-alert/validators', () => ({
   listMyNotificationsSchema: {
     parse: vi.fn(),
   },
+  getAlertQuerySchema: {
+    parse: vi.fn(),
+  },
 }));
 
 vi.mock('../../../src/modules/push-alert/services', () => ({
@@ -68,7 +74,9 @@ vi.mock('../../../src/modules/push-alert/services', () => ({
   createReceiptsForUsers: vi.fn(),
   findNotificationsByUser: vi.fn(),
   countUnreadNotifications: vi.fn(),
+  countNotificationsByUser: vi.fn(),
   markNotificationAsRead: vi.fn(),
+  countAlerts: vi.fn(),
 }));
 
 vi.mock('../../../src/modules/auth/services', () => ({
@@ -440,10 +448,12 @@ describe('listAlerts handler', () => {
     });
     vi.mocked(findAppByCode).mockResolvedValue(mockApp as any);
     vi.mocked(findAlertsService).mockResolvedValue(mockAlerts as any);
+    vi.mocked(countAlerts).mockResolvedValue(1);
 
     await listAlerts(req as Request, res as Response);
 
     expect(findAlertsService).toHaveBeenCalledWith(1, 10, 0);
+    expect(countAlerts).toHaveBeenCalledWith(1);
     expect(res.json).toHaveBeenCalledWith({
       alerts: mockAlerts,
       total: 1,
@@ -484,6 +494,7 @@ describe('getAlert handler', () => {
       createdAt: new Date(),
     };
 
+    vi.mocked(getAlertQuerySchema.parse).mockReturnValue({ appCode: 'wowa' });
     vi.mocked(findAppByCode).mockResolvedValue(mockApp as any);
     vi.mocked(findAlertById).mockResolvedValue(mockAlert as any);
 
@@ -496,6 +507,7 @@ describe('getAlert handler', () => {
   it('should throw error when alert not found', async () => {
     const mockApp = { id: 1, code: 'wowa' };
 
+    vi.mocked(getAlertQuerySchema.parse).mockReturnValue({ appCode: 'wowa' });
     vi.mocked(findAppByCode).mockResolvedValue(mockApp as any);
     vi.mocked(findAlertById).mockResolvedValue(null);
 
@@ -538,12 +550,16 @@ describe('listMyNotifications handler', () => {
       offset: 0,
     });
     vi.mocked(findNotificationsByUser).mockResolvedValue(mockNotifications as any);
+    vi.mocked(countNotificationsByUser).mockResolvedValue(1);
 
     await listMyNotifications(req as Request, res as Response);
 
     expect(findNotificationsByUser).toHaveBeenCalledWith(1, 1, {
       limit: 20,
       offset: 0,
+      unreadOnly: undefined,
+    });
+    expect(countNotificationsByUser).toHaveBeenCalledWith(1, 1, {
       unreadOnly: undefined,
     });
     expect(res.json).toHaveBeenCalledWith({

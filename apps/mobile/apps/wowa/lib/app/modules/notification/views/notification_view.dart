@@ -302,7 +302,7 @@ class _NotificationCard extends StatelessWidget {
 
   /// 상대 시간 표시
   String _formatRelativeTime(String isoString) {
-    final dateTime = DateTime.tryParse(isoString);
+    final dateTime = DateTime.tryParse(isoString)?.toLocal();
     if (dateTime == null) return isoString;
 
     final now = DateTime.now();

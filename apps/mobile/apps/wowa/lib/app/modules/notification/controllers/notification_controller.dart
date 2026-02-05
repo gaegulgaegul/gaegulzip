@@ -139,10 +139,16 @@ class NotificationController extends GetxController {
     _handleDeepLink(notification.data);
   }
 
+  /// 딥링크로 허용되는 화면 목록
+  static const _allowedScreens = {'notifications', 'home', 'qna'};
+
   /// 딥링크 데이터에서 화면 이동
+  ///
+  /// [data] 알림의 data 필드에서 'screen' 키로 이동할 화면을 결정합니다.
+  /// 허용된 화면 목록에 포함된 경우에만 이동합니다.
   void _handleDeepLink(Map<String, dynamic> data) {
     final screen = data['screen'] as String?;
-    if (screen != null && screen.isNotEmpty) {
+    if (screen != null && _allowedScreens.contains(screen)) {
       Get.toNamed('/$screen', arguments: data);
     }
   }

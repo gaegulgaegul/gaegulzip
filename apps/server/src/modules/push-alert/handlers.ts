@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { registerDeviceSchema, sendPushSchema, listAlertsSchema, listMyNotificationsSchema } from './validators';
+import { registerDeviceSchema, sendPushSchema, listAlertsSchema, listMyNotificationsSchema, getAlertQuerySchema } from './validators';
 import {
   upsertDevice,
   findDevicesByUserId,
@@ -13,8 +13,10 @@ import {
   deactivateDeviceByToken,
   createReceiptsForUsers,
   findNotificationsByUser,
+  countNotificationsByUser,
   countUnreadNotifications,
   markNotificationAsRead,
+  countAlerts,
 } from './services';
 import { findAppByCode } from '../auth/services';
 import { getFCMInstance, sendToMultipleDevices, FCMMessage } from './fcm';
@@ -298,7 +300,10 @@ export const listAlerts = async (req: Request, res: Response) => {
     throw new NotFoundException('App', appCode);
   }
 
-  const alerts = await findAlertsService(app.id, limit, offset);
+  const [alerts, total] = await Promise.all([
+    findAlertsService(app.id, limit, offset),
+    countAlerts(app.id),
+  ]);
 
   res.json({
     alerts: alerts.map((a) => ({
@@ -311,7 +316,7 @@ export const listAlerts = async (req: Request, res: Response) => {
       sentAt: a.sentAt,
       createdAt: a.createdAt,
     })),
-    total: alerts.length,
+    total,
   });
 };
 
@@ -327,11 +332,7 @@ export const getAlert = async (req: Request, res: Response) => {
   if (isNaN(id) || id <= 0) {
     throw new ValidationException('Invalid alert ID');
   }
-  const appCode = req.query.appCode as string;
-
-  if (!appCode) {
-    throw new BusinessException('App code is required', 'VALIDATION_ERROR');
-  }
+  const { appCode } = getAlertQuerySchema.parse(req.query);
 
   const app = await findAppByCode(appCode);
   if (!app) {
@@ -375,11 +376,10 @@ export const listMyNotifications = async (req: Request, res: Response) => {
 
   logger.debug({ userId, appId, limit, offset, unreadOnly }, 'Listing user notifications');
 
-  const notifications = await findNotificationsByUser(userId, appId, {
-    limit,
-    offset,
-    unreadOnly,
-  });
+  const [notifications, total] = await Promise.all([
+    findNotificationsByUser(userId, appId, { limit, offset, unreadOnly }),
+    countNotificationsByUser(userId, appId, { unreadOnly }),
+  ]);
 
   res.json({
     notifications: notifications.map((n) => ({
@@ -392,7 +392,7 @@ export const listMyNotifications = async (req: Request, res: Response) => {
       readAt: n.readAt?.toISOString() ?? null,
       receivedAt: n.receivedAt.toISOString(),
     })),
-    total: notifications.length,
+    total,
   });
 };
 

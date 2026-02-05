@@ -62,7 +62,7 @@ class PushService extends GetxService {
       // 4. 토큰 갱신 리스너
       _subscriptions.add(_messaging.onTokenRefresh.listen((newToken) {
         deviceToken.value = newToken;
-        Logger.info('FCM token refreshed: $newToken');
+        Logger.info('FCM token refreshed: ${newToken.substring(0, 20)}...');
       }));
 
       // 5. 포그라운드 메시지 리스너

@@ -207,6 +207,18 @@ export const findAlerts = async (appId: number, limit: number = 50, offset: numb
 };
 
 /**
+ * Alert 전체 개수 조회
+ */
+export const countAlerts = async (appId: number): Promise<number> => {
+  const result = await db
+    .select({ count: count() })
+    .from(pushAlerts)
+    .where(eq(pushAlerts.appId, appId));
+
+  return result[0]?.count || 0;
+};
+
+/**
  * 단일 Alert 조회
  */
 export const findAlertById = async (id: number, appId: number) => {
@@ -250,22 +262,29 @@ export const createReceiptsForUsers = async (data: {
   }
 
   const now = new Date();
-  const receipts = data.userIds.map((userId) => ({
-    appId: data.appId,
-    userId,
-    alertId: data.alertId,
-    title: data.title,
-    body: data.body,
-    data: data.data || {},
-    imageUrl: data.imageUrl,
-    isRead: false,
-    receivedAt: now,
-    createdAt: now,
-  }));
+  const BATCH_SIZE = 1000;
+  const allInserted: (typeof pushNotificationReceipts.$inferSelect)[] = [];
 
-  const inserted = await db.insert(pushNotificationReceipts).values(receipts).returning();
+  for (let i = 0; i < data.userIds.length; i += BATCH_SIZE) {
+    const batch = data.userIds.slice(i, i + BATCH_SIZE);
+    const receipts = batch.map((userId) => ({
+      appId: data.appId,
+      userId,
+      alertId: data.alertId,
+      title: data.title,
+      body: data.body,
+      data: data.data || {},
+      imageUrl: data.imageUrl,
+      isRead: false,
+      receivedAt: now,
+      createdAt: now,
+    }));
 
-  return inserted;
+    const inserted = await db.insert(pushNotificationReceipts).values(receipts).returning();
+    allInserted.push(...inserted);
+  }
+
+  return allInserted;
 };
 
 /**
@@ -301,6 +320,31 @@ export const findNotificationsByUser = async (
     .offset(offset);
 
   return results;
+};
+
+/**
+ * 사용자 알림 전체 개수 조회 (페이지네이션용)
+ */
+export const countNotificationsByUser = async (
+  userId: number,
+  appId: number,
+  options?: { unreadOnly?: boolean }
+): Promise<number> => {
+  const conditions = [
+    eq(pushNotificationReceipts.userId, userId),
+    eq(pushNotificationReceipts.appId, appId),
+  ];
+
+  if (options?.unreadOnly) {
+    conditions.push(eq(pushNotificationReceipts.isRead, false));
+  }
+
+  const result = await db
+    .select({ count: count() })
+    .from(pushNotificationReceipts)
+    .where(and(...conditions));
+
+  return result[0]?.count || 0;
 };
 
 /**

@@ -19,14 +19,10 @@ class PushApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<void> registerDevice(DeviceTokenRequest request) async {
-    try {
-      await _dio.post(
-        '/api/push/devices',
-        data: request.toJson(),
-      );
-    } on DioException {
-      rethrow;
-    }
+    await _dio.post(
+      '/api/push/devices',
+      data: request.toJson(),
+    );
   }
 
   /// 내 알림 목록 조회
@@ -46,23 +42,19 @@ class PushApiClient {
     int offset = 0,
     bool? unreadOnly,
   }) async {
-    try {
-      final queryParams = <String, dynamic>{
-        'limit': limit,
-        'offset': offset,
-      };
-      if (unreadOnly != null) {
-        queryParams['unreadOnly'] = unreadOnly;
-      }
-
-      final response = await _dio.get(
-        '/api/push/notifications/me',
-        queryParameters: queryParams,
-      );
-      return NotificationListResponse.fromJson(response.data);
-    } on DioException {
-      rethrow;
+    final queryParams = <String, dynamic>{
+      'limit': limit,
+      'offset': offset,
+    };
+    if (unreadOnly != null) {
+      queryParams['unreadOnly'] = unreadOnly;
     }
+
+    final response = await _dio.get(
+      '/api/push/notifications/me',
+      queryParameters: queryParams,
+    );
+    return NotificationListResponse.fromJson(response.data);
   }
 
   /// 읽지 않은 알림 개수 조회
@@ -72,14 +64,10 @@ class PushApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<UnreadCountResponse> getUnreadCount() async {
-    try {
-      final response = await _dio.get(
-        '/api/push/notifications/unread-count',
-      );
-      return UnreadCountResponse.fromJson(response.data);
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.get(
+      '/api/push/notifications/unread-count',
+    );
+    return UnreadCountResponse.fromJson(response.data);
   }
 
   /// 알림 읽음 처리
@@ -89,12 +77,8 @@ class PushApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류 (404: 알림 없음)
   Future<void> markAsRead(int notificationId) async {
-    try {
-      await _dio.patch(
-        '/api/push/notifications/$notificationId/read',
-      );
-    } on DioException {
-      rethrow;
-    }
+    await _dio.patch(
+      '/api/push/notifications/$notificationId/read',
+    );
   }
 }
