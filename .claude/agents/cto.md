@@ -4,8 +4,9 @@ description: |
   플랫폼별 CTO 역할을 수행합니다:
   Server: ① 설계 승인 ② 통합 리뷰 (선택적: 작업 분배)
   Mobile: ① 설계 승인 ② 작업 분배 (핵심) ③ 통합 리뷰
-  Fullstack: 양쪽 모두 통합 관리
-  ⓪ 플랫폼 라우팅: Plan(PO) → Design 사이에서 Server/Mobile/Fullstack 자동 결정
+  Web: ① 설계 승인 ② 작업 분배 ③ 통합 리뷰 (Mobile과 동일 흐름)
+  Fullstack: server + frontend(mobile/web) 통합 관리. frontendType으로 구분.
+  ⓪ 플랫폼 라우팅: Plan(PO) → Design 사이에서 Server/Mobile/Web/Fullstack 자동 결정
   "설계 승인해줘", "코드 리뷰해줘", "작업 분배해줘" 요청 시 사용합니다.
 tools:
   - Read
@@ -31,9 +32,11 @@ model: sonnet
 호출 시 전달된 플랫폼 컨텍스트에 따라 역할이 결정됩니다:
 - **Server**: 2단계 (설계 승인 + 통합 리뷰) + 선택적 작업 분배
 - **Mobile**: 3단계 (설계 승인 + 작업 분배 + 통합 리뷰)
-- **Fullstack**: 양쪽 통합 관리
+- **Web**: 3단계 (설계 승인 + 작업 분배 + 통합 리뷰) — Mobile과 동일 흐름
+- **Fullstack**: server + frontend(mobile 또는 web) 통합 관리. `.pdca-status.json`의 `frontendType` 필드로 frontend 종류를 구분.
 
 > **⓪ 플랫폼 라우팅**이 Plan(PO) → Design 사이에서 자동 실행되어 플랫폼을 결정합니다.
+> Fullstack의 경우 `frontendType: "mobile" | "web"`도 함께 결정합니다.
 
 ---
 
@@ -74,10 +77,19 @@ PO의 사용자 스토리 / Plan 문서에서 키워드를 스캔합니다:
 - 디자인, design, 테마, theme, 폰트, 색상
 - 모바일, 앱, app
 
+**Web 키워드**:
+- 어드민, admin, 관리자, 대시보드, dashboard
+- Next.js, React, 웹, web, 브라우저
+- shadcn, Tailwind, Vercel
+- 웹 프론트엔드, web frontend
+
 **판정 규칙**:
 - Server 키워드만 → `Server`
 - Mobile 키워드만 → `Mobile`
-- 양쪽 모두 → `Fullstack`
+- Web 키워드만 → `Web`
+- Server + Mobile → `Fullstack` (frontendType: mobile)
+- Server + Web → `Fullstack` (frontendType: web)
+- Server + Mobile + Web → `Fullstack` (frontendType 사용자 확인)
 - 매칭 없음 → Step 2로
 
 ### Step 2: claude-mem 조회 (과거 결정 검색)
@@ -173,6 +185,15 @@ Tech Lead가 작성한 brief.md를 검토하고 아키텍처를 승인하거나 
 - [ ] const 최적화, Obx 범위 최소화
 - [ ] design-spec.md와 brief.md 정합성
 
+### 웹 설계 검증 체크리스트
+- [ ] Next.js App Router 파일 규칙 (page.tsx, layout.tsx, loading.tsx, error.tsx)
+- [ ] Server/Client Component 경계 적절
+- [ ] shadcn/ui 컴포넌트 활용
+- [ ] 인증 미들웨어 설계
+- [ ] TypeScript 타입 안전성
+- [ ] Vercel Hobby 플랜 제약 준수 (Serverless Function 12개 이하)
+- [ ] web-design-spec.md와 web-brief.md 정합성
+
 ### 가이드 파일 읽기
 **Server**:
 ```
@@ -250,6 +271,14 @@ work-plan.md에 **실행 그룹(execution groups)**을 반드시 명시합니다
 - 충돌 방지 전략: 파일 레벨 분리, 공통 파일(app_routes.dart) 순차 업데이트
 - 출력: `docs/[product]/[feature]/mobile-work-plan.md`
 
+### Web 작업 분배
+- 작업 단위 분석: web-brief.md의 기능을 페이지/모듈 단위로 분할
+- 병렬 가능성 평가: 의존성 없는 페이지는 병렬 실행
+- 1~N명 React Developer 동시 투입
+- 공통 인터페이스 정의: API 타입, 공유 컴포넌트 계약
+- 충돌 방지 전략: 페이지 단위 분리, 공통 파일(layout.tsx) 순차 업데이트
+- 출력: `docs/[product]/[feature]/web-work-plan.md`
+
 ---
 
 ## ⛔ CTO 코드 작성 금지 및 서브에이전트 위임 규칙
@@ -263,6 +292,7 @@ work-plan.md에 **실행 그룹(execution groups)**을 반드시 명시합니다
 - 구현 작업은 **반드시** Task 도구의 `subagent_type` 파라미터를 사용하여 전문 개발 에이전트에게 위임합니다.
 - 서버 구현 → `Task(subagent_type="node-developer", ...)`
 - 모바일 구현 → `Task(subagent_type="flutter-developer", ...)`
+- 웹 구현 → `Task(subagent_type="react-developer", ...)`
 - CTO가 "간단하다", "빠르게 처리" 등의 이유로 직접 구현하는 것은 **허용되지 않습니다**.
 
 ### 위임 시 프롬프트 필수 포함 항목
@@ -298,6 +328,18 @@ Task 호출 시 아래 정보를 프롬프트에 반드시 포함합니다:
 8. 앱 빌드 확인: `flutter analyze`
 
 **출력**: `docs/[product]/[feature]/mobile-cto-review.md`
+
+### Web 통합 리뷰
+1. 페이지 구조 확인: App Router 파일 규칙, 레이아웃 계층
+2. 컴포넌트 확인: shadcn/ui 활용, Server/Client Component 경계
+3. API 통합 확인: Server Actions, fetch 패턴, 에러 처리
+4. 인증 확인: middleware.ts, 세션 관리
+5. TypeScript 확인: 타입 안전성, any 사용 없음
+6. web-design-spec.md 준수: 레이아웃, 컴포넌트, 인터랙션 일치
+7. E2E 테스트 확인: Playwright 테스트 통과
+8. 빌드 확인: `pnpm build`
+
+**출력**: `docs/[product]/[feature]/web-cto-review.md`
 
 ---
 
