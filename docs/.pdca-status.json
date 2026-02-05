@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-05T12:57:11.919Z",
+  "lastUpdated": "2026-02-05T13:42:40.823Z",
   "activeFeatures": [
     "auth_sdk",
     "social-login",
@@ -68,9 +68,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T08:35:27.805Z",
-        "lastUpdated": "2026-02-05T12:39:12.756Z"
+        "lastUpdated": "2026-02-05T13:34:36.511Z"
       },
-      "lastFile": "/Users/lms/dev/repository/feature-admin-auth/apps/server/tests/unit/notice/handlers.test.ts"
+      "lastFile": "/Users/lms/dev/repository/feature-notice/apps/server/src/app.ts"
     },
     "web": {
       "phase": "do",
@@ -81,9 +81,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-05T12:27:56.494Z",
-        "lastUpdated": "2026-02-05T12:57:11.919Z"
+        "lastUpdated": "2026-02-05T13:42:40.823Z"
       },
-      "lastFile": "/Users/lms/dev/repository/feature-admin-auth/apps/web/admin/src/instrumentation.ts"
+      "lastFile": "/Users/lms/dev/repository/feature-notice/apps/web/admin/src/app/(dashboard)/notices/new/page.tsx"
     },
     "notice": {
       "phase": "do",
@@ -94,9 +94,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-05T12:37:56.194Z",
-        "lastUpdated": "2026-02-05T12:38:12.887Z"
+        "lastUpdated": "2026-02-05T13:34:27.076Z"
       },
-      "lastFile": "/Users/lms/dev/repository/feature-admin-auth/apps/server/src/modules/notice/handlers.ts"
+      "lastFile": "/Users/lms/dev/repository/feature-notice/apps/server/src/modules/notice/admin-routes.ts"
     }
   },
   "pipeline": {
@@ -107,7 +107,7 @@
   "session": {
     "startedAt": "2026-02-04T08:09:41.903Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-05T12:57:11.919Z"
+    "lastActivity": "2026-02-05T13:42:40.823Z"
   },
   "history": [
     {
@@ -394,6 +394,96 @@
     },
     {
       "timestamp": "2026-02-05T12:57:11.919Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:32:41.534Z",
+      "feature": "notice",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:33:20.034Z",
+      "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:34:07.762Z",
+      "feature": "notice",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:34:27.076Z",
+      "feature": "notice",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:34:31.808Z",
+      "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:34:36.511Z",
+      "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:36:10.632Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:36:15.353Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:36:20.849Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:36:26.074Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:36:58.861Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:37:17.083Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:37:35.128Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:41:09.094Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T13:42:40.823Z",
       "feature": "web",
       "phase": "do",
       "action": "updated"
