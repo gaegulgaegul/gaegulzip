@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Gaegul Admin",
-  description: "Wowa 앱 어드민 대시보드",
+  description: "Gaegul 어드민 대시보드",
 };
 
 export default function RootLayout({

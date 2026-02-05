@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { password } = body;
 
-    if (!password) {
+    if (!password || typeof password !== 'string') {
       return NextResponse.json(
         { error: '비밀번호를 입력해주세요.' },
         { status: 400 }

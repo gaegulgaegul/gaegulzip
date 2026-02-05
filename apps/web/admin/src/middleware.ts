@@ -25,7 +25,7 @@ export function middleware(request: NextRequest) {
   }
 
   // 로그인 페이지: 이미 세션이 있으면 대시보드로 리디렉트
-  if (pathname === '/login' && sessionToken) {
+  if ((pathname === '/login' || pathname === '/login/') && sessionToken) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
