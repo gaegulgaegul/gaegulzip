@@ -4,7 +4,10 @@ import jwt from 'jsonwebtoken';
 import { oauthLoginSchema, refreshTokenSchema, logoutSchema } from './validators';
 import {
   findAppByCode,
-  upsertUser,
+  findAppById,
+  findUserByProvider,
+  createUser,
+  updateUserLogin,
   generateJWT,
   generateRefreshToken,
   storeRefreshToken,
@@ -89,15 +92,34 @@ export const oauthLogin = async (req: Request, res: Response) => {
     // 4. 사용자 정보 조회
     const userInfo = await oauthProvider.getUserInfo(accessToken);
 
-    // 5. 사용자 저장/업데이트
-    const user = await upsertUser({
-      appId: app.id,
-      provider,
-      providerId: userInfo.providerId,
+    // 5. 사용자 조회 → 없으면 생성, 있으면 업데이트
+    const profileData = {
       email: userInfo.email,
       nickname: userInfo.nickname,
       profileImage: userInfo.profileImage,
+    };
+    const existing = await findUserByProvider({
+      appId: app.id,
+      provider,
+      providerId: userInfo.providerId,
     });
+
+    let user;
+    if (existing) {
+      user = await updateUserLogin(existing.id, profileData);
+    } else {
+      user = await createUser({
+        appId: app.id,
+        provider,
+        providerId: userInfo.providerId,
+        ...profileData,
+      });
+      authProbe.userRegistered({
+        userId: user.id,
+        provider,
+        appCode: app.code,
+      });
+    }
 
     // 6. JWT 생성
     const token = generateJWT(user, app);
@@ -216,15 +238,34 @@ export const oauthCallback = async (req: Request, res: Response) => {
     // 6. 사용자 정보 조회
     const userInfo = await oauthProvider.getUserInfo(access_token);
 
-    // 7. 사용자 저장/업데이트
-    const user = await upsertUser({
-      appId: app.id,
-      provider: 'kakao',
-      providerId: userInfo.providerId,
+    // 7. 사용자 조회 → 없으면 생성, 있으면 업데이트
+    const callbackProfileData = {
       email: userInfo.email,
       nickname: userInfo.nickname,
       profileImage: userInfo.profileImage,
+    };
+    const existingUser = await findUserByProvider({
+      appId: app.id,
+      provider: 'kakao',
+      providerId: userInfo.providerId,
     });
+
+    let user;
+    if (existingUser) {
+      user = await updateUserLogin(existingUser.id, callbackProfileData);
+    } else {
+      user = await createUser({
+        appId: app.id,
+        provider: 'kakao',
+        providerId: userInfo.providerId,
+        ...callbackProfileData,
+      });
+      authProbe.userRegistered({
+        userId: user.id,
+        provider: 'kakao',
+        appCode: app.code,
+      });
+    }
 
     // 8. JWT 생성
     const token = generateJWT(user, app);
@@ -341,7 +382,7 @@ export const refreshToken: RequestHandler = async (req: Request, res: Response) 
       throw new UnauthorizedException('Invalid refresh token format', 'INVALID_REFRESH_TOKEN');
     }
 
-    const app = await findAppByCode('wowa'); // TODO: appId로 조회하는 함수 필요
+    const app = await findAppById(decodedWithoutVerify.appId);
     if (!app) {
       throw new NotFoundException('App', decodedWithoutVerify.appId);
     }
@@ -398,10 +439,10 @@ export const refreshToken: RequestHandler = async (req: Request, res: Response) 
   // 6. 사용자 조회 (upsertUser 대신 findUserById 필요하지만, 간단히 처리)
   const user = { id: userId, email: null, nickname: null };
 
-  // 7. 앱 조회
-  const app = await findAppByCode('wowa'); // TODO: 개선 필요
+  // 7. 앱 조회 (JWT에서 추출한 appId로 직접 조회)
+  const app = await findAppById(decoded.appId);
   if (!app) {
-    throw new NotFoundException('App', storedToken.appId);
+    throw new NotFoundException('App', decoded.appId);
   }
 
   // 8. Token Rotation
@@ -441,9 +482,13 @@ export const logout: RequestHandler = async (req: Request, res: Response) => {
 
   //  2. JWT 검증 (앱 조회 필요)
   let decoded: { sub: number; appId: number; jti: string; tokenFamily: string };
-  const app = await findAppByCode('wowa'); // TODO: appId로 조회하는 함수 필요
+  const decodedWithoutVerify = jwt.decode(token) as any;
+  if (!decodedWithoutVerify || !decodedWithoutVerify.appId) {
+    throw new UnauthorizedException('Invalid refresh token format', 'INVALID_REFRESH_TOKEN');
+  }
+  const app = await findAppById(decodedWithoutVerify.appId);
   if (!app) {
-    throw new NotFoundException('App', 'wowa');
+    throw new NotFoundException('App', decodedWithoutVerify.appId);
   }
 
   try {

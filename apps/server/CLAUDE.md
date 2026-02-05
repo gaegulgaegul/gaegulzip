@@ -40,6 +40,12 @@ src/
 └── server.ts               # Entry point
 ```
 
+## Module Convention
+
+- **서버 기능은 `src/modules/` 내 모듈로 유지** — SDK 패키지로 추출하지 않음
+- SDK 패키지화는 모바일(Flutter)에서만 수행
+- 모바일 SDK가 서버 API를 호출하는 구조 (서버는 API만 제공)
+
 ## Express Conventions
 
 - Handler = 미들웨어 함수 `(req, res, next) => {}`

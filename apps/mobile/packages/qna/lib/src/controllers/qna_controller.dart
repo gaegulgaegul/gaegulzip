@@ -138,6 +138,9 @@ class QnaController extends GetxController {
     // 0. 중복 제출 방지
     if (isSubmitting.value) return;
 
+    // 이전 API 에러 메시지 초기화
+    errorMessage.value = '';
+
     // 1. 입력 검증
     validateTitle();
     validateBody();
@@ -148,7 +151,6 @@ class QnaController extends GetxController {
     try {
       // 2. 로딩 시작
       isSubmitting.value = true;
-      errorMessage.value = '';
 
       // 3. API 호출
       await _repository.submitQuestion(

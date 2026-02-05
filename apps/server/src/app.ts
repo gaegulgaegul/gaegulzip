@@ -5,6 +5,8 @@ import YAML from 'yamljs';
 import authRouter from './modules/auth';
 import pushAlertRouter from './modules/push-alert';
 import qnaRouter from './modules/qna';
+import noticeRouter from './modules/notice';
+import { authenticate } from './middleware/auth';
 import { errorHandler } from './middleware/error-handler';
 
 export const app = express();
@@ -31,6 +33,7 @@ app.get('/health', (req, res) => {
 app.use('/auth', authRouter);
 app.use('/push', pushAlertRouter);
 app.use('/qna', qnaRouter);
+app.use('/notices', authenticate, noticeRouter);
 
 // Error handling (must be last)
 app.use(errorHandler);

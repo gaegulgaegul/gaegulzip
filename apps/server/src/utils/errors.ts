@@ -41,6 +41,15 @@ export class UnauthorizedException extends AppException {
 }
 
 /**
+ * 금지된 접근 (403)
+ */
+export class ForbiddenException extends AppException {
+  constructor(message: string) {
+    super(message, 403, 'FORBIDDEN');
+  }
+}
+
+/**
  * 리소스 찾을 수 없음 (404)
  */
 export class NotFoundException extends AppException {
@@ -85,6 +94,9 @@ export enum ErrorCode {
   REFRESH_TOKEN_EXPIRED = 'REFRESH_TOKEN_EXPIRED',
   REFRESH_TOKEN_REVOKED = 'REFRESH_TOKEN_REVOKED',
   REFRESH_TOKEN_REUSE_DETECTED = 'REFRESH_TOKEN_REUSE_DETECTED',
+
+  // Authorization
+  FORBIDDEN = 'FORBIDDEN',
 
   // Not Found
   NOT_FOUND = 'NOT_FOUND',
