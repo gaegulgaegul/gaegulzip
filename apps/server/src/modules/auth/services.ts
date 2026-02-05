@@ -77,6 +77,11 @@ export async function createUser(data: {
       lastLoginAt: new Date(),
     })
     .returning();
+
+  if (!inserted[0]) {
+    throw new Error('Failed to create user');
+  }
+
   return inserted[0];
 }
 

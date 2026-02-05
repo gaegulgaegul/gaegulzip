@@ -17,8 +17,8 @@ import '../services/auth_state_service.dart';
 /// dio.interceptors.add(AuthInterceptor());
 /// ```
 class AuthInterceptor extends Interceptor {
-  final SecureStorageService _storageService = Get.find<SecureStorageService>();
-  final AuthStateService _authStateService = Get.find<AuthStateService>();
+  SecureStorageService get _storageService => Get.find<SecureStorageService>();
+  AuthStateService get _authStateService => Get.find<AuthStateService>();
 
   /// 토큰 갱신 진행 중 플래그
   bool _isRefreshing = false;
@@ -83,6 +83,7 @@ class AuthInterceptor extends Interceptor {
       handler.next(retryErr);
     } catch (e) {
       // DioException 외 다른 예외 처리
+      debugPrint('AuthInterceptor retry error: $e');
       handler.next(err);
     }
   }
@@ -124,6 +125,6 @@ class AuthInterceptor extends Interceptor {
 
   /// 인증 불필요한 경로인지 확인
   bool _isPublicPath(String path) {
-    return _publicPaths.any((p) => path.contains(p));
+    return _publicPaths.any((p) => path == p || path.startsWith('$p/') || path.startsWith('$p?'));
   }
 }

@@ -348,6 +348,12 @@ describe('oauthLogin handler', () => {
       }),
       token: 'mock-jwt-token',
     });
+
+    expect(authProbe.loginSuccess).toHaveBeenCalledWith({
+      userId: 1,
+      provider: 'kakao',
+      appCode: 'test-app',
+    });
   });
 
   it('should handle Naver login successfully', async () => {

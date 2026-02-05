@@ -115,38 +115,19 @@ class LoginController extends GetxController {
   ///
   /// [title] 에러 제목
   /// [message] 에러 메시지
-  /// [onRetry] 재시도 콜백 (선택적)
   void _showErrorSnackbar(
     String title,
-    String message, {
-    VoidCallback? onRetry,
-  }) {
+    String message,
+  ) {
     Get.showSnackbar(
       GetSnackBar(
         title: title,
         message: message,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: const Color(0xFFB00020), // Material 3 error
-        duration: onRetry != null
-            ? const Duration(days: 1) // 재시도 버튼 있으면 무한 표시
-            : const Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
         margin: const EdgeInsets.all(16),
         borderRadius: 12,
-        mainButton: onRetry != null
-            ? TextButton(
-                onPressed: () {
-                  Get.back(); // SnackBar 닫기
-                  onRetry();
-                },
-                child: const Text(
-                  '재시도',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              )
-            : null,
       ),
     );
   }
