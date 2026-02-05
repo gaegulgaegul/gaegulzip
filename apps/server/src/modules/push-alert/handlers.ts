@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { registerDeviceSchema, sendPushSchema, listAlertsSchema } from './validators';
+import { registerDeviceSchema, sendPushSchema, listAlertsSchema, listMyNotificationsSchema } from './validators';
 import {
   upsertDevice,
   findDevicesByUserId,
@@ -11,6 +11,10 @@ import {
   findActiveDevicesByUserIds,
   getAllActiveUserIds,
   deactivateDeviceByToken,
+  createReceiptsForUsers,
+  findNotificationsByUser,
+  countUnreadNotifications,
+  markNotificationAsRead,
 } from './services';
 import { findAppByCode } from '../auth/services';
 import { getFCMInstance, sendToMultipleDevices, FCMMessage } from './fcm';
@@ -205,7 +209,24 @@ export const sendPush = async (req: Request, res: Response) => {
       }
     }
 
-    // 8. Alert 상태 업데이트
+    // 8. Receipt 생성 (각 대상 사용자별 1개 레코드)
+    await createReceiptsForUsers({
+      appId: app.id,
+      alertId: alert.id,
+      userIds: targetUserIds,
+      title,
+      body,
+      data,
+      imageUrl,
+    });
+
+    pushProbe.receiptsCreated({
+      alertId: alert.id,
+      appId: app.id,
+      userCount: targetUserIds.length,
+    });
+
+    // 9. Alert 상태 업데이트
     await updateAlertStatus(alert.id, {
       status: 'completed',
       sentCount: result.successCount,
@@ -318,4 +339,81 @@ export const getAlert = async (req: Request, res: Response) => {
     sentAt: alert.sentAt,
     createdAt: alert.createdAt,
   });
+};
+
+// ─── 사용자 알림 API 핸들러 ─────────────────────────────────────────
+
+/**
+ * 내 알림 목록 조회 핸들러 (인증 필요)
+ * @param req - Express 요청 객체 (query: { limit?, offset?, unreadOnly? }, user: { userId, appId })
+ * @param res - Express 응답 객체
+ * @returns 200: 알림 목록
+ */
+export const listMyNotifications = async (req: Request, res: Response) => {
+  const { limit, offset, unreadOnly } = listMyNotificationsSchema.parse(req.query);
+  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+
+  logger.debug({ userId, appId, limit, offset, unreadOnly }, 'Listing user notifications');
+
+  const notifications = await findNotificationsByUser(userId, appId, {
+    limit,
+    offset,
+    unreadOnly,
+  });
+
+  res.json({
+    notifications: notifications.map((n) => ({
+      id: n.id,
+      title: n.title,
+      body: n.body,
+      data: n.data,
+      imageUrl: n.imageUrl,
+      isRead: n.isRead,
+      readAt: n.readAt?.toISOString() ?? null,
+      receivedAt: n.receivedAt.toISOString(),
+    })),
+    total: notifications.length,
+  });
+};
+
+/**
+ * 읽지 않은 알림 개수 조회 핸들러 (인증 필요)
+ * @param req - Express 요청 객체 (user: { userId, appId })
+ * @param res - Express 응답 객체
+ * @returns 200: 읽지 않은 알림 개수
+ */
+export const getUnreadCount = async (req: Request, res: Response) => {
+  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+
+  const unreadCount = await countUnreadNotifications(userId, appId);
+
+  res.json({ unreadCount });
+};
+
+/**
+ * 알림 읽음 처리 핸들러 (인증 필요)
+ * @param req - Express 요청 객체 (params: { id }, user: { userId, appId })
+ * @param res - Express 응답 객체
+ * @returns 200: 읽음 처리 성공
+ */
+export const markAsRead = async (req: Request, res: Response) => {
+  const idParam = req.params.id;
+  const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam, 10);
+  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+
+  logger.debug({ id, userId, appId }, 'Marking notification as read');
+
+  const success = await markNotificationAsRead(id, userId, appId);
+
+  if (!success) {
+    throw new NotFoundException('Notification', id);
+  }
+
+  pushProbe.notificationRead({
+    notificationId: id,
+    userId,
+    appId,
+  });
+
+  res.json({ success: true });
 };

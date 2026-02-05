@@ -62,3 +62,14 @@ export const listAlertsSchema = z.object({
 });
 
 export type ListAlertsQuery = z.infer<typeof listAlertsSchema>;
+
+/**
+ * 내 알림 목록 조회 쿼리 스키마 (인증된 사용자용)
+ */
+export const listMyNotificationsSchema = z.object({
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+  unreadOnly: z.coerce.boolean().optional(),
+});
+
+export type ListMyNotificationsQuery = z.infer<typeof listMyNotificationsSchema>;

@@ -72,3 +72,42 @@ export const pushAlerts = pgTable('push_alerts', {
   statusIdx: index('idx_push_alerts_status').on(table.status),
   createdAtIdx: index('idx_push_alerts_created_at').on(table.createdAt),
 }));
+
+/**
+ * 푸시 알림 수신 기록 테이블 (사용자별 알림 목록 및 읽음 상태)
+ */
+export const pushNotificationReceipts = pgTable('push_notification_receipts', {
+  /** 고유 ID */
+  id: serial('id').primaryKey(),
+  /** 앱 ID (외래키, FK 제약조건 없음) */
+  appId: integer('app_id').notNull(),
+  /** 사용자 ID (외래키, FK 제약조건 없음) */
+  userId: integer('user_id').notNull(),
+  /** 발송 이력 ID (push_alerts 참조, FK 제약조건 없음) */
+  alertId: integer('alert_id').notNull(),
+  /** 알림 제목 (빠른 조회를 위한 비정규화) */
+  title: varchar('title', { length: 255 }).notNull(),
+  /** 알림 본문 (빠른 조회를 위한 비정규화) */
+  body: varchar('body', { length: 1000 }).notNull(),
+  /** 커스텀 데이터 (JSON, 빠른 조회를 위한 비정규화) */
+  data: jsonb('data').default({}),
+  /** 이미지 URL (빠른 조회를 위한 비정규화) */
+  imageUrl: varchar('image_url', { length: 500 }),
+  /** 읽음 상태 (기본값: false) */
+  isRead: boolean('is_read').notNull().default(false),
+  /** 읽은 시간 (null = 읽지 않음) */
+  readAt: timestamp('read_at'),
+  /** 수신 시간 */
+  receivedAt: timestamp('received_at').defaultNow().notNull(),
+  /** 생성 시간 */
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  appIdIdx: index('idx_push_notification_receipts_app_id').on(table.appId),
+  userIdIdx: index('idx_push_notification_receipts_user_id').on(table.userId),
+  alertIdIdx: index('idx_push_notification_receipts_alert_id').on(table.alertId),
+  isReadIdx: index('idx_push_notification_receipts_is_read').on(table.isRead),
+  receivedAtIdx: index('idx_push_notification_receipts_received_at').on(table.receivedAt),
+  // 복합 인덱스: 사용자별 알림 목록 조회 최적화
+  userAppReceivedIdx: index('idx_push_notification_receipts_user_app_received')
+    .on(table.userId, table.appId, table.receivedAt),
+}));
