@@ -20,7 +20,7 @@ export function AppSidebar() {
     <aside className="flex h-screen w-60 flex-col border-r bg-sidebar">
       <div className="flex h-14 items-center px-4">
         <Link href="/dashboard" className="text-lg font-bold">
-          Wowa Admin
+          Gaegul Admin
         </Link>
       </div>
 

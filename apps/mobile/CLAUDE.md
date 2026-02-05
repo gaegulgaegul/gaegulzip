@@ -52,6 +52,16 @@ core (foundation — no internal dependencies)
 - SDK는 앱에 독립적 — 하드코딩된 앱 이름, 라우트, 화면 이동 포함 금지
 - SDK 초기화는 config 객체로 주입 (appCode, apiBaseUrl 등)
 
+## SDK Packages
+
+| 패키지 | 사용 상황 | 참조 |
+|--------|----------|------|
+| `auth_sdk` | 소셜 로그인 (카카오/네이버/구글/애플), 토큰 관리, 인증 상태 | `packages/auth_sdk/README.md` |
+| `push` | FCM 푸시 알림 수신, 디바이스 토큰 등록, 알림 콜백 처리 | `packages/push/README.md` |
+| `notice` | 공지사항 목록/상세 조회, 읽음 추적, 미읽음 배지 | `packages/notice/README.md` |
+| `qna` | QnA 질문 제출 (GitHub Issue 연동) | `packages/qna/README.md` |
+| `admob` | Google 배너/전면/리워드 광고 | `packages/admob/README.md` |
+
 ## Quick Reference
 
 - **Flutter**: `const` 생성자 적극 사용, 위젯 소형화, 리빌드 최소화

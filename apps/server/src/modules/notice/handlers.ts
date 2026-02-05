@@ -215,7 +215,7 @@ export const getUnreadCount: RequestHandler = async (req, res) => {
  * @param req - Express 요청 객체 (body: { title, content, category?, isPinned? })
  * @param res - Express 응답 객체
  * @returns 201: 생성된 공지사항
- * @throws ForbiddenException 관리자 권한이 없는 경우 (requireAdmin 미들웨어에서 처리)
+ * @throws ForbiddenException 관리자 권한이 없는 경우
  * @throws ValidationException 요청 body 검증 실패 시
  */
 export const createNotice: RequestHandler = async (req, res) => {
@@ -264,7 +264,7 @@ export const createNotice: RequestHandler = async (req, res) => {
  * @param req - Express 요청 객체 (params: { id }, body: { title?, content?, category?, isPinned? })
  * @param res - Express 응답 객체
  * @returns 200: 수정된 공지사항
- * @throws ForbiddenException 관리자 권한이 없는 경우 (requireAdmin 미들웨어에서 처리)
+ * @throws ForbiddenException 관리자 권한이 없는 경우
  * @throws NotFoundException 공지사항을 찾을 수 없는 경우
  * @throws ValidationException 요청 검증 실패 시
  */
@@ -331,7 +331,7 @@ export const updateNotice: RequestHandler = async (req, res) => {
  * @param req - Express 요청 객체 (params: { id })
  * @param res - Express 응답 객체
  * @returns 204: No Content
- * @throws ForbiddenException 관리자 권한이 없는 경우 (requireAdmin 미들웨어에서 처리)
+ * @throws ForbiddenException 관리자 권한이 없는 경우
  * @throws NotFoundException 공지사항을 찾을 수 없는 경우
  * @throws ValidationException ID 파라미터 검증 실패 시
  */
@@ -379,7 +379,7 @@ export const deleteNotice: RequestHandler = async (req, res) => {
  * @param req - Express 요청 객체 (params: { id }, body: { isPinned })
  * @param res - Express 응답 객체
  * @returns 200: { id, title, isPinned, updatedAt }
- * @throws ForbiddenException 관리자 권한이 없는 경우 (requireAdmin 미들웨어에서 처리)
+ * @throws ForbiddenException 관리자 권한이 없는 경우
  * @throws NotFoundException 공지사항을 찾을 수 없는 경우
  * @throws ValidationException 요청 검증 실패 시
  */
