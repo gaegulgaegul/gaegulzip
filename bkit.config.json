@@ -5,7 +5,8 @@
     "apps/mobile/apps/wowa/lib",
     "apps/mobile/packages/api/lib",
     "apps/mobile/packages/core/lib",
-    "apps/mobile/packages/design_system/lib"
+    "apps/mobile/packages/design_system/lib",
+    "apps/web/admin"
   ],
   "codeExtensions": [
     ".ts",
@@ -17,12 +18,15 @@
     "researchDocPaths": [
       "docs/{product}/{feature}/research.md",
       "docs/{product}/{feature}/server-research.md",
-      "docs/{product}/{feature}/mobile-research.md"
+      "docs/{product}/{feature}/mobile-research.md",
+      "docs/{product}/{feature}/web-research.md"
     ],
     "designDocPaths": [
       "docs/{product}/{feature}/server-brief.md",
       "docs/{product}/{feature}/mobile-brief.md",
-      "docs/{product}/{feature}/mobile-design-spec.md"
+      "docs/{product}/{feature}/mobile-design-spec.md",
+      "docs/{product}/{feature}/web-brief.md",
+      "docs/{product}/{feature}/web-design-spec.md"
     ],
     "planDocPaths": [
       "docs/{product}/{feature}/user-story.md",
@@ -123,12 +127,33 @@
         "report": "bkit/report-generator"
       }
     },
-    "fullstack": {
+    "web": {
+      "root": "apps/web/admin",
+      "sourceDirectories": ["apps/web/admin"],
+      "codeExtensions": [".ts", ".tsx", ".js", ".jsx"],
+      "testCommand": "pnpm test:e2e",
+      "buildCommand": "pnpm build",
       "agents": {
         "research": "bkit/research-director",
         "plan": "product-owner",
-        "design": ["server/tech-lead", "mobile/ui-ux-designer", "mobile/tech-lead"],
-        "do": ["server/node-developer", "mobile/flutter-developer"],
+        "design": ["web/ui-ux-designer", "web/tech-lead"],
+        "do": "web/react-developer",
+        "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
+        "act": "bkit/pdca-iterator",
+        "report": "bkit/report-generator"
+      }
+    },
+    "fullstack": {
+      "note": "frontendType determines which frontend agents to use (mobile or web)",
+      "agents": {
+        "research": "bkit/research-director",
+        "plan": "product-owner",
+        "design-server": "server/tech-lead",
+        "design-mobile": ["mobile/ui-ux-designer", "mobile/tech-lead"],
+        "design-web": ["web/ui-ux-designer", "web/tech-lead"],
+        "do-server": "server/node-developer",
+        "do-mobile": "mobile/flutter-developer",
+        "do-web": "web/react-developer",
         "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
         "act": "bkit/pdca-iterator",
         "report": "bkit/report-generator"
@@ -175,6 +200,12 @@
       "views": "PascalCase + View suffix",
       "bindings": "PascalCase + Binding suffix",
       "models": "PascalCase + Model suffix"
+    },
+    "web": {
+      "components": "PascalCase",
+      "pages": "kebab-case directories with page.tsx",
+      "apiClients": "camelCase",
+      "types": "PascalCase"
     }
   },
   "agents": {
@@ -247,7 +278,7 @@
     },
     "parallelExecution": {
       "enabled": true,
-      "platforms": ["server", "mobile"]
+      "platforms": ["server", "mobile", "web"]
     },
     "freshEyesReview": {
       "enabled": true,
