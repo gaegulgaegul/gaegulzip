@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-05T12:47:47.190Z",
+  "lastUpdated": "2026-02-05T12:57:11.919Z",
   "activeFeatures": [
     "auth_sdk",
     "social-login",
@@ -81,9 +81,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-05T12:27:56.494Z",
-        "lastUpdated": "2026-02-05T12:47:47.190Z"
+        "lastUpdated": "2026-02-05T12:57:11.919Z"
       },
-      "lastFile": "/Users/lms/dev/repository/feature-admin-auth/apps/web/admin/src/app/(auth)/login/page.tsx"
+      "lastFile": "/Users/lms/dev/repository/feature-admin-auth/apps/web/admin/src/instrumentation.ts"
     },
     "notice": {
       "phase": "do",
@@ -107,7 +107,7 @@
   "session": {
     "startedAt": "2026-02-04T08:09:41.903Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-05T12:47:47.190Z"
+    "lastActivity": "2026-02-05T12:57:11.919Z"
   },
   "history": [
     {
@@ -370,6 +370,30 @@
     },
     {
       "timestamp": "2026-02-05T12:47:47.190Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:56:55.248Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:56:56.629Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:56:58.855Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:57:11.919Z",
       "feature": "web",
       "phase": "do",
       "action": "updated"
