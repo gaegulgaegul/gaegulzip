@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_naver_login/flutter_naver_login.dart';
 import 'package:core/core.dart';
 import 'social_login_provider.dart';
@@ -28,15 +29,15 @@ class NaverLoginProvider implements SocialLoginProvider {
       }
 
       // 3. accessToken 반환 (백엔드에서 검증)
-      final accessToken = result.accessToken.accessToken;
-      if (accessToken.isEmpty) {
+      final token = result.accessToken.accessToken;
+      if (token.isEmpty) {
         throw AuthException(code: 'naver_token_null', message: '네이버 토큰 획득 실패');
       }
 
-      return accessToken;
+      return token;
     } catch (e) {
       if (e is AuthException) rethrow;
-      throw Exception('네이버 로그인 중 오류 발생: $e');
+      throw AuthException(code: 'naver_unexpected', message: '네이버 로그인 중 오류 발생: $e');
     }
   }
 
@@ -46,6 +47,7 @@ class NaverLoginProvider implements SocialLoginProvider {
       await FlutterNaverLogin.logOut();
     } catch (e) {
       // 로그아웃 실패는 무시
+      debugPrint('네이버 로그아웃 실패: $e');
     }
   }
 }

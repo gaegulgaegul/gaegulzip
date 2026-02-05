@@ -11,13 +11,8 @@ class AppleLoginProvider implements SocialLoginProvider {
   String get platformName => 'apple';
 
   @override
-  bool get isInitialized {
-    // 애플 로그인은 iOS 13+ / macOS 10.15+에서만 사용 가능
-    if (Platform.isIOS || Platform.isMacOS) {
-      return true;
-    }
-    return false;
-  }
+  bool get isInitialized =>
+      Platform.isIOS || Platform.isMacOS; // iOS 13+ / macOS 10.15+에서만 사용 가능
 
   @override
   Future<String> signIn() async {
@@ -52,7 +47,7 @@ class AppleLoginProvider implements SocialLoginProvider {
       throw AuthException(code: 'apple_error', message: '애플 로그인 실패: ${e.message}');
     } catch (e) {
       if (e is AuthException) rethrow;
-      throw Exception('애플 로그인 중 오류 발생: $e');
+      throw AuthException(code: 'apple_unexpected', message: '애플 로그인 중 오류 발생: $e');
     }
   }
 

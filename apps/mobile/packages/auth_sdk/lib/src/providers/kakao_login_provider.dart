@@ -35,13 +35,14 @@ class KakaoLoginProvider implements SocialLoginProvider {
 
       return accessToken!.accessToken;
     } on KakaoException catch (e) {
-      // 사용자 취소
-      if (e.toString().contains('User cancelled')) {
+      // 사용자 취소 (에러 코드로 확인)
+      if (e.error == KakaoClientErrorCause.cancelled) {
         throw AuthException(code: 'user_cancelled', message: '로그인을 취소했습니다');
       }
       throw AuthException(code: 'kakao_error', message: '카카오 로그인 실패: ${e.message}');
     } catch (e) {
-      throw Exception('카카오 로그인 중 오류 발생: $e');
+      if (e is AuthException) rethrow;
+      throw AuthException(code: 'kakao_unexpected', message: '카카오 로그인 중 오류 발생: $e');
     }
   }
 

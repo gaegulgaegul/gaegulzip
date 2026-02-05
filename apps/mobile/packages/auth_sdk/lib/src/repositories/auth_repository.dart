@@ -33,14 +33,14 @@ class AuthRepository {
         accessToken: accessToken,
       );
 
-      // 2. 토큰 저장
-      await _storageService.saveAccessToken(response.accessToken);
-      await _storageService.saveRefreshToken(response.refreshToken);
-      await _storageService.saveTokenExpiresAt(response.expiresIn);
-
-      // 3. 사용자 정보 저장
-      await _storageService.saveUserId(response.user.id);
-      await _storageService.saveUserProvider(response.user.provider);
+      // 2. 토큰 및 사용자 정보 저장 (병렬 처리)
+      await Future.wait([
+        _storageService.saveAccessToken(response.accessToken),
+        _storageService.saveRefreshToken(response.refreshToken),
+        _storageService.saveTokenExpiresAt(response.expiresIn),
+        _storageService.saveUserId(response.user.id),
+        _storageService.saveUserProvider(response.user.provider),
+      ]);
 
       // 4. 사용자 정보 반환
       return response.user;
@@ -48,7 +48,8 @@ class AuthRepository {
       // DioException을 도메인 예외로 변환
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
-          e.type == DioExceptionType.sendTimeout) {
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.connectionError) {
         throw NetworkException(message: '네트워크 연결을 확인해주세요');
       }
 
@@ -96,10 +97,23 @@ class AuthRepository {
 
       return true;
     } on DioException catch (e) {
+      // DioException을 도메인 예외로 변환 (login과 일관성 유지)
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        throw NetworkException(message: '네트워크 연결을 확인해주세요');
+      }
+
       if (e.response?.statusCode == 401) {
         // refreshToken 만료 - 로그아웃 필요
         throw AuthException(code: 'refresh_token_expired', message: '로그인이 만료되었습니다');
       }
+
+      if (e.response?.statusCode != null && e.response!.statusCode! >= 500) {
+        throw Exception('일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요');
+      }
+
       throw NetworkException(message: '네트워크 연결을 확인해주세요');
     }
   }
@@ -131,7 +145,5 @@ class AuthRepository {
   }
 
   /// 토큰 만료 여부 확인
-  Future<bool> isTokenExpired() async {
-    return await _storageService.isTokenExpired();
-  }
+  Future<bool> isTokenExpired() => _storageService.isTokenExpired();
 }

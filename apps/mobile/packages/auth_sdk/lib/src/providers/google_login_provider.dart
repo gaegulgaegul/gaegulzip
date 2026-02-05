@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:core/core.dart';
 import 'social_login_provider.dart';
@@ -7,7 +8,7 @@ import 'social_login_provider.dart';
 /// google_sign_in을 사용하여 Google 계정 인증을 처리합니다.
 class GoogleLoginProvider implements SocialLoginProvider {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
+    scopes: const ['email', 'profile'],
   );
 
   @override
@@ -40,7 +41,7 @@ class GoogleLoginProvider implements SocialLoginProvider {
       return code;
     } catch (e) {
       if (e is AuthException) rethrow;
-      throw Exception('구글 로그인 중 오류 발생: $e');
+      throw AuthException(code: 'google_unexpected', message: '구글 로그인 중 오류 발생: $e');
     }
   }
 
@@ -50,6 +51,7 @@ class GoogleLoginProvider implements SocialLoginProvider {
       await _googleSignIn.signOut();
     } catch (e) {
       // 로그아웃 실패는 무시
+      debugPrint('구글 로그아웃 실패: $e');
     }
   }
 }
