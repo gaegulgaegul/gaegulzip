@@ -64,7 +64,7 @@ class AuthSdk {
   ///
   /// [appCode] 앱 코드 (서버에서 앱 식별용)
   /// [apiBaseUrl] API 베이스 URL
-  /// [providers] 프로바이더별 OAuth 설정
+  /// [providers] 프로바이더별 OAuth 설정 (TODO: 향후 프로바이더 SDK 초기화에 사용 예정)
   /// [secureStorage] 토큰 저장소 (기본: flutter_secure_storage)
   static Future<void> initialize({
     required String appCode,
@@ -108,9 +108,12 @@ class AuthSdk {
       Get.lazyPut<AuthRepository>(() => AuthRepository());
     }
 
-    // AuthInterceptor 등록
+    // AuthInterceptor 등록 (중복 방지)
     final dio = Get.find<Dio>();
-    dio.interceptors.add(AuthInterceptor());
+    final hasAuthInterceptor = dio.interceptors.any((i) => i is AuthInterceptor);
+    if (!hasAuthInterceptor) {
+      dio.interceptors.add(AuthInterceptor());
+    }
 
     // AuthStateService 초기화
     await Get.putAsync(() => AuthStateService().init());
@@ -152,14 +155,19 @@ class AuthSdk {
     final storedAccessToken = await storage.getAccessToken();
     final storedRefreshToken = await storage.getRefreshToken();
 
+    // 토큰이 null이면 예외 발생 (로그인 직후이므로 반드시 존재해야 함)
+    if (storedAccessToken == null || storedRefreshToken == null) {
+      throw Exception('로그인 후 토큰 저장 실패');
+    }
+
     // 5. LoginResponse 객체 반환
     return LoginResponse(
-      accessToken: storedAccessToken ?? '',
-      refreshToken: storedRefreshToken ?? '',
+      accessToken: storedAccessToken,
+      refreshToken: storedRefreshToken,
       tokenType: 'Bearer',
-      expiresIn: 1800, // 30분 (서버 기본값)
+      expiresIn: 1800, // TODO: 서버에서 expiresIn 반환하도록 개선 필요
       user: user,
-      token: storedAccessToken ?? '',
+      token: storedAccessToken,
     );
   }
 

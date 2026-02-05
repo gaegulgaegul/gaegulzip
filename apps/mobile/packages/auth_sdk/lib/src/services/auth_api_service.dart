@@ -9,7 +9,7 @@ import '../auth_sdk.dart';
 ///
 /// 소셜 로그인, 토큰 갱신, 로그아웃 API를 호출합니다.
 class AuthApiService {
-  final Dio _dio = Get.find<Dio>();
+  Dio get _dio => Get.find<Dio>();
 
   /// 앱 코드를 SDK에서 가져옵니다
   String get _appCode => AuthSdk.appCode;

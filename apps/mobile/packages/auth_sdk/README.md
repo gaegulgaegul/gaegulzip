@@ -44,9 +44,12 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
 
   // AuthSdk 초기화
+  final apiBaseUrl = dotenv.env['API_BASE_URL'] ??
+      (throw Exception('API_BASE_URL이 .env 파일에 설정되지 않았습니다'));
+
   await AuthSdk.initialize(
     appCode: 'wowa',
-    apiBaseUrl: dotenv.env['API_BASE_URL']!,
+    apiBaseUrl: apiBaseUrl,
     providers: {
       SocialProvider.kakao: const ProviderConfig(),
       SocialProvider.naver: const ProviderConfig(),

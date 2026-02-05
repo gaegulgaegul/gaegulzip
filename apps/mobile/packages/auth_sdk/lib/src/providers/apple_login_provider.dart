@@ -41,13 +41,13 @@ class AppleLoginProvider implements SocialLoginProvider {
 
       // 권한 거부
       if (e.code == AuthorizationErrorCode.invalidResponse) {
-        throw AuthException(code: 'permission_denied', message: '권한을 허용해주세요');
+        throw AuthException(code: 'apple_invalid_response', message: '권한을 허용해주세요');
       }
 
       throw AuthException(code: 'apple_error', message: '애플 로그인 실패: ${e.message}');
     } catch (e) {
       if (e is AuthException) rethrow;
-      throw AuthException(code: 'apple_unexpected', message: '애플 로그인 중 오류 발생: $e');
+      throw AuthException(code: 'apple_unexpected', message: '애플 로그인 중 오류가 발생했습니다');
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:core/core.dart';
 import '../repositories/auth_repository.dart';
@@ -72,14 +73,8 @@ class AuthStateService extends GetxService {
       return;
     }
 
-    // 토큰 만료 — 갱신 시도
-    final refreshed = await refreshToken();
-    if (!refreshed) {
-      status.value = AuthStatus.unauthenticated;
-    } else {
-      // 갱신 성공 시 authenticated 상태로 설정
-      status.value = AuthStatus.authenticated;
-    }
+    // 토큰 만료 — 갱신 시도 (refreshToken()이 이미 상태를 설정함)
+    await refreshToken();
   }
 
   /// 로그인 성공 시 호출
@@ -96,8 +91,9 @@ class AuthStateService extends GetxService {
   Future<void> logout({bool revokeAll = false}) async {
     try {
       await _authRepository.logout(revokeAll: revokeAll);
-    } catch (_) {
+    } catch (e) {
       // 서버 로그아웃 실패해도 상태는 unauthenticated로 전환
+      debugPrint('Logout failed: $e');
     } finally {
       status.value = AuthStatus.unauthenticated;
     }
@@ -115,9 +111,9 @@ class AuthStateService extends GetxService {
     } on AuthException {
       status.value = AuthStatus.unauthenticated;
       return false;
-    } catch (_) {
-      // 네트워크 오류 등 다른 예외 처리
-      status.value = AuthStatus.unauthenticated;
+    } catch (e) {
+      // 네트워크 오류 등 다른 예외는 상태 유지 (재시도 가능)
+      debugPrint('Token refresh failed: $e');
       return false;
     }
   }

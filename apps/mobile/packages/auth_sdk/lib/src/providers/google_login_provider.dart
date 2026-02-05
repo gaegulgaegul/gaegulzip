@@ -7,9 +7,10 @@ import 'social_login_provider.dart';
 ///
 /// google_sign_in을 사용하여 Google 계정 인증을 처리합니다.
 class GoogleLoginProvider implements SocialLoginProvider {
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: const ['email', 'profile'],
-  );
+  final GoogleSignIn _googleSignIn;
+
+  GoogleLoginProvider({GoogleSignIn? googleSignIn})
+      : _googleSignIn = googleSignIn ?? GoogleSignIn(scopes: const ['email', 'profile']);
 
   @override
   String get platformName => 'google';

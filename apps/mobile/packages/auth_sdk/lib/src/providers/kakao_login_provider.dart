@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:core/core.dart';
 import 'social_login_provider.dart';
@@ -28,6 +29,7 @@ class KakaoLoginProvider implements SocialLoginProvider {
       // 주의: kakao_flutter_sdk는 암시적 승인 방식을 사용하므로
       // 백엔드에서 accessToken을 받아 검증하는 방식으로 변경 필요
       // 현재는 임시로 accessToken을 code처럼 사용
+      // TODO: 백엔드 토큰 검증 API 연동 후 제거
       final accessToken = await TokenManagerProvider.instance.manager.getToken();
       if (accessToken?.accessToken == null) {
         throw AuthException(code: 'kakao_token_null', message: '카카오 토큰 획득 실패');
@@ -35,11 +37,11 @@ class KakaoLoginProvider implements SocialLoginProvider {
 
       return accessToken!.accessToken;
     } on KakaoException catch (e) {
-      // 사용자 취소 (에러 코드로 확인)
-      if (e.error == KakaoClientErrorCause.cancelled) {
+      // 사용자 취소 확인 (toString()으로 확인)
+      if (e.toString().contains('CANCELLED')) {
         throw AuthException(code: 'user_cancelled', message: '로그인을 취소했습니다');
       }
-      throw AuthException(code: 'kakao_error', message: '카카오 로그인 실패: ${e.message}');
+      throw AuthException(code: 'kakao_error', message: '카카오 로그인 실패: ${e.toString()}');
     } catch (e) {
       if (e is AuthException) rethrow;
       throw AuthException(code: 'kakao_unexpected', message: '카카오 로그인 중 오류 발생: $e');
@@ -52,6 +54,7 @@ class KakaoLoginProvider implements SocialLoginProvider {
       await UserApi.instance.logout();
     } catch (e) {
       // 로그아웃 실패는 무시 (이미 로그아웃 상태일 수 있음)
+      debugPrint('카카오 로그아웃 실패 (무시됨): $e');
     }
   }
 }

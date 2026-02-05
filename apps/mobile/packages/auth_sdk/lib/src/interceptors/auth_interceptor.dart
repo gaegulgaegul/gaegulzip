@@ -17,8 +17,8 @@ import '../services/auth_state_service.dart';
 /// dio.interceptors.add(AuthInterceptor());
 /// ```
 class AuthInterceptor extends Interceptor {
-  final SecureStorageService _storageService = Get.find<SecureStorageService>();
-  final AuthStateService _authStateService = Get.find<AuthStateService>();
+  SecureStorageService get _storageService => Get.find<SecureStorageService>();
+  AuthStateService get _authStateService => Get.find<AuthStateService>();
 
   /// 토큰 갱신 진행 중 플래그
   bool _isRefreshing = false;
@@ -43,9 +43,14 @@ class AuthInterceptor extends Interceptor {
       return handler.next(options);
     }
 
-    final accessToken = await _storageService.getAccessToken();
-    if (accessToken != null) {
-      options.headers['Authorization'] = 'Bearer $accessToken';
+    try {
+      final accessToken = await _storageService.getAccessToken();
+      if (accessToken != null) {
+        options.headers['Authorization'] = 'Bearer $accessToken';
+      }
+    } catch (e) {
+      // 토큰 조회 실패 시에도 요청은 계속 진행
+      // (서버가 401로 응답하면 onError에서 처리)
     }
 
     handler.next(options);
@@ -73,11 +78,14 @@ class AuthInterceptor extends Interceptor {
     // 갱신 성공 — 새 토큰으로 원래 요청 재시도
     try {
       final accessToken = await _storageService.getAccessToken();
+      if (accessToken == null) {
+        return handler.next(err);
+      }
       err.requestOptions.headers['Authorization'] = 'Bearer $accessToken';
       final response = await Get.find<Dio>().fetch(err.requestOptions);
       handler.resolve(response);
-    } on DioException catch (retryErr) {
-      handler.next(retryErr);
+    } catch (retryErr) {
+      handler.next(retryErr is DioException ? retryErr : err);
     }
   }
 
@@ -118,6 +126,6 @@ class AuthInterceptor extends Interceptor {
 
   /// 인증 불필요한 경로인지 확인
   bool _isPublicPath(String path) {
-    return _publicPaths.any((p) => path.contains(p));
+    return _publicPaths.any((p) => path == p || path.startsWith('$p/') || path.startsWith('$p?'));
   }
 }

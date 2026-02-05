@@ -4,33 +4,33 @@
 /// 인증 상태 관리, 토큰 자동 갱신, API 통신을 제공합니다.
 library auth_sdk;
 
-// Providers
+// 프로바이더
 export 'src/providers/social_login_provider.dart';
 export 'src/providers/kakao_login_provider.dart';
 export 'src/providers/naver_login_provider.dart';
 export 'src/providers/google_login_provider.dart';
 export 'src/providers/apple_login_provider.dart';
 
-// Services
+// 서비스
 export 'src/services/auth_state_service.dart';
 export 'src/services/auth_api_service.dart';
 
-// Interceptors
+// 인터셉터
 export 'src/interceptors/auth_interceptor.dart';
 
-// Repositories
+// 리포지토리
 export 'src/repositories/auth_repository.dart';
 
-// Models
+// 모델
 export 'src/models/login_request.dart';
 export 'src/models/login_response.dart';
 export 'src/models/refresh_request.dart';
 export 'src/models/refresh_response.dart';
 export 'src/models/user_model.dart';
 
-// Widgets (re-exported from design_system)
+// 위젯 (design_system에서 재export)
 export 'package:design_system/design_system.dart'
     show SocialLoginButton, SocialLoginPlatform, AppleSignInStyle;
 
-// Main SDK class
+// SDK 메인 클래스
 export 'src/auth_sdk.dart';
