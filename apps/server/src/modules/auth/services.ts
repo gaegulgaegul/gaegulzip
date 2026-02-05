@@ -5,7 +5,7 @@ import { signToken, verifyToken } from '../../utils/jwt';
 import { JWTPayload } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { hashRefreshToken, calculateExpiresAt } from './refresh-token.utils';
-import { UnauthorizedException } from '../../utils/errors';
+import { UnauthorizedException, NotFoundException } from '../../utils/errors';
 
 /**
  * 앱 코드로 앱 조회
@@ -28,20 +28,16 @@ export async function findAppById(id: number) {
 }
 
 /**
- * 사용자 생성 또는 업데이트 (멀티 제공자 지원)
- * @param data - 사용자 데이터 (appId, provider, providerId, email, nickname, profileImage)
- * @returns 생성 또는 업데이트된 사용자 객체
+ * 프로바이더 기준으로 기존 사용자 조회
+ * @param data - 조회 조건 (appId, provider, providerId)
+ * @returns 사용자 객체 또는 null
  */
-export async function upsertUser(data: {
+export async function findUserByProvider(data: {
   appId: number;
   provider: string;
   providerId: string;
-  email: string | null;
-  nickname: string | null;
-  profileImage: string | null;
-}) {
-  // 기존 사용자 조회
-  const existing = await db
+}): Promise<typeof users.$inferSelect | null> {
+  const result = await db
     .select()
     .from(users)
     .where(
@@ -53,38 +49,75 @@ export async function upsertUser(data: {
     )
     .limit(1);
 
-  const now = new Date();
+  return result[0] || null;
+}
 
-  if (existing[0]) {
-    // Update
-    const updated = await db
-      .update(users)
-      .set({
-        email: data.email,
-        nickname: data.nickname,
-        profileImage: data.profileImage,
-        lastLoginAt: now,
-        updatedAt: now,
-      })
-      .where(eq(users.id, existing[0].id))
-      .returning();
-    return updated[0];
-  } else {
-    // Insert
-    const inserted = await db
-      .insert(users)
-      .values({
-        appId: data.appId,
-        provider: data.provider,
-        providerId: data.providerId,
-        email: data.email,
-        nickname: data.nickname,
-        profileImage: data.profileImage,
-        lastLoginAt: now,
-      })
-      .returning();
-    return inserted[0];
+/**
+ * 신규 사용자 생성
+ * @param data - 사용자 데이터 (appId, provider, providerId, email, nickname, profileImage)
+ * @returns 생성된 사용자 객체
+ */
+export async function createUser(data: {
+  appId: number;
+  provider: string;
+  providerId: string;
+  email: string | null;
+  nickname: string | null;
+  profileImage: string | null;
+}): Promise<typeof users.$inferSelect> {
+  const inserted = await db
+    .insert(users)
+    .values({
+      appId: data.appId,
+      provider: data.provider,
+      providerId: data.providerId,
+      email: data.email,
+      nickname: data.nickname,
+      profileImage: data.profileImage,
+      lastLoginAt: new Date(),
+    })
+    .returning();
+
+  if (!inserted[0]) {
+    throw new Error('Failed to create user');
   }
+
+  return inserted[0];
+}
+
+/**
+ * 기존 사용자 로그인 정보 업데이트
+ * @param userId - 업데이트할 사용자 ID
+ * @param data - 업데이트할 프로필 데이터
+ * @returns 업데이트된 사용자 객체
+ * @throws NotFoundException 사용자를 찾을 수 없는 경우
+ */
+export async function updateUserLogin(
+  userId: number,
+  data: {
+    email: string | null;
+    nickname: string | null;
+    profileImage: string | null;
+  }
+): Promise<typeof users.$inferSelect> {
+  const now = new Date();
+  const updated = await db
+    .update(users)
+    .set({
+      email: data.email,
+      nickname: data.nickname,
+      profileImage: data.profileImage,
+      lastLoginAt: now,
+      updatedAt: now,
+    })
+    .where(eq(users.id, userId))
+    .returning();
+
+  if (!updated[0]) {
+    throw new NotFoundException('User', userId);
+  }
+
+  return updated[0];
 }
 
 /**

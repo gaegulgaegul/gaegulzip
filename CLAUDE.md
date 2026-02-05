@@ -41,6 +41,12 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 - **Avoid over-engineering**: Make only necessary changes, don't add features beyond what's requested
 - **No backwards-compatibility hacks**: Delete unused code completely instead of renaming or commenting
 
+## SDK Convention
+
+- **SDK는 항상 모바일(Flutter) 패키지만 해당** — `apps/mobile/packages/` 하위에 생성
+- **서버는 SDK로 추출하지 않음** — 서버 기능은 `apps/server/src/modules/` 내 모듈로 유지
+- 서버 API를 모바일에서 사용할 때: 모바일 SDK 패키지가 서버 API를 호출하는 구조
+
 ## Core Features (재사용 가능한 공통 기능)
 
 새 제품/기능 개발 시 아래 카탈로그에서 기존 구현을 확인하고 재사용하세요.
