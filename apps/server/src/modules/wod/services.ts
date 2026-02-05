@@ -1,7 +1,7 @@
 import { db } from '../../config/database';
 import { wods, proposedChanges, wodSelections } from './schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
-import { RegisterWodInput, WodWithComparison, WodsByDateResult, CreateProposalInput, ProposedChange, SelectWodInput, WodSelection, GetSelectionsInput } from './types';
+import { RegisterWodInput, WodWithComparison, WodsByDateResult, CreateProposalInput, ProposedChange, ProposalStatus, SelectWodInput, WodSelection, GetSelectionsInput, GetProposalsInput } from './types';
 import { NotFoundException, BusinessException, ValidationException } from '../../utils/errors';
 import { compareWods } from './comparison';
 import { programDataSchema } from './validators';
@@ -189,7 +189,7 @@ export async function createProposal(data: CreateProposalInput): Promise<Propose
 export async function approveProposal(
   proposalId: number,
   approverId: number
-): Promise<void> {
+): Promise<ProposedChange> {
   // 1. 제안 조회
   const [proposal] = await db
     .select()
@@ -211,7 +211,7 @@ export async function approveProposal(
   }
 
   // 3. 트랜잭션으로 Base 교체
-  await db.transaction(async (tx) => {
+  const [updatedProposal] = await db.transaction(async (tx) => {
     // 3-1. 기존 Base WOD → Personal로 강등
     await tx
       .update(wods)
@@ -224,25 +224,27 @@ export async function approveProposal(
       .set({ isBase: true })
       .where(eq(wods.id, proposal.proposedWodId));
 
-    // 3-3. 제안 상태 업데이트
-    await tx
+    // 3-3. 제안 상태 업데이트 + 반환
+    return tx
       .update(proposedChanges)
       .set({
         status: 'approved',
         resolvedAt: new Date(),
         resolvedBy: approverId,
       })
-      .where(eq(proposedChanges.id, proposalId));
+      .where(eq(proposedChanges.id, proposalId))
+      .returning();
   });
 
   wodProbe.proposalApproved({ proposalId, oldBaseWodId: proposal.baseWodId, newBaseWodId: proposal.proposedWodId, approvedBy: approverId });
 
-  // Phase 5: 기존 Base 선택자들에게 Base WOD 변경 알림
-  // await sendPushNotification({
-  //   type: WodEventType.BASE_WOD_CHANGED,
-  //   recipients: previousBaseSelectors,
-  //   data: { oldWodId: proposal.baseWodId, newWodId: proposal.proposedWodId, boxId, date }
-  // });
+  return {
+    ...updatedProposal,
+    status: updatedProposal.status as ProposalStatus,
+    proposedAt: updatedProposal.proposedAt!,
+    resolvedAt: updatedProposal.resolvedAt || null,
+    resolvedBy: updatedProposal.resolvedBy || null,
+  };
 }
 
 /**
@@ -255,7 +257,7 @@ export async function approveProposal(
 export async function rejectProposal(
   proposalId: number,
   rejecterId: number
-): Promise<void> {
+): Promise<ProposedChange> {
   // 1. 제안 조회
   const [proposal] = await db
     .select()
@@ -276,15 +278,53 @@ export async function rejectProposal(
     throw new BusinessException('Only Base WOD creator can reject changes');
   }
 
-  // 3. 제안 상태 업데이트
-  await db
+  // 3. 제안 상태 업데이트 + 반환
+  const [updatedProposal] = await db
     .update(proposedChanges)
     .set({
       status: 'rejected',
       resolvedAt: new Date(),
       resolvedBy: rejecterId,
     })
-    .where(eq(proposedChanges.id, proposalId));
+    .where(eq(proposedChanges.id, proposalId))
+    .returning();
+
+  return {
+    ...updatedProposal,
+    status: updatedProposal.status as ProposalStatus,
+    proposedAt: updatedProposal.proposedAt!,
+    resolvedAt: updatedProposal.resolvedAt || null,
+    resolvedBy: updatedProposal.resolvedBy || null,
+  };
+}
+
+/**
+ * 변경 제안 목록 조회
+ * @param input - 조회 조건 (baseWodId, status)
+ * @returns 제안 목록
+ */
+export async function getProposals(input: GetProposalsInput): Promise<ProposedChange[]> {
+  const conditions = [];
+
+  if (input.baseWodId) {
+    conditions.push(eq(proposedChanges.baseWodId, input.baseWodId));
+  }
+
+  if (input.status) {
+    conditions.push(eq(proposedChanges.status, input.status));
+  }
+
+  const proposals = conditions.length > 0
+    ? await db.select().from(proposedChanges).where(and(...conditions))
+    : await db.select().from(proposedChanges);
+
+  return proposals.map(p => ({
+    ...p,
+    status: p.status as ProposalStatus,
+    proposedAt: p.proposedAt!,
+    resolvedAt: p.resolvedAt || null,
+    resolvedBy: p.resolvedBy || null,
+  }));
 }
 
 /**

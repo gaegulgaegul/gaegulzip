@@ -23,6 +23,12 @@ router.post('/', handlers.registerWodHandler);
 router.get('/:boxId/:date', handlers.getWodsByDateHandler);
 
 /**
+ * 변경 제안 목록 조회
+ * @route GET /wods/proposals
+ */
+router.get('/proposals', handlers.getProposalsHandler);
+
+/**
  * 변경 제안 생성
  * @route POST /wods/proposals
  */

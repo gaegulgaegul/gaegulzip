@@ -354,7 +354,7 @@ describe('WOD Services', () => {
         programData: {
           type: 'ForTime',
           rounds: 5,
-          movements: [{ name: 'Deadlift', reps: 21, weight: 100, weightUnit: 'kg' }],
+          movements: [{ name: 'Deadlift', reps: 21, weight: 100, unit: 'kg' }],
         },
         rawText: '5 rounds\n21 Deadlifts @ 100kg',
         isBase: true,
@@ -381,7 +381,7 @@ describe('WOD Services', () => {
         programData: {
           type: 'ForTime',
           rounds: 5,
-          movements: [{ name: 'Deadlift', reps: 21, weight: 100, weightUnit: 'kg' }],
+          movements: [{ name: 'Deadlift', reps: 21, weight: 100, unit: 'kg' }],
         },
         rawText: '5 rounds\n21 Deadlifts @ 100kg',
         createdBy: 123,
@@ -725,12 +725,16 @@ describe('WOD Services', () => {
           }),
         } as any);
 
-        // Transaction mock
+        // Transaction mock (where가 thenable + returning 필요)
         vi.mocked(db.transaction).mockImplementation(async (callback: any) => {
           const txMock = {
             update: vi.fn().mockReturnValue({
               set: vi.fn().mockReturnValue({
-                where: vi.fn().mockResolvedValue(undefined),
+                where: vi.fn().mockImplementation(() => {
+                  const result = Promise.resolve(undefined);
+                  (result as any).returning = vi.fn().mockResolvedValue([{ ...mockProposal, status: 'approved', resolvedAt: new Date(), resolvedBy: 123 }]);
+                  return result;
+                }),
               }),
             }),
           };
@@ -779,7 +783,11 @@ describe('WOD Services', () => {
 
         const txUpdateMock = vi.fn().mockReturnValue({
           set: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue(undefined),
+            where: vi.fn().mockImplementation(() => {
+              const result = Promise.resolve(undefined);
+              (result as any).returning = vi.fn().mockResolvedValue([{ ...mockProposal, status: 'approved', resolvedAt: new Date(), resolvedBy: 123 }]);
+              return result;
+            }),
           }),
         });
 
@@ -834,7 +842,11 @@ describe('WOD Services', () => {
         const setMocks: any[] = [];
         const txUpdateMock = vi.fn().mockImplementation(() => {
           const setMock = vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue(undefined),
+            where: vi.fn().mockImplementation(() => {
+              const result = Promise.resolve(undefined);
+              (result as any).returning = vi.fn().mockResolvedValue([{ ...mockProposal, status: 'approved', resolvedAt: new Date(), resolvedBy: 123 }]);
+              return result;
+            }),
           });
           setMocks.push(setMock);
           return { set: setMock };
@@ -889,7 +901,11 @@ describe('WOD Services', () => {
         const setMocks: any[] = [];
         const txUpdateMock = vi.fn().mockImplementation(() => {
           const setMock = vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue(undefined),
+            where: vi.fn().mockImplementation(() => {
+              const result = Promise.resolve(undefined);
+              (result as any).returning = vi.fn().mockResolvedValue([{ ...mockProposal, status: 'approved', resolvedAt: new Date(), resolvedBy: 123 }]);
+              return result;
+            }),
           });
           setMocks.push(setMock);
           return { set: setMock };
@@ -1006,10 +1022,14 @@ describe('WOD Services', () => {
           }),
         } as any);
 
-        // Update mock
+        // Update mock (where가 thenable + returning 필요)
         vi.mocked(db.update).mockReturnValue({
           set: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue(undefined),
+            where: vi.fn().mockImplementation(() => {
+              const result = Promise.resolve(undefined);
+              (result as any).returning = vi.fn().mockResolvedValue([{ ...mockProposal, status: 'rejected', resolvedAt: new Date(), resolvedBy: 123 }]);
+              return result;
+            }),
           }),
         } as any);
 

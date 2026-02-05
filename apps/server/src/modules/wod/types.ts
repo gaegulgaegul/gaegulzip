@@ -19,7 +19,7 @@ export interface Movement {
   name: string;
   reps?: number;
   weight?: number;
-  weightUnit?: WeightUnit;
+  unit?: WeightUnit;
   distance?: number;
   distanceUnit?: string;
   duration?: number;
@@ -99,4 +99,9 @@ export interface GetSelectionsInput {
   userId: number;
   startDate?: string;
   endDate?: string;
+}
+
+export interface GetProposalsInput {
+  baseWodId?: number;
+  status?: ProposalStatus;
 }

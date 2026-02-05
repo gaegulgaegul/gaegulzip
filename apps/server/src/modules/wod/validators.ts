@@ -7,7 +7,7 @@ export const movementSchema = z.object({
   name: z.string().min(1, 'Movement name is required'),
   reps: z.number().int().positive().optional(),
   weight: z.number().positive().optional(),
-  weightUnit: z.enum(['kg', 'lb', 'bw']).optional(),
+  unit: z.enum(['kg', 'lb', 'bw']).optional(),
   distance: z.number().positive().optional(),
   distanceUnit: z.string().optional(),
   duration: z.number().positive().optional(),

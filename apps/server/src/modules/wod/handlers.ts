@@ -1,5 +1,5 @@
 import { Request, Response, RequestHandler } from 'express';
-import { registerWod, getWodsByDate, createProposal, approveProposal, rejectProposal, selectWod, getSelections } from './services';
+import { registerWod, getWodsByDate, createProposal, getProposals, approveProposal, rejectProposal, selectWod, getSelections } from './services';
 import { registerWodSchema, createProposalSchema, selectWodSchema } from './validators';
 
 /**
@@ -44,6 +44,22 @@ export const createProposalHandler: RequestHandler = async (req, res) => {
 };
 
 /**
+ * 변경 제안 목록 조회 핸들러
+ * GET /wods/proposals
+ */
+export const getProposalsHandler: RequestHandler = async (req, res) => {
+  const baseWodId = req.query.baseWodId ? parseInt(req.query.baseWodId as string, 10) : undefined;
+  const status = req.query.status as string | undefined;
+
+  const proposals = await getProposals({
+    baseWodId,
+    status: status as any,
+  });
+
+  res.json({ proposals });
+};
+
+/**
  * 변경 승인 핸들러
  * POST /wods/proposals/:proposalId/approve
  */
@@ -51,9 +67,9 @@ export const approveProposalHandler: RequestHandler = async (req, res) => {
   const proposalId = parseInt(req.params.proposalId as string, 10);
   const { userId } = (req as any).user;
 
-  await approveProposal(proposalId, userId);
+  const proposal = await approveProposal(proposalId, userId);
 
-  res.json({ approved: true });
+  res.json(proposal);
 };
 
 /**
@@ -64,9 +80,9 @@ export const rejectProposalHandler: RequestHandler = async (req, res) => {
   const proposalId = parseInt(req.params.proposalId as string, 10);
   const { userId } = (req as any).user;
 
-  await rejectProposal(proposalId, userId);
+  const proposal = await rejectProposal(proposalId, userId);
 
-  res.json({ rejected: true });
+  res.json(proposal);
 };
 
 /**

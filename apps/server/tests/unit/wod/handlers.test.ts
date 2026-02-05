@@ -3,6 +3,7 @@ import {
   registerWodHandler,
   getWodsByDateHandler,
   createProposalHandler,
+  getProposalsHandler,
   approveProposalHandler,
   rejectProposalHandler,
   selectWodHandler,
@@ -234,7 +235,11 @@ describe('WOD Handlers', () => {
     it('should approve when Base creator', async () => {
       const { approveProposal } = await import('../../../src/modules/wod/services');
 
-      vi.mocked(approveProposal).mockResolvedValue(undefined);
+      const mockApprovedProposal = {
+        id: 50, baseWodId: 100, proposedWodId: 101,
+        status: 'approved' as const, proposedAt: new Date(), resolvedAt: new Date(), resolvedBy: 123,
+      };
+      vi.mocked(approveProposal).mockResolvedValue(mockApprovedProposal);
 
       req.params = { proposalId: '50' };
       (req as any).user = { userId: 123, appId: 1 };
@@ -242,7 +247,7 @@ describe('WOD Handlers', () => {
       await approveProposalHandler(req as Request, res as Response, vi.fn());
 
       expect(approveProposal).toHaveBeenCalledWith(50, 123);
-      expect(res.json).toHaveBeenCalledWith({ approved: true });
+      expect(res.json).toHaveBeenCalledWith(mockApprovedProposal);
     });
 
     it('should throw UnauthorizedApprovalException for non-creator', async () => {
@@ -282,7 +287,11 @@ describe('WOD Handlers', () => {
     it('should reject with valid id', async () => {
       const { rejectProposal } = await import('../../../src/modules/wod/services');
 
-      vi.mocked(rejectProposal).mockResolvedValue(undefined);
+      const mockRejectedProposal = {
+        id: 50, baseWodId: 100, proposedWodId: 101,
+        status: 'rejected' as const, proposedAt: new Date(), resolvedAt: new Date(), resolvedBy: 123,
+      };
+      vi.mocked(rejectProposal).mockResolvedValue(mockRejectedProposal);
 
       req.params = { proposalId: '50' };
       (req as any).user = { userId: 123, appId: 1 };
@@ -290,7 +299,7 @@ describe('WOD Handlers', () => {
       await rejectProposalHandler(req as Request, res as Response, vi.fn());
 
       expect(rejectProposal).toHaveBeenCalledWith(50, 123);
-      expect(res.json).toHaveBeenCalledWith({ rejected: true });
+      expect(res.json).toHaveBeenCalledWith(mockRejectedProposal);
     });
   });
 

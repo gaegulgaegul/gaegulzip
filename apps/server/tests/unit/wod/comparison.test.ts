@@ -98,12 +98,12 @@ describe('WOD Comparison', () => {
     it('should return similar for >5% weight difference', () => {
       const base: ProgramData = {
         type: 'ForTime',
-        movements: [{ name: 'Deadlift', reps: 21, weight: 100, weightUnit: 'kg' }],
+        movements: [{ name: 'Deadlift', reps: 21, weight: 100, unit: 'kg' }],
       };
 
       const personal: ProgramData = {
         type: 'ForTime',
-        movements: [{ name: 'Deadlift', reps: 21, weight: 110, weightUnit: 'kg' }],
+        movements: [{ name: 'Deadlift', reps: 21, weight: 110, unit: 'kg' }],
       };
 
       expect(compareWods(base, personal)).toBe('similar');
@@ -176,12 +176,12 @@ describe('WOD Comparison', () => {
     it('should return identical for weight within 5% tolerance', () => {
       const base: ProgramData = {
         type: 'ForTime',
-        movements: [{ name: 'Deadlift', reps: 21, weight: 100, weightUnit: 'kg' }],
+        movements: [{ name: 'Deadlift', reps: 21, weight: 100, unit: 'kg' }],
       };
 
       const personal: ProgramData = {
         type: 'ForTime',
-        movements: [{ name: 'Deadlift', reps: 21, weight: 102, weightUnit: 'kg' }],
+        movements: [{ name: 'Deadlift', reps: 21, weight: 102, unit: 'kg' }],
       };
 
       expect(compareWods(base, personal)).toBe('identical');
