@@ -29,6 +29,9 @@ abstract class Routes {
   /// 제안 검토 화면
   static const PROPOSAL_REVIEW = '/wod/proposal/review';
 
+  /// 알림 목록 화면
+  static const NOTIFICATIONS = '/notifications';
+
   /// QnA 질문 작성 화면
   static const QNA = '/qna';
 }

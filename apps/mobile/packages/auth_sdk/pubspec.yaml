@@ -1,0 +1,48 @@
+name: auth_sdk
+description: "Reusable authentication SDK with social login providers"
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.10.7 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  get: ^4.6.6
+
+  # HTTP client
+  dio: ^5.4.0
+
+  # JSON serialization
+  json_annotation: ^4.8.1
+  freezed_annotation: ^2.4.1
+
+  # Internal dependencies
+  core:
+    path: ../core
+  api:
+    path: ../api
+  design_system:
+    path: ../design_system
+
+  # Social login SDKs
+  kakao_flutter_sdk_user: ^1.9.0
+  flutter_naver_login: ^1.8.0
+  google_sign_in: ^6.0.0
+  sign_in_with_apple: ^5.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Code generation tools
+  build_runner: ^2.4.8
+  json_serializable: ^6.7.1
+  freezed: ^2.4.7
+
+flutter:

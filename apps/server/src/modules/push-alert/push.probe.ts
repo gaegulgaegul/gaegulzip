@@ -97,3 +97,39 @@ export const invalidTokenDetected = (data: {
     'Invalid FCM token detected and deactivated'
   );
 };
+
+/**
+ * 알림 수신 기록 생성 로그 (INFO)
+ */
+export const receiptsCreated = (data: {
+  alertId: number;
+  appId: number;
+  userCount: number;
+}) => {
+  logger.info(
+    {
+      alertId: data.alertId,
+      appId: data.appId,
+      userCount: data.userCount,
+    },
+    'Notification receipts created'
+  );
+};
+
+/**
+ * 알림 읽음 처리 로그 (INFO)
+ */
+export const notificationRead = (data: {
+  notificationId: number;
+  userId: number;
+  appId: number;
+}) => {
+  logger.info(
+    {
+      notificationId: data.notificationId,
+      userId: data.userId,
+      appId: data.appId,
+    },
+    'Notification marked as read'
+  );
+};

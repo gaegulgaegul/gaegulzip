@@ -18,6 +18,8 @@ import '../modules/wod/views/proposal_review_view.dart';
 import '../modules/wod/bindings/proposal_review_binding.dart';
 import '../modules/settings/views/settings_view.dart';
 import '../modules/settings/bindings/settings_binding.dart';
+import '../modules/notification/views/notification_view.dart';
+import '../modules/notification/bindings/notification_binding.dart';
 import 'app_routes.dart';
 
 /// 앱 페이지 정의
@@ -87,6 +89,13 @@ class AppPages {
       page: () => const SettingsView(),
       binding: SettingsBinding(),
       transition: Transition.leftToRight,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.NOTIFICATIONS,
+      page: () => const NotificationView(),
+      binding: NotificationBinding(),
+      transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
     ),
     GetPage(
