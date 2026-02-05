@@ -15,9 +15,9 @@ export const boxes = pgTable('boxes', {
   /** 박스 생성자 사용자 ID (FK 제약조건 없음, users.id 참조) */
   createdBy: integer('created_by').notNull(),
   /** 생성 시간 */
-  createdAt: timestamp('created_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
   /** 수정 시간 */
-  updatedAt: timestamp('updated_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
 }, (table) => ({
   createdByIdx: index('idx_boxes_created_by').on(table.createdBy),
   nameIdx: index('idx_boxes_name').on(table.name),

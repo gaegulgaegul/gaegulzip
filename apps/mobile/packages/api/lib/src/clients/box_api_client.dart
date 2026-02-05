@@ -17,13 +17,9 @@ class BoxApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<BoxModel?> getCurrentBox() async {
-    try {
-      final response = await _dio.get('/boxes/me');
-      final data = response.data['box'];
-      return data != null ? BoxModel.fromJson(data) : null;
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.get('/boxes/me');
+    final data = response.data['box'];
+    return data != null ? BoxModel.fromJson(data) : null;
   }
 
   /// 박스 검색
@@ -36,20 +32,17 @@ class BoxApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<List<BoxModel>> searchBoxes({String? name, String? region}) async {
-    try {
-      final queryParameters = <String, dynamic>{};
-      if (name != null) queryParameters['name'] = name;
-      if (region != null) queryParameters['region'] = region;
+    final queryParameters = <String, dynamic>{};
+    if (name != null) queryParameters['name'] = name;
+    if (region != null) queryParameters['region'] = region;
 
-      final response = await _dio.get(
-        '/boxes/search',
-        queryParameters: queryParameters,
-      );
-      final data = response.data['boxes'] as List;
-      return data.map((json) => BoxModel.fromJson(json)).toList();
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.get(
+      '/boxes/search',
+      queryParameters: queryParameters,
+    );
+    final data = response.data['boxes'] as List?;
+    if (data == null) return [];
+    return data.map((json) => BoxModel.fromJson(json)).toList();
   }
 
   /// 박스 생성
@@ -61,15 +54,11 @@ class BoxApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<BoxModel> createBox(CreateBoxRequest request) async {
-    try {
-      final response = await _dio.post(
-        '/boxes',
-        data: request.toJson(),
-      );
-      return BoxModel.fromJson(response.data['box']);
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.post(
+      '/boxes',
+      data: request.toJson(),
+    );
+    return BoxModel.fromJson(response.data['box']);
   }
 
   /// 박스 가입
@@ -81,12 +70,8 @@ class BoxApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<Map<String, dynamic>> joinBox(int boxId) async {
-    try {
-      final response = await _dio.post('/boxes/$boxId/join');
-      return response.data as Map<String, dynamic>;
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.post('/boxes/$boxId/join');
+    return response.data as Map<String, dynamic>;
   }
 
   /// 박스 상세 조회
@@ -98,12 +83,8 @@ class BoxApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<BoxModel> getBoxById(int boxId) async {
-    try {
-      final response = await _dio.get('/boxes/$boxId');
-      return BoxModel.fromJson(response.data);
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.get('/boxes/$boxId');
+    return BoxModel.fromJson(response.data);
   }
 
   /// 박스 멤버 목록 조회
@@ -115,12 +96,9 @@ class BoxApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<List<BoxMemberModel>> getBoxMembers(int boxId) async {
-    try {
-      final response = await _dio.get('/boxes/$boxId/members');
-      final data = response.data['members'] as List;
-      return data.map((json) => BoxMemberModel.fromJson(json)).toList();
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.get('/boxes/$boxId/members');
+    final data = response.data['members'] as List?;
+    if (data == null) return [];
+    return data.map((json) => BoxMemberModel.fromJson(json)).toList();
   }
 }

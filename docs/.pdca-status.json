@@ -1,23 +1,46 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-05T16:00:00.000Z",
+  "lastUpdated": "2026-02-05T14:25:50.903Z",
   "activeFeatures": [
     "auth_sdk",
     "social-login",
     "auth",
     "server",
     "web",
-    "notice"
+    "notice",
+    "box",
+    "wod"
   ],
   "primaryFeature": "sdk-integration",
   "features": {
     "sdk-integration": {
-      "phase": "completed",
-      "platform": "mobile",
+      "phase": "check",
+      "platform": "fullstack",
       "startedAt": "2026-02-05T15:00:00.000Z",
-      "completedAt": "2026-02-05T16:00:00.000Z",
-      "matchRate": 97,
-      "iterationCount": 0,
+      "completedAt": null,
+      "matchRate": {
+        "server": 98,
+        "mobile": 97,
+        "overall": 97
+      },
+      "iterationCount": 2,
+      "coderabbitReviewTrigger": true,
+      "gapAnalysis": {
+        "analyzedAt": "2026-02-05T14:36:00.000Z",
+        "iteration2FixedAt": "2026-02-05T14:26:00.000Z",
+        "reanalyzedAt": "2026-02-05T14:36:00.000Z",
+        "serverGaps": [
+          "AppError → ValidationException 교체 완료 (CRITICAL → FIXED, VERIFIED)",
+          "WOD schema notNull + $onUpdate 추가 완료 (MEDIUM → FIXED, VERIFIED)",
+          "notice/types.ts 중복 AuthenticatedRequest 제거 완료 (LOW → FIXED, VERIFIED)",
+          "WOD 일부 응답 미래핑 (LOW, acceptable, non-blocking)"
+        ],
+        "mobileGaps": [
+          "SettingsView uses custom Container badge instead of SDK UnreadNoticeBadge (LOW, acceptable)",
+          "Badge refresh on return from NoticeListView not implemented (LOW, acceptable)"
+        ],
+        "status": "PASSED — all platforms above 90% threshold"
+      },
       "documents": {
         "plan": "docs/wowa/sdk-integration/user-story.md",
         "design-spec": "docs/wowa/sdk-integration/mobile-design-spec.md",
@@ -71,9 +94,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T08:25:01.115Z",
-        "lastUpdated": "2026-02-05T05:53:38.643Z"
+        "lastUpdated": "2026-02-05T14:05:50.109Z"
       },
-      "lastFile": "/Users/lms/dev/repository/feature-social-login/apps/server/src/modules/auth/services.ts"
+      "lastFile": "/Users/lms/dev/repository/feature-wowa-mvp/apps/server/src/modules/auth/types.ts"
     },
     "server": {
       "phase": "do",
@@ -84,9 +107,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T08:35:27.805Z",
-        "lastUpdated": "2026-02-05T12:39:12.756Z"
+        "lastUpdated": "2026-02-05T14:08:48.740Z"
       },
-      "lastFile": "/Users/lms/dev/repository/feature-admin-auth/apps/server/tests/unit/notice/handlers.test.ts"
+      "lastFile": "/Users/lms/dev/repository/feature-wowa-mvp/apps/server/tests/unit/box/handlers.test.ts"
     },
     "web": {
       "phase": "do",
@@ -110,9 +133,35 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-05T12:37:56.194Z",
-        "lastUpdated": "2026-02-05T12:38:12.887Z"
+        "lastUpdated": "2026-02-05T14:25:50.903Z"
       },
-      "lastFile": "/Users/lms/dev/repository/feature-admin-auth/apps/server/src/modules/notice/handlers.ts"
+      "lastFile": "/Users/lms/dev/repository/feature-wowa-mvp/apps/server/src/modules/notice/types.ts"
+    },
+    "box": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-05T14:06:00.190Z",
+        "lastUpdated": "2026-02-05T14:06:37.282Z"
+      },
+      "lastFile": "/Users/lms/dev/repository/feature-wowa-mvp/apps/server/src/modules/box/schema.ts"
+    },
+    "wod": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-05T14:06:45.123Z",
+        "lastUpdated": "2026-02-05T14:25:33.857Z"
+      },
+      "lastFile": "/Users/lms/dev/repository/feature-wowa-mvp/apps/server/src/modules/wod/schema.ts"
     }
   },
   "pipeline": {
@@ -123,7 +172,7 @@
   "session": {
     "startedAt": "2026-02-04T08:09:41.903Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-05T16:00:00.000Z"
+    "lastActivity": "2026-02-05T14:25:50.903Z"
   },
   "history": [
     {
@@ -419,6 +468,186 @@
       "feature": "sdk-integration",
       "phase": "completed",
       "action": "report generated"
+    },
+    {
+      "timestamp": "2026-02-05T14:05:43.578Z",
+      "feature": "auth",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:05:50.109Z",
+      "feature": "auth",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:06:00.190Z",
+      "feature": "box",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:06:09.235Z",
+      "feature": "box",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:06:15.675Z",
+      "feature": "box",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:06:21.691Z",
+      "feature": "box",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:06:28.177Z",
+      "feature": "box",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:06:37.282Z",
+      "feature": "box",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:06:45.123Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:06:52.029Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:07:04.310Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:07:12.257Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:07:21.714Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:07:28.616Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:07:34.498Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:07:41.717Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:07:48.366Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:07:54.775Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:08:03.930Z",
+      "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:08:40.908Z",
+      "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:08:48.740Z",
+      "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:24:55.181Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:25:02.238Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:25:06.997Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:25:13.418Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:25:18.896Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:25:24.793Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:25:33.857Z",
+      "feature": "wod",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:25:39.264Z",
+      "feature": "notice",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:25:50.903Z",
+      "feature": "notice",
+      "phase": "do",
+      "action": "updated"
     }
   ]
 }

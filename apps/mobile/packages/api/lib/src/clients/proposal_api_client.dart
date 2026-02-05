@@ -19,20 +19,16 @@ class ProposalApiClient {
   Future<List<ProposalModel>> getPendingProposals({
     required int baseWodId,
   }) async {
-    try {
-      final response = await _dio.get(
-        '/wods/proposals',
-        queryParameters: {
-          'baseWodId': baseWodId,
-          'status': 'pending',
-        },
-      );
-      final data = response.data['proposals'] as List;
-      return data.map((json) => ProposalModel.fromJson(json)).toList();
-    } on DioException {
-      // DioException을 그대로 throw (Repository에서 처리)
-      rethrow;
-    }
+    final response = await _dio.get(
+      '/wods/proposals',
+      queryParameters: {
+        'baseWodId': baseWodId,
+        'status': 'pending',
+      },
+    );
+    final data = response.data['proposals'] as List?;
+    if (data == null) return [];
+    return data.map((json) => ProposalModel.fromJson(json)).toList();
   }
 
   /// 변경 제안 승인
@@ -44,12 +40,8 @@ class ProposalApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<ProposalModel> approveProposal(int proposalId) async {
-    try {
-      final response = await _dio.post('/wods/proposals/$proposalId/approve');
-      return ProposalModel.fromJson(response.data);
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.post('/wods/proposals/$proposalId/approve');
+    return ProposalModel.fromJson(response.data);
   }
 
   /// 변경 제안 거부
@@ -61,11 +53,7 @@ class ProposalApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<ProposalModel> rejectProposal(int proposalId) async {
-    try {
-      final response = await _dio.post('/wods/proposals/$proposalId/reject');
-      return ProposalModel.fromJson(response.data);
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.post('/wods/proposals/$proposalId/reject');
+    return ProposalModel.fromJson(response.data);
   }
 }

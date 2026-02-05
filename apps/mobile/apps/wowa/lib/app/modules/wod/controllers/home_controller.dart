@@ -117,6 +117,9 @@ class HomeController extends GetxController {
       hasWod.value = response.baseWod != null;
     } on NetworkException catch (e) {
       Get.snackbar('오류', e.message);
+    } on AuthException catch (e) {
+      Get.snackbar('인증 오류', e.message);
+      Get.offAllNamed(Routes.LOGIN);
     } catch (e) {
       Get.snackbar('오류', e.toString());
     } finally {

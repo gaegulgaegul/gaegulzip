@@ -19,9 +19,9 @@ export const wods = pgTable('wods', {
   /** 등록자 사용자 ID (FK 제약조건 없음, users.id 참조) */
   createdBy: integer('created_by').notNull(),
   /** 생성 시간 */
-  createdAt: timestamp('created_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
   /** 수정 시간 */
-  updatedAt: timestamp('updated_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
 }, (table) => ({
   // Partial unique index: Base WOD는 box + date 조합당 최대 1개
   // Drizzle ORM은 partial unique index를 지원하지 않으므로 SQL 마이그레이션에서 수동 생성:

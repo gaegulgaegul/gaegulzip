@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../auth/types';
 import { createBox, getCurrentBox, searchBoxes, joinBox as joinBoxService, getBoxById, getBoxMembers } from './services';
 import { createBoxSchema, searchBoxQuerySchema, boxIdParamsSchema } from './validators';
 
@@ -6,8 +7,8 @@ import { createBoxSchema, searchBoxQuerySchema, boxIdParamsSchema } from './vali
  * 박스 생성 핸들러
  * @route POST /boxes
  */
-export const create = async (req: Request, res: Response) => {
-  const { userId } = (req as any).user;
+export const create = async (req: AuthenticatedRequest, res: Response) => {
+  const { userId } = req.user;
   const { name, region, description } = createBoxSchema.parse(req.body);
 
   const box = await createBox({
@@ -27,8 +28,8 @@ export const create = async (req: Request, res: Response) => {
  * 내 현재 박스 조회 핸들러
  * @route GET /boxes/me
  */
-export const getMyBox = async (req: Request, res: Response) => {
-  const { userId } = (req as any).user;
+export const getMyBox = async (req: AuthenticatedRequest, res: Response) => {
+  const { userId } = req.user;
 
   const box = await getCurrentBox(userId);
 
@@ -51,8 +52,8 @@ export const search = async (req: Request, res: Response) => {
  * 박스 가입 핸들러
  * @route POST /boxes/:boxId/join
  */
-export const join = async (req: Request, res: Response) => {
-  const { userId } = (req as any).user;
+export const join = async (req: AuthenticatedRequest, res: Response) => {
+  const { userId } = req.user;
   const { boxId } = boxIdParamsSchema.parse(req.params);
 
   const result = await joinBoxService({ boxId, userId });
@@ -69,7 +70,7 @@ export const getById = async (req: Request, res: Response) => {
 
   const box = await getBoxById(boxId);
 
-  res.json(box);
+  res.json({ box });
 };
 
 /**

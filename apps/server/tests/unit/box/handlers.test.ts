@@ -262,7 +262,7 @@ describe('Box Handlers', () => {
       await getById(req as Request, res as Response);
 
       expect(getBoxById).toHaveBeenCalledWith(1);
-      expect(res.json).toHaveBeenCalledWith(mockBox);
+      expect(res.json).toHaveBeenCalledWith({ box: mockBox });
     });
 
     it('should include memberCount in response', async () => {
@@ -285,9 +285,11 @@ describe('Box Handlers', () => {
 
       await getById(req as Request, res as Response);
 
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-        memberCount: 15,
-      }));
+      expect(res.json).toHaveBeenCalledWith({
+        box: expect.objectContaining({
+          memberCount: 15,
+        }),
+      });
     });
   });
 

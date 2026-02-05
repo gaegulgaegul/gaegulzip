@@ -48,5 +48,5 @@ export const createProposalSchema = z.object({
  */
 export const selectWodSchema = z.object({
   boxId: z.number().int().positive(),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
 });

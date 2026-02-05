@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 /**
  * OAuth 제공자별 사용자 정보 (정규화된 형태)
  */
@@ -18,6 +20,16 @@ export interface JWTPayload {
   nickname: string | null;
   iat?: number;
   exp?: number;
+}
+
+/**
+ * 인증된 요청 타입 (req.user가 있는 경우)
+ */
+export interface AuthenticatedRequest extends Request {
+  user: {
+    userId: number;
+    appId: number;
+  };
 }
 
 /**

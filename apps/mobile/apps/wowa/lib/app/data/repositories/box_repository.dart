@@ -55,7 +55,10 @@ class BoxRepository {
       return await _apiClient.createBox(request);
     } on DioException catch (e) {
       if (e.response?.statusCode == 409) {
-        throw Exception('이미 박스에 소속되어 있습니다. 먼저 기존 박스를 탈퇴해주세요.');
+        throw BusinessException(
+          code: 'already_joined',
+          message: '이미 박스에 소속되어 있습니다. 먼저 기존 박스를 탈퇴해주세요.',
+        );
       }
       throw _handleDioException(e);
     }
@@ -75,7 +78,10 @@ class BoxRepository {
       return await _apiClient.joinBox(boxId);
     } on DioException catch (e) {
       if (e.response?.statusCode == 409) {
-        throw Exception('이미 해당 박스에 소속되어 있습니다.');
+        throw BusinessException(
+          code: 'already_joined',
+          message: '이미 해당 박스에 소속되어 있습니다.',
+        );
       }
       throw _handleDioException(e);
     }
@@ -95,7 +101,10 @@ class BoxRepository {
       return await _apiClient.getBoxById(boxId);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
-        throw Exception('박스를 찾을 수 없습니다.');
+        throw BusinessException(
+          code: 'not_found',
+          message: '박스를 찾을 수 없습니다.',
+        );
       }
       throw _handleDioException(e);
     }

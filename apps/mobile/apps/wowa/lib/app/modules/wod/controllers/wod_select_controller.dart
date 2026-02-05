@@ -40,7 +40,12 @@ class WodSelectController extends GetxController {
     super.onInit();
     _wodRepository = Get.find<WodRepository>();
 
-    final args = Get.arguments as Map<String, dynamic>;
+    final args = Get.arguments;
+    if (args is! Map<String, dynamic>) {
+      Get.snackbar('오류', '잘못된 화면 전환입니다');
+      Get.back();
+      return;
+    }
     boxId = args['boxId'] as int;
     date = args['date'] as String;
 
@@ -60,9 +65,12 @@ class WodSelectController extends GetxController {
       baseWod.value = response.baseWod;
       personalWods.assignAll(response.personalWods);
     } on NetworkException catch (e) {
-      Get.snackbar('오류', e.message);
+      Get.snackbar('네트워크 오류', e.message);
+    } on AuthException catch (e) {
+      Get.snackbar('인증 오류', e.message);
+      Get.offAllNamed(Routes.LOGIN);
     } catch (e) {
-      Get.snackbar('오류', e.toString());
+      Get.snackbar('오류', 'WOD 목록을 불러올 수 없습니다');
     } finally {
       isLoading.value = false;
     }
@@ -110,12 +118,12 @@ class WodSelectController extends GetxController {
       Get.snackbar('선택 완료', 'WOD를 선택했습니다');
       Get.back(result: true);
     } on NetworkException catch (e) {
-      Get.snackbar('오류', e.message);
+      Get.snackbar('네트워크 오류', e.message);
     } on AuthException catch (e) {
       Get.snackbar('인증 오류', e.message);
       Get.offAllNamed(Routes.LOGIN);
     } catch (e) {
-      Get.snackbar('오류', e.toString());
+      Get.snackbar('오류', 'WOD 선택에 실패했습니다');
     } finally {
       isLoading.value = false;
     }

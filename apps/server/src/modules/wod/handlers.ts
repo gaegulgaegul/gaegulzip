@@ -1,14 +1,16 @@
 import { Request, Response, RequestHandler } from 'express';
+import { AuthenticatedRequest } from '../auth/types';
 import { registerWod, getWodsByDate, createProposal, getProposals, approveProposal, rejectProposal, selectWod, getSelections } from './services';
 import { registerWodSchema, createProposalSchema, selectWodSchema } from './validators';
+import { ValidationException } from '../../utils/errors';
 
 /**
  * WOD 등록 핸들러
  * POST /wods
  */
-export const registerWodHandler: RequestHandler = async (req, res) => {
+export const registerWodHandler = async (req: AuthenticatedRequest, res: Response) => {
   const validatedData = registerWodSchema.parse(req.body);
-  const { userId } = (req as any).user;
+  const { userId } = req.user;
 
   const wod = await registerWod({
     ...validatedData,
@@ -22,8 +24,12 @@ export const registerWodHandler: RequestHandler = async (req, res) => {
  * 날짜별 WOD 조회 핸들러
  * GET /wods/:boxId/:date
  */
-export const getWodsByDateHandler: RequestHandler = async (req, res) => {
+export const getWodsByDateHandler = async (req: Request, res: Response) => {
   const boxId = parseInt(req.params.boxId as string, 10);
+  if (Number.isNaN(boxId)) {
+    throw new ValidationException('Invalid boxId parameter');
+  }
+
   const date = req.params.date as string;
 
   const result = await getWodsByDate({ boxId, date });
@@ -35,7 +41,7 @@ export const getWodsByDateHandler: RequestHandler = async (req, res) => {
  * 변경 제안 생성 핸들러
  * POST /wods/proposals
  */
-export const createProposalHandler: RequestHandler = async (req, res) => {
+export const createProposalHandler = async (req: Request, res: Response) => {
   const validatedData = createProposalSchema.parse(req.body);
 
   const proposal = await createProposal(validatedData);
@@ -47,13 +53,24 @@ export const createProposalHandler: RequestHandler = async (req, res) => {
  * 변경 제안 목록 조회 핸들러
  * GET /wods/proposals
  */
-export const getProposalsHandler: RequestHandler = async (req, res) => {
-  const baseWodId = req.query.baseWodId ? parseInt(req.query.baseWodId as string, 10) : undefined;
+export const getProposalsHandler = async (req: Request, res: Response) => {
+  let baseWodId: number | undefined;
+  if (req.query.baseWodId) {
+    baseWodId = parseInt(req.query.baseWodId as string, 10);
+    if (Number.isNaN(baseWodId)) {
+      throw new ValidationException('Invalid baseWodId parameter');
+    }
+  }
+
   const status = req.query.status as string | undefined;
+  const validStatuses = ['pending', 'approved', 'rejected'];
+  if (status && !validStatuses.includes(status)) {
+    throw new ValidationException('Invalid status parameter. Must be one of: pending, approved, rejected');
+  }
 
   const proposals = await getProposals({
     baseWodId,
-    status: status as any,
+    status: status as 'pending' | 'approved' | 'rejected' | undefined,
   });
 
   res.json({ proposals });
@@ -63,9 +80,13 @@ export const getProposalsHandler: RequestHandler = async (req, res) => {
  * 변경 승인 핸들러
  * POST /wods/proposals/:proposalId/approve
  */
-export const approveProposalHandler: RequestHandler = async (req, res) => {
+export const approveProposalHandler = async (req: AuthenticatedRequest, res: Response) => {
   const proposalId = parseInt(req.params.proposalId as string, 10);
-  const { userId } = (req as any).user;
+  if (Number.isNaN(proposalId)) {
+    throw new ValidationException('Invalid proposalId parameter');
+  }
+
+  const { userId } = req.user;
 
   const proposal = await approveProposal(proposalId, userId);
 
@@ -76,9 +97,13 @@ export const approveProposalHandler: RequestHandler = async (req, res) => {
  * 변경 거부 핸들러
  * POST /wods/proposals/:proposalId/reject
  */
-export const rejectProposalHandler: RequestHandler = async (req, res) => {
+export const rejectProposalHandler = async (req: AuthenticatedRequest, res: Response) => {
   const proposalId = parseInt(req.params.proposalId as string, 10);
-  const { userId } = (req as any).user;
+  if (Number.isNaN(proposalId)) {
+    throw new ValidationException('Invalid proposalId parameter');
+  }
+
+  const { userId } = req.user;
 
   const proposal = await rejectProposal(proposalId, userId);
 
@@ -89,9 +114,13 @@ export const rejectProposalHandler: RequestHandler = async (req, res) => {
  * WOD 선택 핸들러
  * POST /wods/:wodId/select
  */
-export const selectWodHandler: RequestHandler = async (req, res) => {
+export const selectWodHandler = async (req: AuthenticatedRequest, res: Response) => {
   const wodId = parseInt(req.params.wodId as string, 10);
-  const { userId } = (req as any).user;
+  if (Number.isNaN(wodId)) {
+    throw new ValidationException('Invalid wodId parameter');
+  }
+
+  const { userId } = req.user;
   const validatedData = selectWodSchema.parse(req.body);
 
   const selection = await selectWod({
@@ -107,8 +136,8 @@ export const selectWodHandler: RequestHandler = async (req, res) => {
  * 내 WOD 선택 기록 조회 핸들러
  * GET /wods/selections
  */
-export const getSelectionsHandler: RequestHandler = async (req, res) => {
-  const { userId } = (req as any).user;
+export const getSelectionsHandler = async (req: AuthenticatedRequest, res: Response) => {
+  const { userId } = req.user;
   const startDate = req.query.startDate as string | undefined;
   const endDate = req.query.endDate as string | undefined;
 

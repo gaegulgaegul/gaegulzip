@@ -19,16 +19,11 @@ class WodApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<Map<String, dynamic>> registerWod(RegisterWodRequest request) async {
-    try {
-      final response = await _dio.post(
-        '/wods',
-        data: request.toJson(),
-      );
-      return response.data as Map<String, dynamic>;
-    } on DioException {
-      // DioException을 그대로 throw (Repository에서 처리)
-      rethrow;
-    }
+    final response = await _dio.post(
+      '/wods',
+      data: request.toJson(),
+    );
+    return response.data as Map<String, dynamic>;
   }
 
   /// 특정 날짜의 WOD 목록 조회
@@ -44,12 +39,8 @@ class WodApiClient {
     required int boxId,
     required String date,
   }) async {
-    try {
-      final response = await _dio.get('/wods/$boxId/$date');
-      return WodListResponse.fromJson(response.data);
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.get('/wods/$boxId/$date');
+    return WodListResponse.fromJson(response.data);
   }
 
   /// WOD 선택
@@ -67,18 +58,14 @@ class WodApiClient {
     required int boxId,
     required String date,
   }) async {
-    try {
-      final response = await _dio.post(
-        '/wods/$wodId/select',
-        data: {
-          'boxId': boxId,
-          'date': date,
-        },
-      );
-      return response.data as Map<String, dynamic>;
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.post(
+      '/wods/$wodId/select',
+      data: {
+        'boxId': boxId,
+        'date': date,
+      },
+    );
+    return response.data as Map<String, dynamic>;
   }
 
   /// WOD 선택 이력 조회
@@ -94,19 +81,16 @@ class WodApiClient {
     String? startDate,
     String? endDate,
   }) async {
-    try {
-      final queryParameters = <String, dynamic>{};
-      if (startDate != null) queryParameters['startDate'] = startDate;
-      if (endDate != null) queryParameters['endDate'] = endDate;
+    final queryParameters = <String, dynamic>{};
+    if (startDate != null) queryParameters['startDate'] = startDate;
+    if (endDate != null) queryParameters['endDate'] = endDate;
 
-      final response = await _dio.get(
-        '/wods/selections',
-        queryParameters: queryParameters,
-      );
-      final data = response.data['selections'] as List;
-      return data.map((json) => WodSelectionModel.fromJson(json)).toList();
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.get(
+      '/wods/selections',
+      queryParameters: queryParameters,
+    );
+    final data = response.data['selections'] as List?;
+    if (data == null) return [];
+    return data.map((json) => WodSelectionModel.fromJson(json)).toList();
   }
 }

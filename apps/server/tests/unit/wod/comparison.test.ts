@@ -167,7 +167,7 @@ describe('WOD Comparison', () => {
       const personal: ProgramData = {
         type: 'AMRAP',
         timeCap: 15,
-        movements: [{ name: 'Pull-up', reps: 10 }],
+        movements: [{ name: 'Pull-up', reps: 11 }],
       };
 
       expect(compareWods(base, personal)).toBe('identical');

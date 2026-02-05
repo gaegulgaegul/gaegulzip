@@ -90,13 +90,17 @@ class WodRegisterController extends GetxController {
 
   /// 운동 추가
   void addMovement() {
-    movements.add(MovementInput());
+    final movement = MovementInput();
+    movement.nameController.addListener(_validateAndUpdateCanSubmit);
+    movements.add(movement);
   }
 
   /// 운동 제거 (최소 1개 유지)
   void removeMovement(int index) {
     if (movements.length <= 1) return;
-    movements[index].dispose();
+    final movement = movements[index];
+    movement.nameController.removeListener(_validateAndUpdateCanSubmit);
+    movement.dispose();
     movements.removeAt(index);
   }
 
@@ -185,9 +189,12 @@ class WodRegisterController extends GetxController {
       Get.back(result: true);
       Get.snackbar('등록 완료', 'WOD가 등록되었습니다');
     } on NetworkException catch (e) {
-      Get.snackbar('오류', e.message);
+      Get.snackbar('네트워크 오류', e.message);
+    } on AuthException catch (e) {
+      Get.snackbar('인증 오류', e.message);
+      Get.offAllNamed('/login');
     } catch (e) {
-      Get.snackbar('오류', e.toString());
+      Get.snackbar('오류', 'WOD 등록에 실패했습니다');
     } finally {
       isLoading.value = false;
     }

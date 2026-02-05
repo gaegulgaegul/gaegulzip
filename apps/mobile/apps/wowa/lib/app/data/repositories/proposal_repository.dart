@@ -55,7 +55,10 @@ class ProposalRepository {
       return await _apiClient.approveProposal(proposalId);
     } on DioException catch (e) {
       if (e.response?.statusCode == 409) {
-        throw Exception('이미 처리된 제안입니다.');
+        throw BusinessException(
+          code: 'already_processed',
+          message: '이미 처리된 제안입니다.',
+        );
       }
       throw _handleDioException(e);
     }
@@ -75,7 +78,10 @@ class ProposalRepository {
       return await _apiClient.rejectProposal(proposalId);
     } on DioException catch (e) {
       if (e.response?.statusCode == 409) {
-        throw Exception('이미 처리된 제안입니다.');
+        throw BusinessException(
+          code: 'already_processed',
+          message: '이미 처리된 제안입니다.',
+        );
       }
       throw _handleDioException(e);
     }
