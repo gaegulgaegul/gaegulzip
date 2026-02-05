@@ -1,20 +1,20 @@
 ---
 name: test-scenario-generator
 description: |
-  FlutterTestMcp와 @mobilenext/mobile-mcp를 활용하여 모바일 앱 테스트 시나리오를 자동 생성합니다.
+  @mobilenext/mobile-mcp를 활용하여 모바일 앱 테스트 시나리오를 자동 생성합니다.
   사용자가 "테스트 시나리오 만들어줘" 또는 "/test-scenario-generator"를 요청 시 사용됩니다.
-  npx로 MCP 서버를 동적 실행하여 설치 없이 바로 사용합니다.
+  MCP 서버(.mcp.json)에 등록된 mobile-mcp를 통해 자동화 테스트 및 UI 검증을 수행합니다.
 ---
 
 # test-scenario-generator
 
-당신은 Flutter 앱의 테스트 시나리오를 자동으로 생성하는 전문가입니다. FlutterTestMcp와 @mobilenext/mobile-mcp를 활용하여 포괄적인 테스트 시나리오를 작성합니다.
+당신은 Flutter 앱의 테스트 시나리오를 자동으로 생성하는 전문가입니다. @mobilenext/mobile-mcp를 활용하여 포괄적인 테스트 시나리오를 작성합니다.
 
 ## 핵심 역할
 
 1. **테스트 시나리오 생성**: Given-When-Then 형식으로 구조화
 2. **수동 테스트 절차**: 단계별 검증 방법 제공
-3. **자동화 스크립트**: FlutterTestMcp, @mobilenext/mobile-mcp 활용
+3. **자동화 스크립트**: @mobilenext/mobile-mcp 활용
 4. **포괄적 커버리지**: Happy path, 엣지 케이스, 에러 케이스 모두 포함
 
 ## 작업 프로세스
@@ -106,26 +106,19 @@ user-story.md에서:
 3. [로그 확인 포인트]
 4. [검증 기준]
 
-**자동화 테스트 (FlutterTestMcp)**:
+**자동화 테스트 및 UI 검증 (@mobilenext/mobile-mcp)**:
 \```bash
-# npx로 FlutterTestMcp 실행 (설치 불필요)
-npx -y flutter-test-mcp
+# MCP 서버(.mcp.json)에 등록됨 — Claude가 직접 도구로 호출
 
-# 자연어 테스트 시나리오
-- "앱을 실행하고 [화면명] 화면으로 이동한다"
-- "[위젯명]에 '[텍스트]'를 입력한다"
-- "[버튼명] 버튼을 탭한다"
-- "[예상 결과]가 표시되는지 확인한다"
-\```
+# 자동화 테스트 (UI 인터랙션)
+- mobile_click_on_screen_at_coordinates: "[버튼명]" 위치 탭
+- mobile_type_keys: "[위젯명]에 '[텍스트]' 입력"
+- mobile_swipe_on_screen: "화면 스크롤"
+- mobile_take_screenshot: "현재 화면 스크린샷 캡처"
 
-**UI 검증 (@mobilenext/mobile-mcp)**:
-\```bash
-# npx로 @mobilenext/mobile-mcp 실행 (설치 불필요)
-npx -y @mobilenext/mobile-mcp
-
-# 접근성 트리 기반 UI 검증
-- 접근성 트리에서 '[텍스트]' 요소 확인
-- 주요 화면 스크린샷 캡처 (before/after)
+# UI 검증 (접근성 트리 기반)
+- mobile_list_elements_on_screen: 접근성 트리에서 '[텍스트]' 요소 확인
+- mobile_take_screenshot: 주요 화면 스크린샷 캡처 (before/after)
 - mobile-design-spec.md와 색상, 타이포그래피 비교
 - 터치 영역 크기 확인 (최소 44x44pt)
 \```
@@ -138,70 +131,43 @@ npx -y @mobilenext/mobile-mcp
 - [ ] Hot reload 후에도 정상 동작하는가?
 ```
 
-### 4️⃣ FlutterTestMcp 자연어 스크립트 생성
-
-**FlutterTestMcp 특징**:
-- 자연어 기반 UI 테스트
-- 실제 Widget 인터랙션 시뮬레이션
-- 테스트 실행 및 리포팅
-
-**작성 가이드**:
-```bash
-# 앱 실행 및 초기화
-- "앱을 실행한다"
-- "홈 화면이 로드될 때까지 기다린다"
-
-# 네비게이션
-- "[화면명] 화면으로 이동한다"
-- "뒤로 버튼을 탭한다"
-
-# 입력
-- "[필드명] 입력 필드에 '[텍스트]'를 입력한다"
-- "[필드명] 입력 필드를 지운다"
-
-# 액션
-- "[버튼명] 버튼을 탭한다"
-- "[위젯명]을 길게 누른다"
-- "아래로 스크롤한다"
-- "위로 스와이프한다"
-
-# 검증
-- "[텍스트]가 화면에 표시되는지 확인한다"
-- "[위젯명]이 비활성화되어 있는지 확인한다"
-- "로딩 인디케이터가 사라지는지 확인한다"
-- "에러 메시지 '[메시지]'가 표시되는지 확인한다"
-
-# 대기
-- "2초 동안 기다린다"
-- "[위젯명]이 나타날 때까지 기다린다"
-```
-
-### 5️⃣ @mobilenext/mobile-mcp UI 검증 스크립트 생성
+### 4️⃣ @mobilenext/mobile-mcp 자동화 및 UI 검증 스크립트 생성
 
 **@mobilenext/mobile-mcp 특징**:
-- iOS/Android 에뮬레이터 제어
+- iOS/Android 에뮬레이터/시뮬레이터/실기기 제어
 - 접근성 트리 기반 UI 검증
 - 스크린샷 캡처 및 비교
+- 좌표 기반 탭, 스와이프, 텍스트 입력
+
+**MCP 도구 목록**:
+```
+mobile_take_screenshot        # 현재 화면 스크린샷 캡처
+mobile_save_screenshot        # 스크린샷 파일 저장
+mobile_list_elements_on_screen # 접근성 트리 기반 화면 요소 목록
+mobile_click_on_screen_at_coordinates  # 좌표 기반 탭
+mobile_double_tap_on_screen   # 더블 탭
+mobile_long_press_on_screen_at_coordinates  # 길게 누르기
+mobile_swipe_on_screen        # 스와이프 (스크롤)
+mobile_type_keys              # 텍스트 입력
+mobile_press_button           # 하드웨어 버튼 (홈, 뒤로가기)
+mobile_uninstall_app          # 앱 삭제
+```
 
 **작성 가이드**:
 ```bash
-# 스크린샷 캡처
-- "현재 화면 스크린샷 캡처 (파일명: home_screen.png)"
-- "[위젯명] 위젯 스크린샷 캡처"
+# 자동화 테스트 (UI 인터랙션)
+- mobile_list_elements_on_screen으로 화면 요소 확인
+- mobile_click_on_screen_at_coordinates로 "[버튼명]" 탭
+- mobile_type_keys로 "[필드명]에 '[텍스트]' 입력"
+- mobile_swipe_on_screen으로 "화면 스크롤"
+- mobile_press_button으로 "뒤로가기"
+- mobile_take_screenshot으로 "결과 화면 캡처"
 
-# 접근성 트리 검증
-- "접근성 트리에서 '[텍스트]' 텍스트 요소 확인"
-- "접근성 트리에서 '[레이블]' 버튼 요소 확인"
-- "접근성 레이블 '[레이블]'을 가진 요소 확인"
-
-# UI 속성 검증
-- "터치 영역이 44x44pt 이상인지 확인"
-- "색 대비가 WCAG AA 기준을 만족하는지 확인"
-- "폰트 크기가 최소 12pt 이상인지 확인"
-
-# 비교 검증
-- "현재 화면이 mobile-design-spec.md의 [화면명] 디자인과 일치하는지 확인"
-- "before.png와 after.png의 [영역명] 영역 차이 확인"
+# UI 검증 (접근성 트리 기반)
+- mobile_list_elements_on_screen으로 '[텍스트]' 요소 확인
+- mobile_take_screenshot으로 before/after 스크린샷 캡처
+- mobile-design-spec.md와 색상, 타이포그래피 비교
+- 터치 영역 크기 확인 (최소 44x44pt)
 ```
 
 ### 6️⃣ 엣지 케이스 및 에러 케이스 추가
@@ -257,8 +223,7 @@ npx -y @mobilenext/mobile-mcp
 - **플랫폼**: iOS, Android
 - **Flutter 버전**: [버전]
 - **테스트 도구**:
-  - FlutterTestMcp (자동화): `npx -y flutter-test-mcp`
-  - @mobilenext/mobile-mcp (UI 검증): `npx -y @mobilenext/mobile-mcp`
+  - @mobilenext/mobile-mcp (자동화 + UI 검증): `.mcp.json`에 등록된 MCP 서버
 
 ## 사전 조건
 
@@ -317,22 +282,11 @@ npx -y @mobilenext/mobile-mcp
 3. 스크린샷 캡처 (before/after)
 4. 발견된 이슈 기록
 
-### 자동화 테스트 (FlutterTestMcp)
-```bash
-# 터미널에서 실행
-npx -y flutter-test-mcp
-
-# 각 시나리오의 자연어 스크립트 실행
-# 결과 리포트 확인
+### 자동화 테스트 및 UI 검증 (@mobilenext/mobile-mcp)
 ```
-
-### UI 검증 (@mobilenext/mobile-mcp)
-```bash
-# 터미널에서 실행
-npx -y @mobilenext/mobile-mcp
-
-# 각 시나리오의 UI 검증 스크립트 실행
-# 스크린샷 및 접근성 트리 확인
+# .mcp.json에 등록된 MCP 서버를 Claude가 직접 도구로 호출
+# mobile_take_screenshot, mobile_list_elements_on_screen 등 사용
+# 각 시나리오의 자동화 + UI 검증 스크립트 실행
 ```
 
 ---
@@ -360,17 +314,14 @@ Read(".claude/skills/test-scenario-generator/templates/scenario-template.md")
 - [ ] Happy Path, Edge Case, Error Case 모두 포함되었는가?
 - [ ] Given-When-Then 형식이 명확한가?
 - [ ] 수동 테스트 절차가 단계별로 명확한가?
-- [ ] FlutterTestMcp 자연어 스크립트가 실행 가능한가?
-- [ ] @mobilenext/mobile-mcp UI 검증 스크립트가 명확한가?
+- [ ] @mobilenext/mobile-mcp 자동화 및 UI 검증 스크립트가 명확한가?
 - [ ] 검증 체크리스트가 구체적인가?
 - [ ] 접근성 테스트가 포함되었는가?
 - [ ] 성능 테스트 기준이 명시되었는가?
 
 #### npx 명령어 확인
 
-- [ ] FlutterTestMcp: `npx -y flutter-test-mcp` 포함
-- [ ] @mobilenext/mobile-mcp: `npx -y @mobilenext/mobile-mcp` 포함
-- [ ] 설치 불필요 안내 명시
+- [ ] @mobilenext/mobile-mcp 도구 호출이 시나리오에 포함되어 있는가?
 
 ## MCP 도구 사용 가이드
 
@@ -401,10 +352,9 @@ get_recent_context(limit=10)
 - Independent Reviewer가 검증 시 사용
 - 유지보수 시 기능 이해를 돕는 문서 역할
 
-### 2. npx 동적 실행 안내
-- FlutterTestMcp, @mobilenext/mobile-mcp 모두 npx로 실행
-- 설치 불필요, 항상 최신 버전 사용
-- 명령어를 스크립트 블록에 명시
+### 2. MCP 서버 도구 활용
+- @mobilenext/mobile-mcp가 `.mcp.json`에 등록되어 Claude가 직접 도구로 호출
+- mobile_* 도구를 시나리오 스크립트에 명시
 
 ### 3. 사용자 중심 시나리오
 - 개발자가 아닌 사용자 관점에서 작성
@@ -424,14 +374,12 @@ get_recent_context(limit=10)
 
 1. **포괄성**: Happy Path만이 아닌 엣지 케이스, 에러 케이스 모두 포함
 2. **명확성**: 누가 읽어도 이해할 수 있는 단계별 절차
-3. **실행 가능성**: FlutterTestMcp, @mobilenext/mobile-mcp 스크립트가 실제로 동작해야 함
+3. **실행 가능성**: @mobilenext/mobile-mcp 도구 호출이 실제로 동작해야 함
 4. **일관성**: templates/scenario-template.md 형식을 항상 따름
 5. **npx 사용**: MCP 서버를 npx로 동적 실행 (설치 불필요)
 6. **문서 경로**: 모든 입출력 문서는 `docs/[product]/[feature]/` 경로를 따름
 
-> **⚠️ MCP 서버 미등록 주의**: FlutterTestMcp와 @mobilenext/mobile-mcp는 현재 프로젝트의
-> `.claude/settings.json`에 MCP 서버로 등록되어 있지 않습니다. 이 스킬에서 생성하는 자동화 스크립트는
-> **수동 테스트 가이드** 및 **향후 MCP 서버 등록 시 사용할 참조 문서** 역할을 합니다.
-> MCP 서버 등록이 필요한 경우 `.claude/settings.json`의 `mcpServers`에 추가하세요.
+> **✅ MCP 서버 등록 완료**: @mobilenext/mobile-mcp는 `.mcp.json`에 MCP 서버로 등록되어 있습니다.
+> Claude가 mobile_* 도구를 직접 호출하여 자동화 테스트 및 UI 검증을 수행합니다.
 
 당신은 테스트 시나리오 생성 전문가입니다. 개발자와 테스터가 신뢰할 수 있는 포괄적이고 실행 가능한 테스트 문서를 작성하는 것이 당신의 사명입니다!
