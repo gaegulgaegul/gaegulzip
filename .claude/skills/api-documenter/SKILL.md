@@ -1,8 +1,8 @@
 ---
 name: api-documenter
 description: |
-  OpenAPI 3.0 문서를 자동 생성합니다.
-  handlers.ts와 schema.ts를 분석하여 API 명세를 작성합니다.
+  OpenAPI 3.0 문서를 자동 생성/업데이트합니다.
+  handlers.ts, validators.ts, schema.ts를 분석하여 API 명세를 작성합니다.
   "API 문서 만들어줘", "OpenAPI 문서 생성해줘" 요청 시 사용합니다.
 ---
 
@@ -22,59 +22,83 @@ OpenAPI 3.0 명세를 자동 생성하는 스킬입니다.
 
 ## 기능
 
-1. **handlers.ts 분석**: API 엔드포인트 추출
-2. **schema.ts 분석**: 데이터 타입 정의 추출
-3. **OpenAPI 3.0 생성**: docs/openapi.yaml 작성
-4. **최신 표준 준수**: context7 MCP로 OpenAPI 베스트 프랙티스 확인
-5. **과거 패턴 참조**: claude-mem MCP로 과거 API 문서 작성 패턴 참조
+1. **handlers.ts 분석**: API 엔드포인트, JSDoc 주석에서 정보 추출
+2. **index.ts 분석**: Router 경로, HTTP 메서드, 미들웨어 추출
+3. **validators.ts 분석**: Zod 스키마에서 request/response 타입 추출
+4. **schema.ts 분석**: Drizzle ORM 테이블에서 데이터 타입 정의 추출
+5. **OpenAPI 3.0 업데이트**: `apps/server/docs/openapi.yaml` 갱신
+6. **최신 표준 준수**: context7 MCP로 OpenAPI 베스트 프랙티스 확인
+7. **과거 패턴 참조**: claude-mem MCP로 과거 API 문서 작성 패턴 참조
+
+> **참고**: 기존 OpenAPI 문서(`apps/server/docs/openapi.yaml`)가 이미 존재하며,
+> Swagger UI가 `/api-docs` 경로에서 서빙 중입니다. 새로 생성이 아닌 **업데이트** 방식으로 동작합니다.
 
 ## 워크플로우
 
+### 0. 기존 OpenAPI 문서 읽기 (필수)
+```typescript
+Read("apps/server/docs/openapi.yaml")
+// 기존 문서가 이미 존재하며 Swagger UI(/api-docs)에서 서빙 중
+// 새 모듈 추가 시 기존 문서에 병합하는 방식으로 작업
+```
+
 ### 1. handlers.ts 읽기
 ```typescript
-Read("src/modules/[feature]/handlers.ts")
+Read("apps/server/src/modules/[feature]/handlers.ts")
 // JSDoc 주석에서 API 정보 추출
-// - 함수명
-// - 파라미터
-// - 응답 타입
+// - summary: 첫 줄 설명
+// - @param: 파라미터 정보
+// - @returns: HTTP 상태 코드 + 응답 형태
+// - @throws: 에러 타입 (NotFoundException, ValidationException 등)
 ```
 
 ### 2. index.ts (Router) 읽기
 ```typescript
-Read("src/modules/[feature]/index.ts")
+Read("apps/server/src/modules/[feature]/index.ts")
 // Router 정의에서 경로 추출
-// - HTTP Method (GET, POST, PUT, DELETE)
-// - Path (/api/v1/users, /api/v1/users/:id)
+// - HTTP Method (GET, POST, PUT, PATCH, DELETE)
+// - Path (/auth/oauth, /push/devices 등)
+// - @route 태그에서 메서드+경로 추출
+// - 미들웨어 확인 (authenticate → securitySchemes: BearerAuth)
 ```
 
-### 3. schema.ts 읽기
+### 3. validators.ts 읽기 (핵심)
 ```typescript
-Read("src/modules/[feature]/schema.ts")
-// Drizzle 스키마에서 타입 정의 추출
-// - 필드 이름
-// - 데이터 타입
-// - 필수 여부
-// - 설명
+Read("apps/server/src/modules/[feature]/validators.ts")
+// Zod 스키마에서 request/response 계약 추출
+// - 필드명, 타입, 필수 여부
+// - 문자열 제약 (min, max, email, url 등)
+// - z.infer<> 로 추출된 TypeScript 타입
+// ★ 이 파일이 실제 API 계약의 핵심 (handlers.ts JSDoc보다 정확)
 ```
 
-### 4. context7 MCP로 베스트 프랙티스 확인
+### 4. schema.ts 읽기
+```typescript
+Read("apps/server/src/modules/[feature]/schema.ts")
+// Drizzle 스키마에서 DB 타입 정의 추출
+// - 테이블명, 필드명, 데이터 타입
+// - JSDoc 주석에서 설명 추출
+// - 인덱스, 유니크 제약 확인
+```
+
+### 5. context7 MCP로 베스트 프랙티스 확인
 ```typescript
 "OpenAPI 3.0 specification best practices"
 "OpenAPI schema definition patterns"
 ```
 
-### 5. claude-mem MCP로 과거 패턴 참조
+### 6. claude-mem MCP로 과거 패턴 참조
 ```typescript
 "search for past API documentation patterns"
 "search for past OpenAPI definitions"
 ```
 
-### 6. OpenAPI 3.0 문서 생성
-템플릿을 기반으로 `docs/openapi.yaml` 생성
+### 7. OpenAPI 3.0 문서 업데이트
+기존 `apps/server/docs/openapi.yaml`에 새 모듈의 paths/schemas를 병합
 
 ## 출력 파일
 
-### docs/openapi.yaml
+### apps/server/docs/openapi.yaml (기존 파일 업데이트)
 
 ```yaml
 openapi: 3.0.0
@@ -317,7 +341,9 @@ tags:
     description: 사용자 관리 API
 ```
 
-## 타입 매핑 (Drizzle → OpenAPI)
+## 타입 매핑
+
+### Drizzle → OpenAPI
 
 | Drizzle Type | OpenAPI Type | Format |
 |--------------|--------------|--------|
@@ -329,6 +355,24 @@ tags:
 | `timestamp()` | `string` | `date-time` |
 | `uuid()` | `string` | `uuid` |
 | `jsonb()` | `object` | - |
+
+### Zod → OpenAPI
+
+| Zod Type | OpenAPI Type | Format / 비고 |
+|----------|--------------|---------------|
+| `z.string()` | `string` | - |
+| `z.string().email()` | `string` | `format: email` |
+| `z.string().url()` | `string` | `format: uri` |
+| `z.string().uuid()` | `string` | `format: uuid` |
+| `z.string().min(n).max(m)` | `string` | `minLength: n, maxLength: m` |
+| `z.number()` | `number` | - |
+| `z.number().int()` | `integer` | - |
+| `z.boolean()` | `boolean` | - |
+| `z.array(z.T)` | `array` | `items: T` |
+| `z.object({...})` | `object` | `properties: {...}` |
+| `z.enum([...])` | `string` | `enum: [...]` |
+| `z.optional()` | - | required에서 제외 |
+| `z.nullable()` | - | `nullable: true` |
 
 ## JSDoc에서 정보 추출
 
@@ -362,12 +406,14 @@ export const createUser: RequestHandler = async (req, res) => {
 ## 체크리스트
 
 작업 완료 전 확인:
+- [ ] 기존 OpenAPI 문서 읽기 (`apps/server/docs/openapi.yaml`)
 - [ ] handlers.ts 읽고 엔드포인트 추출
 - [ ] index.ts 읽고 경로/메서드 추출
+- [ ] validators.ts 읽고 request/response Zod 스키마 추출 (★ 핵심)
 - [ ] schema.ts 읽고 타입 정의 추출
 - [ ] context7 MCP로 OpenAPI 베스트 프랙티스 확인
 - [ ] claude-mem MCP로 과거 패턴 참조
-- [ ] OpenAPI 3.0 문서 작성 (docs/openapi.yaml)
+- [ ] 기존 OpenAPI 문서에 새 모듈 병합 (`apps/server/docs/openapi.yaml`)
 - [ ] 모든 엔드포인트 포함
 - [ ] 모든 스키마 정의 포함
 - [ ] 예시 값 포함
@@ -375,7 +421,7 @@ export const createUser: RequestHandler = async (req, res) => {
 
 ## 다음 단계
 
-OpenAPI 문서 생성 완료 후:
+OpenAPI 문서 업데이트 완료 후:
 1. **사용자 검토**: 문서 정확성 확인
-2. **Swagger UI**: 문서 시각화 (선택)
+2. **Swagger UI 확인**: `/api-docs`에서 업데이트된 문서 시각적 확인 (이미 통합됨)
 3. **최종 승인**: 전체 워크플로우 완료
