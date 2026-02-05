@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import {
   listNotices,
   getNotice,
@@ -20,6 +20,7 @@ import { db } from '../../../src/config/database';
 import { findAppById } from '../../../src/modules/auth/services';
 import * as noticeProbe from '../../../src/modules/notice/notice.probe';
 import { NotFoundException, ForbiddenException } from '../../../src/utils/errors';
+import { requireAdmin } from '../../../src/middleware/admin-auth';
 
 // ─── Mocks ──────────────────────────────────────────────────────
 
@@ -210,6 +211,12 @@ describe('getUnreadCount handler', () => {
 
     expect(res.json).toHaveBeenCalledWith({ unreadCount: 5 });
   });
+
+  it('should throw NotFoundException when app not found', async () => {
+    vi.mocked(findAppById).mockResolvedValue(null);
+
+    await expect(getUnreadCount(req as Request, res as Response)).rejects.toThrow(NotFoundException);
+  });
 });
 
 // ─── createNotice ───────────────────────────────────────────────
@@ -252,11 +259,6 @@ describe('createNotice handler', () => {
     }));
   });
 
-  it('should throw ForbiddenException without admin secret', async () => {
-    (req as any).get = vi.fn().mockReturnValue(undefined);
-
-    await expect(createNotice(req as Request, res as Response)).rejects.toThrow(ForbiddenException);
-  });
 });
 
 // ─── updateNotice ───────────────────────────────────────────────
@@ -335,12 +337,6 @@ describe('deleteNotice handler', () => {
     expect(res.send).toHaveBeenCalled();
   });
 
-  it('should throw ForbiddenException without admin secret', async () => {
-    (req as any).get = vi.fn().mockReturnValue(undefined);
-
-    await expect(deleteNotice(req as Request, res as Response)).rejects.toThrow(ForbiddenException);
-  });
-
   it('should throw NotFoundException when notice not found', async () => {
     vi.mocked(noticeIdSchema.parse).mockReturnValue({ id: 999 });
     vi.mocked(findAppById).mockResolvedValue(MOCK_APP);
@@ -393,5 +389,40 @@ describe('pinNotice handler', () => {
     vi.mocked(db.select).mockReturnValueOnce(dbChain([]) as any);
 
     await expect(pinNotice(req as Request, res as Response)).rejects.toThrow(NotFoundException);
+  });
+});
+
+// ─── requireAdmin middleware ────────────────────────────────────
+
+describe('requireAdmin middleware', () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let next: NextFunction;
+
+  beforeEach(() => {
+    req = { get: vi.fn().mockReturnValue('test-admin-secret') } as any;
+    res = {};
+    next = vi.fn();
+    vi.clearAllMocks();
+  });
+
+  it('should call next when admin secret is valid', () => {
+    requireAdmin(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalled();
+  });
+
+  it('should throw ForbiddenException when admin secret is missing', () => {
+    (req as any).get = vi.fn().mockReturnValue(undefined);
+
+    expect(() => requireAdmin(req as Request, res as Response, next)).toThrow(ForbiddenException);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('should throw ForbiddenException when admin secret is wrong', () => {
+    (req as any).get = vi.fn().mockReturnValue('wrong-secret');
+
+    expect(() => requireAdmin(req as Request, res as Response, next)).toThrow(ForbiddenException);
+    expect(next).not.toHaveBeenCalled();
   });
 });
