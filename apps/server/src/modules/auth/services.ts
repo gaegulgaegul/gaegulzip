@@ -5,7 +5,7 @@ import { signToken, verifyToken } from '../../utils/jwt';
 import { JWTPayload } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { hashRefreshToken, calculateExpiresAt } from './refresh-token.utils';
-import { UnauthorizedException } from '../../utils/errors';
+import { UnauthorizedException, NotFoundException } from '../../utils/errors';
 
 /**
  * 앱 코드로 앱 조회
@@ -36,7 +36,7 @@ export async function findUserByProvider(data: {
   appId: number;
   provider: string;
   providerId: string;
-}) {
+}): Promise<typeof users.$inferSelect | null> {
   const result = await db
     .select()
     .from(users)
@@ -64,7 +64,7 @@ export async function createUser(data: {
   email: string | null;
   nickname: string | null;
   profileImage: string | null;
-}) {
+}): Promise<typeof users.$inferSelect> {
   const inserted = await db
     .insert(users)
     .values({
@@ -85,6 +85,7 @@ export async function createUser(data: {
  * @param userId - 업데이트할 사용자 ID
  * @param data - 업데이트할 프로필 데이터
  * @returns 업데이트된 사용자 객체
+ * @throws NotFoundException 사용자를 찾을 수 없는 경우
  */
 export async function updateUserLogin(
   userId: number,
@@ -93,7 +94,7 @@ export async function updateUserLogin(
     nickname: string | null;
     profileImage: string | null;
   }
-) {
+): Promise<typeof users.$inferSelect> {
   const now = new Date();
   const updated = await db
     .update(users)
@@ -106,6 +107,11 @@ export async function updateUserLogin(
     })
     .where(eq(users.id, userId))
     .returning();
+
+  if (!updated[0]) {
+    throw new NotFoundException('User', userId);
+  }
+
   return updated[0];
 }
 

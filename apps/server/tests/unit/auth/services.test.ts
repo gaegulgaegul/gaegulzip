@@ -15,7 +15,7 @@ import {
   revokeRefreshTokenFamily,
 } from '../../../src/modules/auth/services';
 import { db } from '../../../src/config/database';
-import { UnauthorizedException } from '../../../src/utils/errors';
+import { UnauthorizedException, NotFoundException } from '../../../src/utils/errors';
 
 vi.mock('../../../src/config/database', () => ({
   db: {
@@ -182,6 +182,24 @@ describe('services', () => {
       });
 
       expect(result).toEqual(updatedUser);
+    });
+
+    it('should throw NotFoundException when user not found', async () => {
+      vi.mocked(db.update).mockReturnValue({
+        set: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      } as any);
+
+      await expect(
+        updateUserLogin(999, {
+          email: 'test@example.com',
+          nickname: 'Test',
+          profileImage: null,
+        })
+      ).rejects.toThrow('User not found: 999');
     });
   });
 
