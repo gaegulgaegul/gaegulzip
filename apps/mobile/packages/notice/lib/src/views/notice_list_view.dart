@@ -215,11 +215,11 @@ class NoticeListView extends GetView<NoticeListController> {
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 8),
-            Obx(() => Text(
-                  controller.errorMessage.value,
-                  style: const TextStyle(color: Colors.grey),
-                  textAlign: TextAlign.center,
-                )),
+            Text(
+              controller.errorMessage.value,
+              style: const TextStyle(color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 24),
             SketchButton(
               text: '다시 시도',

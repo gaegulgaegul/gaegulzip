@@ -26,8 +26,14 @@ class NoticeDetailController extends GetxController {
     super.onInit();
     _apiService = Get.find<NoticeApiService>();
 
-    // Get.arguments로 전달된 ID 추출
-    noticeId = Get.arguments as int;
+    // Get.arguments로 전달된 ID 추출 (안전한 타입 캐스팅)
+    final args = Get.arguments;
+    if (args == null || args is! int) {
+      errorMessage.value = '잘못된 접근입니다';
+      Get.back();
+      return;
+    }
+    noticeId = args;
 
     fetchNoticeDetail();
   }
@@ -58,7 +64,11 @@ class NoticeDetailController extends GetxController {
       );
     } catch (e) {
       errorMessage.value = '예상치 못한 오류가 발생했습니다';
-      Get.snackbar('오류', errorMessage.value);
+      Get.snackbar(
+        '오류',
+        errorMessage.value,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isLoading.value = false;
     }

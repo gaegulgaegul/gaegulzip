@@ -64,7 +64,7 @@ class NoticeDetailView extends GetView<NoticeDetailController> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: SketchDesignTokens.accentLight.withOpacity(0.2),
+              color: SketchDesignTokens.accentLight.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(4),
             ),
             child: const Row(
@@ -168,7 +168,7 @@ class NoticeDetailView extends GetView<NoticeDetailController> {
           fontStyle: FontStyle.italic,
         ),
         blockquoteDecoration: BoxDecoration(
-          color: const Color(0xFFF7F7F7).withOpacity(0.5),
+          color: const Color(0xFFF7F7F7).withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(4),
           border: const Border(
             left: BorderSide(color: Color(0xFFF19E7E), width: 4),
@@ -177,10 +177,26 @@ class NoticeDetailView extends GetView<NoticeDetailController> {
       ),
       onTapLink: (text, href, title) {
         if (href != null) {
-          launchUrl(Uri.parse(href));
+          _launchUrl(href);
         }
       },
     );
+  }
+
+  /// 외부 URL 열기
+  Future<void> _launchUrl(String href) async {
+    final uri = Uri.tryParse(href);
+    if (uri == null) return;
+
+    try {
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        Get.snackbar('알림', '링크를 열 수 없습니다',
+            snackPosition: SnackPosition.BOTTOM);
+      }
+    } catch (e) {
+      Get.snackbar('오류', '링크를 여는 중 문제가 발생했습니다',
+          snackPosition: SnackPosition.BOTTOM);
+    }
   }
 
   /// 날짜/시간 포맷 (예: 2026년 2월 4일 14:30)
@@ -218,11 +234,11 @@ class NoticeDetailView extends GetView<NoticeDetailController> {
           children: [
             const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
-            Obx(() => Text(
-                  controller.errorMessage.value,
-                  style: const TextStyle(fontSize: 16),
-                  textAlign: TextAlign.center,
-                )),
+            Text(
+              controller.errorMessage.value,
+              style: const TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 24),
             SketchButton(
               text: '목록으로',

@@ -28,29 +28,24 @@ class NoticeApiService {
     String? category,
     bool? pinnedOnly,
   }) async {
-    try {
-      final queryParameters = <String, dynamic>{
-        'page': page,
-        'limit': limit,
-      };
+    final queryParameters = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+    };
 
-      if (category != null) {
-        queryParameters['category'] = category;
-      }
-      if (pinnedOnly != null) {
-        queryParameters['pinnedOnly'] = pinnedOnly;
-      }
-
-      final response = await _dio.get(
-        '/notices',
-        queryParameters: queryParameters,
-      );
-
-      return NoticeListResponse.fromJson(response.data);
-    } on DioException {
-      // DioException을 그대로 throw (Controller에서 처리)
-      rethrow;
+    if (category != null) {
+      queryParameters['category'] = category;
     }
+    if (pinnedOnly != null) {
+      queryParameters['pinnedOnly'] = pinnedOnly;
+    }
+
+    final response = await _dio.get(
+      '/notices',
+      queryParameters: queryParameters,
+    );
+
+    return NoticeListResponse.fromJson(response.data);
   }
 
   /// 공지사항 상세 조회
@@ -62,13 +57,9 @@ class NoticeApiService {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류 (404: 공지사항 미존재)
   Future<NoticeModel> getNoticeDetail(int id) async {
-    try {
-      final response = await _dio.get('/notices/$id');
+    final response = await _dio.get('/notices/$id');
 
-      return NoticeModel.fromJson(response.data);
-    } on DioException {
-      rethrow;
-    }
+    return NoticeModel.fromJson(response.data);
   }
 
   /// 읽지 않은 공지 개수 조회
@@ -78,12 +69,8 @@ class NoticeApiService {
   /// Throws:
   ///   - [DioException] 네트워크 오류
   Future<UnreadCountResponse> getUnreadCount() async {
-    try {
-      final response = await _dio.get('/notices/unread-count');
+    final response = await _dio.get('/notices/unread-count');
 
-      return UnreadCountResponse.fromJson(response.data);
-    } on DioException {
-      rethrow;
-    }
+    return UnreadCountResponse.fromJson(response.data);
   }
 }

@@ -48,19 +48,21 @@ class NoticeListController extends GetxController {
     _currentPage = 1;
 
     try {
-      // 고정 공지사항 조회
-      final pinnedResponse = await _apiService.getNotices(
-        page: 1,
-        limit: 100, // 고정 공지는 최대 100개로 제한
-        pinnedOnly: true,
-      );
-      pinnedNotices.value = pinnedResponse.items;
+      // 고정 공지사항과 일반 공지사항을 병렬로 조회
+      final results = await Future.wait([
+        _apiService.getNotices(
+          page: 1,
+          limit: 100, // 고정 공지는 최대 100개로 제한
+          pinnedOnly: true,
+        ),
+        _apiService.getNotices(
+          page: _currentPage,
+          limit: _pageSize,
+        ),
+      ]);
 
-      // 일반 공지사항 조회
-      final response = await _apiService.getNotices(
-        page: _currentPage,
-        limit: _pageSize,
-      );
+      pinnedNotices.value = results[0].items;
+      final response = results[1];
 
       notices.value = response.items;
       hasMore.value = response.hasNext;
@@ -91,13 +93,15 @@ class NoticeListController extends GetxController {
 
     isLoadingMore.value = true;
 
+    final nextPage = _currentPage + 1;
+
     try {
-      _currentPage++;
       final response = await _apiService.getNotices(
-        page: _currentPage,
+        page: nextPage,
         limit: _pageSize,
       );
 
+      _currentPage = nextPage;
       notices.addAll(response.items);
       hasMore.value = response.hasNext;
     } on DioException catch (e) {
