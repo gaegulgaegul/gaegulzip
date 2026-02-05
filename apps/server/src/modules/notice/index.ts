@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import * as handlers from './handlers';
-import { requireAdmin } from '../../middleware/admin-auth';
 
 const router = Router();
 
@@ -29,36 +28,32 @@ router.get('/:id', handlers.getNotice);
 /**
  * 공지사항 작성 (관리자)
  * @route POST /notices
- * @headers { X-Admin-Secret: string }
  * @body { title, content, category?, isPinned? }
  * @returns 201: 생성된 공지사항
  */
-router.post('/', requireAdmin, handlers.createNotice);
+router.post('/', handlers.createNotice);
 
 /**
  * 공지사항 수정 (관리자)
  * @route PUT /notices/:id
- * @headers { X-Admin-Secret: string }
  * @body { title?, content?, category?, isPinned? }
  * @returns 200: 수정된 공지사항
  */
-router.put('/:id', requireAdmin, handlers.updateNotice);
+router.put('/:id', handlers.updateNotice);
 
 /**
  * 공지사항 삭제 (관리자)
  * @route DELETE /notices/:id
- * @headers { X-Admin-Secret: string }
  * @returns 204: No Content
  */
-router.delete('/:id', requireAdmin, handlers.deleteNotice);
+router.delete('/:id', handlers.deleteNotice);
 
 /**
  * 공지사항 고정/해제 (관리자)
  * @route PATCH /notices/:id/pin
- * @headers { X-Admin-Secret: string }
  * @body { isPinned: boolean }
  * @returns 200: { id, title, isPinned, updatedAt }
  */
-router.patch('/:id/pin', requireAdmin, handlers.pinNotice);
+router.patch('/:id/pin', handlers.pinNotice);
 
 export default router;
