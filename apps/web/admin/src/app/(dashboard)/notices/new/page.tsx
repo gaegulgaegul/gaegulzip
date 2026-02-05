@@ -20,13 +20,19 @@ export default function NewNoticePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    await noticeApi.create({
-      title,
-      content,
-      category: category || undefined,
-      isPinned,
-    });
-    router.push("/notices");
+    try {
+      await noticeApi.create({
+        title,
+        content,
+        category: category || undefined,
+        isPinned,
+      });
+      router.push("/notices");
+    } catch {
+      alert("저장에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

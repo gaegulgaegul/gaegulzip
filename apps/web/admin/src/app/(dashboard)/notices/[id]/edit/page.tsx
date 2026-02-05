@@ -20,33 +20,53 @@ export default function EditNoticePage() {
   const [isPinned, setIsPinned] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (Number.isNaN(id)) {
+      router.push("/notices");
+      return;
+    }
     async function load() {
-      const notice: Notice = await noticeApi.getById(id);
-      setTitle(notice.title);
-      setContent(notice.content);
-      setCategory(notice.category ?? "");
-      setIsPinned(notice.isPinned);
-      setLoading(false);
+      try {
+        const notice: Notice = await noticeApi.getById(id);
+        setTitle(notice.title);
+        setContent(notice.content);
+        setCategory(notice.category ?? "");
+        setIsPinned(notice.isPinned);
+      } catch {
+        setError("공지사항을 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
     }
     load();
-  }, [id]);
+  }, [id, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    await noticeApi.update(id, {
-      title,
-      content,
-      category: category || undefined,
-      isPinned,
-    });
-    router.push("/notices");
+    try {
+      await noticeApi.update(id, {
+        title,
+        content,
+        category: category || undefined,
+        isPinned,
+      });
+      router.push("/notices");
+    } catch {
+      alert("저장에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
     return <p className="text-muted-foreground">불러오는 중...</p>;
+  }
+
+  if (error) {
+    return <p className="text-destructive">{error}</p>;
   }
 
   return (

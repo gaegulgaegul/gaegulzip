@@ -34,9 +34,14 @@ export default function NoticesPage() {
 
   const fetchNotices = useCallback(async () => {
     setLoading(true);
-    const result = await noticeApi.list(page);
-    setData(result);
-    setLoading(false);
+    try {
+      const result = await noticeApi.list(page);
+      setData(result);
+    } catch {
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
   }, [page]);
 
   useEffect(() => {
@@ -45,17 +50,24 @@ export default function NoticesPage() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    await noticeApi.remove(deleteTarget.id);
-    setDeleteTarget(null);
-    fetchNotices();
+    try {
+      await noticeApi.remove(deleteTarget.id);
+      setDeleteTarget(null);
+      fetchNotices();
+    } catch {
+      alert("삭제에 실패했습니다.");
+    }
   };
 
   const handleTogglePin = async (notice: NoticeSummary) => {
-    await noticeApi.togglePin(notice.id, !notice.isPinned);
-    fetchNotices();
+    try {
+      await noticeApi.togglePin(notice.id, !notice.isPinned);
+      fetchNotices();
+    } catch {
+      alert("고정 상태 변경에 실패했습니다.");
+    }
   };
 
-  // TODO(human): 날짜 포맷 유틸리티
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleDateString("ko-KR", {
       year: "numeric",

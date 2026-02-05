@@ -272,7 +272,7 @@ test.describe('공지사항 삭제', () => {
 
     await page.goto('/notices');
     await page.getByRole('button', { name: '삭제' }).click();
-    await page.getByRole('button', { name: '삭제' }).last().click();
+    await page.getByRole('alertdialog').getByRole('button', { name: '삭제' }).click();
 
     await expect(page.getByText('공지사항이 없습니다.')).toBeVisible();
   });
