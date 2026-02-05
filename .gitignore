@@ -178,3 +178,5 @@ docs/archive/
 .turbo/
 *.iml
 prompt/
+
+.DS_Store
