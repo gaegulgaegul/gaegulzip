@@ -12,51 +12,57 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // TODO(human): 로그인 폼 제출 핸들러를 구현하세요
-  // handleSubmit 함수는 username과 password를 받아서
-  // 성공 시 router.push("/dashboard"), 실패 시 setError()를 호출합니다.
+  /**
+   * 로그인 폼 제출 핸들러
+   *
+   * 비밀번호를 검증하고 성공 시 대시보드로 이동합니다.
+   */
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const username = formData.get("username") as string;
-    const password = formData.get("password") as string;
+    try {
+      const formData = new FormData(e.currentTarget);
+      const password = formData.get("password") as string;
 
-    // 지금은 임시로 하드코딩된 검증 (나중에 서버 API로 교체)
-    if (username === "admin" && password === "admin") {
-      router.push("/dashboard");
-    } else {
-      setError("사용자명 또는 비밀번호가 올바르지 않습니다.");
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        router.push("/dashboard");
+      } else {
+        setError(data.error || "로그인에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("로그인 처리 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Wowa Admin</CardTitle>
+        <CardTitle className="text-2xl">Gaegul Admin</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="username">사용자명</Label>
-            <Input
-              id="username"
-              name="username"
-              type="text"
-              placeholder="admin"
-              required
-            />
-          </div>
           <div className="space-y-2">
             <Label htmlFor="password">비밀번호</Label>
             <Input
               id="password"
               name="password"
               type="password"
+              placeholder="비밀번호를 입력하세요"
               required
             />
           </div>

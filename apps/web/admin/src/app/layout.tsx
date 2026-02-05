@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wowa Admin",
+  title: "Gaegul Admin",
   description: "Wowa 앱 어드민 대시보드",
 };
 
