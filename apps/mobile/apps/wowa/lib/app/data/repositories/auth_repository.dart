@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:api/api.dart';
 import 'package:core/core.dart';
@@ -116,8 +117,9 @@ class AuthRepository {
           revokeAll: revokeAll,
         );
       }
-    } catch (_) {
+    } catch (e) {
       // 서버 로그아웃 실패해도 로컬 데이터는 삭제
+      debugPrint('서버 로그아웃 실패 (로컬 데이터는 삭제됨): $e');
     } finally {
       await _storageService.clearAll();
     }

@@ -27,19 +27,15 @@ class AuthApiService {
     required String provider,
     required String accessToken,
   }) async {
-    try {
-      final response = await _dio.post(
-        '/auth/oauth',
-        data: LoginRequest(
-          code: _appCode,
-          provider: provider,
-          accessToken: accessToken,
-        ).toJson(),
-      );
-      return LoginResponse.fromJson(response.data);
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.post(
+      '/auth/oauth',
+      data: LoginRequest(
+        code: _appCode,
+        provider: provider,
+        accessToken: accessToken,
+      ).toJson(),
+    );
+    return LoginResponse.fromJson(response.data);
   }
 
   /// 토큰 갱신 API 호출
@@ -51,15 +47,11 @@ class AuthApiService {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류 (401: refreshToken 만료)
   Future<RefreshResponse> refreshToken(String refreshToken) async {
-    try {
-      final response = await _dio.post(
-        '/auth/refresh',
-        data: {'refreshToken': refreshToken},
-      );
-      return RefreshResponse.fromJson(response.data);
-    } on DioException {
-      rethrow;
-    }
+    final response = await _dio.post(
+      '/auth/refresh',
+      data: {'refreshToken': refreshToken},
+    );
+    return RefreshResponse.fromJson(response.data);
   }
 
   /// 로그아웃 API 호출
@@ -73,16 +65,12 @@ class AuthApiService {
     required String refreshToken,
     bool revokeAll = false,
   }) async {
-    try {
-      await _dio.post(
-        '/auth/logout',
-        data: {
-          'refreshToken': refreshToken,
-          'revokeAll': revokeAll,
-        },
-      );
-    } on DioException {
-      rethrow;
-    }
+    await _dio.post(
+      '/auth/logout',
+      data: {
+        'refreshToken': refreshToken,
+        'revokeAll': revokeAll,
+      },
+    );
   }
 }
