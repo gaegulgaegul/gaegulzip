@@ -165,6 +165,9 @@ doc/api/
 
 /prompt/archives/
 
+# Claude Code local settings (contains secrets)
+.claude/settings.local.json
+
 # bkit
 .pdca-status.json
 docs/archive/

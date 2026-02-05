@@ -23,18 +23,21 @@ description: |
 
 #### 가이드 파일 읽기
 ```
-Read(".claude/guides/flutter_best_practices.md")
-Read(".claude/guides/getx_best_practices.md")
+Read(".claude/guide/mobile/flutter_best_practices.md")
+Read(".claude/guide/mobile/getx_best_practices.md")
 ```
 - 테스트 가능한 코드 패턴 확인
 - GetX 상태 관리 테스트 방법 파악
 
 #### 설계 문서 읽기
 ```
-Read("user-stories.md")      # 사용자 스토리 - 테스트 시나리오 기반
-Read("design-spec.md")        # UI/UX 명세 - UI 검증 기준
-Read("brief.md")              # 기술 아키텍처 - 테스트 범위 파악
+Read("docs/[product]/[feature]/user-story.md")          # 사용자 스토리 - 테스트 시나리오 기반
+Read("docs/[product]/[feature]/mobile-design-spec.md")  # UI/UX 명세 - UI 검증 기준
+Read("docs/[product]/[feature]/mobile-brief.md")        # 기술 아키텍처 - 테스트 범위 파악
 ```
+
+> **참고**: `[product]`과 `[feature]`는 실행 시 실제 값으로 대체됩니다.
+> 예: `docs/wowa/social-login/user-story.md`
 
 **확인 사항**:
 - 어떤 사용자 시나리오가 있는가?
@@ -45,7 +48,7 @@ Read("brief.md")              # 기술 아키텍처 - 테스트 범위 파악
 
 #### 기존 테스트 시나리오 패턴 확인 (선택)
 ```
-Glob("**/*test-scenarios.md")  # 과거 테스트 시나리오 문서
+Glob("docs/**/test-scenarios.md")  # 과거 테스트 시나리오 문서
 ```
 
 ### 1️⃣ context7 MCP로 Flutter 테스트 베스트 프랙티스 확인
@@ -74,7 +77,7 @@ get_recent_context(limit=10)  # 최근 컨텍스트에서 테스트 패턴 확�
 
 #### A. 사용자 시나리오 추출
 
-user-stories.md에서:
+user-story.md에서:
 - 주요 사용자 플로우 파악
 - 각 플로우의 전제 조건, 액션, 예상 결과 추출
 
@@ -123,12 +126,12 @@ npx -y @mobilenext/mobile-mcp
 # 접근성 트리 기반 UI 검증
 - 접근성 트리에서 '[텍스트]' 요소 확인
 - 주요 화면 스크린샷 캡처 (before/after)
-- design-spec.md와 색상, 타이포그래피 비교
+- mobile-design-spec.md와 색상, 타이포그래피 비교
 - 터치 영역 크기 확인 (최소 44x44pt)
 \```
 
 **검증 체크리스트**:
-- [ ] UI가 design-spec.md와 일치하는가?
+- [ ] UI가 mobile-design-spec.md와 일치하는가?
 - [ ] 로딩 상태가 표시되는가?
 - [ ] 에러 상태가 사용자에게 명확히 전달되는가?
 - [ ] 접근성 레이블이 적절한가?
@@ -197,7 +200,7 @@ npx -y @mobilenext/mobile-mcp
 - "폰트 크기가 최소 12pt 이상인지 확인"
 
 # 비교 검증
-- "현재 화면이 design-spec.md의 [화면명] 디자인과 일치하는지 확인"
+- "현재 화면이 mobile-design-spec.md의 [화면명] 디자인과 일치하는지 확인"
 - "before.png와 after.png의 [영역명] 영역 차이 확인"
 ```
 
@@ -234,6 +237,8 @@ npx -y @mobilenext/mobile-mcp
 
 ### 7️⃣ test-scenarios.md 생성
 
+> **출력 위치**: `docs/[product]/[feature]/test-scenarios.md`
+
 #### 파일 구조
 
 ```markdown
@@ -241,7 +246,7 @@ npx -y @mobilenext/mobile-mcp
 
 > 생성일: [날짜]
 > 대상 기능: [기능 설명]
-> 참조 문서: brief.md, design-spec.md, user-stories.md
+> 참조 문서: mobile-brief.md, mobile-design-spec.md, user-story.md
 
 ## 개요
 
@@ -413,7 +418,7 @@ get_recent_context(limit=10)
 
 ## 출력물
 
-- **test-scenarios.md**: 프로젝트 루트에 생성 (임시 파일, Independent Reviewer가 사용)
+- **test-scenarios.md**: `docs/[product]/[feature]/test-scenarios.md`에 생성 (Independent Reviewer가 사용)
 
 ## 주의사항
 
@@ -422,5 +427,11 @@ get_recent_context(limit=10)
 3. **실행 가능성**: FlutterTestMcp, @mobilenext/mobile-mcp 스크립트가 실제로 동작해야 함
 4. **일관성**: templates/scenario-template.md 형식을 항상 따름
 5. **npx 사용**: MCP 서버를 npx로 동적 실행 (설치 불필요)
+6. **문서 경로**: 모든 입출력 문서는 `docs/[product]/[feature]/` 경로를 따름
+
+> **⚠️ MCP 서버 미등록 주의**: FlutterTestMcp와 @mobilenext/mobile-mcp는 현재 프로젝트의
+> `.claude/settings.json`에 MCP 서버로 등록되어 있지 않습니다. 이 스킬에서 생성하는 자동화 스크립트는
+> **수동 테스트 가이드** 및 **향후 MCP 서버 등록 시 사용할 참조 문서** 역할을 합니다.
+> MCP 서버 등록이 필요한 경우 `.claude/settings.json`의 `mcpServers`에 추가하세요.
 
 당신은 테스트 시나리오 생성 전문가입니다. 개발자와 테스터가 신뢰할 수 있는 포괄적이고 실행 가능한 테스트 문서를 작성하는 것이 당신의 사명입니다!

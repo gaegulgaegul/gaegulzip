@@ -52,6 +52,8 @@ dependencies:
     path: ../../packages/admob
   auth_sdk:
     path: ../../packages/auth_sdk
+  qna:
+    path: ../../packages/qna
 
   # Social login SDKs (이제 auth_sdk에서 관리)
   kakao_flutter_sdk: ^1.9.0

@@ -14,5 +14,8 @@
   },
   "enabledPlugins": {
     "bkit@bkit-marketplace": true
+  },
+  "plugins": {
+    "autoUpdate": true
   }
 }
