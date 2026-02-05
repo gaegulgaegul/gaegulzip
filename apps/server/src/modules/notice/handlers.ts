@@ -1,8 +1,8 @@
-import { Request, Response, RequestHandler } from 'express';
+import { RequestHandler } from 'express';
 import { db } from '../../config/database';
 import { notices, noticeReads } from './schema';
 import { listNoticesSchema, createNoticeSchema, updateNoticeSchema, pinNoticeSchema, noticeIdSchema } from './validators';
-import { NoticeListResponse, NoticeDetail, NoticeSummary, UnreadCountResponse, AuthUser } from './types';
+import { NoticeListResponse, NoticeDetail, NoticeSummary, UnreadCountResponse, AuthenticatedRequest } from './types';
 import { eq, isNull, desc, and, sql, count } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
 import * as noticeProbe from './notice.probe';
@@ -35,7 +35,7 @@ export const listNotices: RequestHandler = async (req, res) => {
   logger.debug({ page, limit, category, pinnedOnly }, 'Listing notices');
 
   // 2. JWT에서 userId, appId 추출 (인증 미들웨어에서 req.user에 주입)
-  const { userId, appId } = (req as any).user as AuthUser;
+  const { userId, appId } = (req as AuthenticatedRequest).user;
   const appCode = await getAppCode(appId);
 
   // 3. 조건 구성
@@ -118,7 +118,7 @@ export const getNotice: RequestHandler = async (req, res) => {
   logger.debug({ noticeId: id }, 'Getting notice detail');
 
   // 2. JWT에서 userId, appId 추출
-  const { userId, appId } = (req as any).user as AuthUser;
+  const { userId, appId } = (req as AuthenticatedRequest).user;
   const appCode = await getAppCode(appId);
 
   // 3. 공지사항 조회
@@ -181,7 +181,7 @@ export const getUnreadCount: RequestHandler = async (req, res) => {
   logger.debug('Getting unread count');
 
   // 1. JWT에서 userId, appId 추출
-  const { userId, appId } = (req as any).user as AuthUser;
+  const { userId, appId } = (req as AuthenticatedRequest).user;
   const appCode = await getAppCode(appId);
 
   // 2. 읽지 않은 공지 개수 조회
@@ -225,7 +225,7 @@ export const createNotice: RequestHandler = async (req, res) => {
   logger.debug({ title: data.title }, 'Creating notice');
 
   // 3. JWT에서 userId (authorId), appId 추출
-  const { userId: authorId, appId } = (req as any).user as AuthUser;
+  const { userId: authorId, appId } = (req as AuthenticatedRequest).user;
   const appCode = await getAppCode(appId);
 
   // 4. 공지사항 생성
@@ -278,7 +278,7 @@ export const updateNotice: RequestHandler = async (req, res) => {
   logger.debug({ noticeId: id, data }, 'Updating notice');
 
   // 4. JWT에서 appId 추출
-  const { userId: authorId, appId } = (req as any).user as AuthUser;
+  const { userId: authorId, appId } = (req as AuthenticatedRequest).user;
   const appCode = await getAppCode(appId);
 
   // 5. 기존 notice 조회 (appCode 일치 확인)
@@ -342,7 +342,7 @@ export const deleteNotice: RequestHandler = async (req, res) => {
   logger.debug({ noticeId: id }, 'Deleting notice');
 
   // 3. JWT에서 appId 추출
-  const { userId: authorId, appId } = (req as any).user as AuthUser;
+  const { userId: authorId, appId } = (req as AuthenticatedRequest).user;
   const appCode = await getAppCode(appId);
 
   // 4. 기존 notice 조회 (appCode 일치 확인)
@@ -393,7 +393,7 @@ export const pinNotice: RequestHandler = async (req, res) => {
   logger.debug({ noticeId: id, isPinned }, 'Toggling notice pin');
 
   // 4. JWT에서 appId 추출
-  const { userId: authorId, appId } = (req as any).user as AuthUser;
+  const { userId: authorId, appId } = (req as AuthenticatedRequest).user;
   const appCode = await getAppCode(appId);
 
   // 5. 기존 notice 조회 (appCode 일치 확인)

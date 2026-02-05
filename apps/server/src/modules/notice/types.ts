@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 /**
  * 공지사항 요약 (목록 응답)
  */
@@ -50,4 +52,12 @@ export interface UnreadCountResponse {
 export interface AuthUser {
   userId: number;
   appId: number;
+}
+
+/**
+ * 인증 미들웨어 통과 후의 Request 타입
+ * (req as any).user 대신 타입 안전하게 접근할 수 있습니다.
+ */
+export interface AuthenticatedRequest extends Request {
+  user: AuthUser;
 }

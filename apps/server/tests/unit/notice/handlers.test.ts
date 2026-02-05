@@ -238,6 +238,15 @@ describe('createNotice handler', () => {
     vi.clearAllMocks();
   });
 
+  it('should throw NotFoundException when app not found', async () => {
+    vi.mocked(createNoticeSchema.parse).mockReturnValue({
+      title: '새 공지', content: '내용입니다', category: 'update', isPinned: false,
+    });
+    vi.mocked(findAppById).mockResolvedValue(null);
+
+    await expect(createNotice(req as Request, res as Response)).rejects.toThrow(NotFoundException);
+  });
+
   it('should create notice and return 201', async () => {
     vi.mocked(createNoticeSchema.parse).mockReturnValue({
       title: '새 공지', content: '내용입니다', category: 'update', isPinned: false,

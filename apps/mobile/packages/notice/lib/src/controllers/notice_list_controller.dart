@@ -89,7 +89,7 @@ class NoticeListController extends GetxController {
 
   /// 다음 페이지 로드 (무한 스크롤)
   Future<void> loadMoreNotices() async {
-    if (isLoadingMore.value || !hasMore.value) return;
+    if (isLoading.value || isLoadingMore.value || !hasMore.value) return;
 
     isLoadingMore.value = true;
 
@@ -108,6 +108,12 @@ class NoticeListController extends GetxController {
       Get.snackbar(
         '오류',
         e.message ?? '추가 데이터를 불러오는 중 오류가 발생했습니다',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar(
+        '오류',
+        '추가 데이터를 불러오는 중 오류가 발생했습니다',
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {

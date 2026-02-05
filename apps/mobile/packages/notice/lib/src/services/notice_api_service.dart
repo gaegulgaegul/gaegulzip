@@ -9,7 +9,9 @@ import '../models/unread_count_response.dart';
 /// 서버 API와의 HTTP 통신을 담당합니다.
 class NoticeApiService {
   /// Dio 인스턴스 (api 패키지에서 제공)
-  final Dio _dio = Get.find<Dio>();
+  ///
+  /// getter로 선언하여 DI 컨테이너 등록 시점과 무관하게 동작합니다.
+  Dio get _dio => Get.find<Dio>();
 
   /// 공지사항 목록 조회
   ///

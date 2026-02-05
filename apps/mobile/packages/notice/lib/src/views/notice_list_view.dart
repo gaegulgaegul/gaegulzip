@@ -10,6 +10,14 @@ class NoticeListView extends GetView<NoticeListController> {
 
   @override
   Widget build(BuildContext context) {
+    final scrollController = ScrollController();
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >=
+          scrollController.position.maxScrollExtent - 200) {
+        controller.loadMoreNotices();
+      }
+    });
+
     return Scaffold(
       appBar: _buildAppBar(),
       body: Obx(() {
@@ -30,7 +38,7 @@ class NoticeListView extends GetView<NoticeListController> {
         }
 
         // 데이터 있음
-        return _buildNoticeList();
+        return _buildNoticeList(scrollController);
       }),
     );
   }
@@ -52,11 +60,12 @@ class NoticeListView extends GetView<NoticeListController> {
   }
 
   /// 공지사항 목록
-  Widget _buildNoticeList() {
+  Widget _buildNoticeList(ScrollController scrollController) {
     return RefreshIndicator(
       onRefresh: controller.refreshNotices,
       color: SketchDesignTokens.accentPrimary,
       child: CustomScrollView(
+        controller: scrollController,
         slivers: [
           // 상단 패딩
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -78,19 +87,15 @@ class NoticeListView extends GetView<NoticeListController> {
           _buildNoticeItems(),
 
           // 무한 스크롤 로딩 인디케이터
-          Obx(() {
-            if (controller.isLoadingMore.value) {
-              return const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
+          if (controller.isLoadingMore.value)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(
+                  child: CircularProgressIndicator(),
                 ),
-              );
-            }
-            return const SliverToBoxAdapter(child: SizedBox.shrink());
-          }),
+              ),
+            ),
 
           // 하단 패딩
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -161,12 +166,6 @@ class NoticeListView extends GetView<NoticeListController> {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          // 마지막 아이템에서 무한 스크롤 트리거
-          if (index == controller.notices.length - 1 &&
-              controller.hasMore.value) {
-            controller.loadMoreNotices();
-          }
-
           final notice = controller.notices[index];
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
