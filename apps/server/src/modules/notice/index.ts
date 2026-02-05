@@ -1,9 +1,8 @@
 import { Router } from 'express';
 import * as handlers from './handlers';
+import { requireAdmin } from '../../middleware/admin-auth';
 
 const router = Router();
-
-// 인증이 필요한 모든 라우트는 app.ts에서 authMiddleware 적용 예정
 
 /**
  * 공지사항 목록 조회 (사용자)
@@ -34,7 +33,7 @@ router.get('/:id', handlers.getNotice);
  * @body { title, content, category?, isPinned? }
  * @returns 201: 생성된 공지사항
  */
-router.post('/', handlers.createNotice);
+router.post('/', requireAdmin, handlers.createNotice);
 
 /**
  * 공지사항 수정 (관리자)
@@ -43,7 +42,7 @@ router.post('/', handlers.createNotice);
  * @body { title?, content?, category?, isPinned? }
  * @returns 200: 수정된 공지사항
  */
-router.put('/:id', handlers.updateNotice);
+router.put('/:id', requireAdmin, handlers.updateNotice);
 
 /**
  * 공지사항 삭제 (관리자)
@@ -51,7 +50,7 @@ router.put('/:id', handlers.updateNotice);
  * @headers { X-Admin-Secret: string }
  * @returns 204: No Content
  */
-router.delete('/:id', handlers.deleteNotice);
+router.delete('/:id', requireAdmin, handlers.deleteNotice);
 
 /**
  * 공지사항 고정/해제 (관리자)
@@ -60,6 +59,6 @@ router.delete('/:id', handlers.deleteNotice);
  * @body { isPinned: boolean }
  * @returns 200: { id, title, isPinned, updatedAt }
  */
-router.patch('/:id/pin', handlers.pinNotice);
+router.patch('/:id/pin', requireAdmin, handlers.pinNotice);
 
 export default router;

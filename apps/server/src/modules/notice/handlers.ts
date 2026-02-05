@@ -6,7 +6,7 @@ import { NoticeListResponse, NoticeDetail, NoticeSummary, UnreadCountResponse, A
 import { eq, isNull, desc, and, sql, count } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
 import * as noticeProbe from './notice.probe';
-import { NotFoundException, ForbiddenException } from '../../utils/errors';
+import { NotFoundException } from '../../utils/errors';
 import { findAppById } from '../auth/services';
 
 /**
@@ -215,17 +215,11 @@ export const getUnreadCount: RequestHandler = async (req, res) => {
  * @param req - Express 요청 객체 (body: { title, content, category?, isPinned? })
  * @param res - Express 응답 객체
  * @returns 201: 생성된 공지사항
- * @throws ForbiddenException 관리자 권한이 없는 경우
+ * @throws ForbiddenException 관리자 권한이 없는 경우 (requireAdmin 미들웨어에서 처리)
  * @throws ValidationException 요청 body 검증 실패 시
  */
 export const createNotice: RequestHandler = async (req, res) => {
-  // 1. 관리자 권한 확인
-  const adminSecret = req.get('X-Admin-Secret');
-  if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
-    throw new ForbiddenException('관리자 권한이 필요합니다');
-  }
-
-  // 2. 요청 body 검증
+  // 1. 요청 body 검증
   const data = createNoticeSchema.parse(req.body);
 
   logger.debug({ title: data.title }, 'Creating notice');
@@ -270,18 +264,12 @@ export const createNotice: RequestHandler = async (req, res) => {
  * @param req - Express 요청 객체 (params: { id }, body: { title?, content?, category?, isPinned? })
  * @param res - Express 응답 객체
  * @returns 200: 수정된 공지사항
- * @throws ForbiddenException 관리자 권한이 없는 경우
+ * @throws ForbiddenException 관리자 권한이 없는 경우 (requireAdmin 미들웨어에서 처리)
  * @throws NotFoundException 공지사항을 찾을 수 없는 경우
  * @throws ValidationException 요청 검증 실패 시
  */
 export const updateNotice: RequestHandler = async (req, res) => {
-  // 1. 관리자 권한 확인
-  const adminSecret = req.get('X-Admin-Secret');
-  if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
-    throw new ForbiddenException('관리자 권한이 필요합니다');
-  }
-
-  // 2. ID 파라미터 검증
+  // 1. ID 파라미터 검증
   const { id } = noticeIdSchema.parse(req.params);
 
   // 3. 요청 body 검증
@@ -343,18 +331,12 @@ export const updateNotice: RequestHandler = async (req, res) => {
  * @param req - Express 요청 객체 (params: { id })
  * @param res - Express 응답 객체
  * @returns 204: No Content
- * @throws ForbiddenException 관리자 권한이 없는 경우
+ * @throws ForbiddenException 관리자 권한이 없는 경우 (requireAdmin 미들웨어에서 처리)
  * @throws NotFoundException 공지사항을 찾을 수 없는 경우
  * @throws ValidationException ID 파라미터 검증 실패 시
  */
 export const deleteNotice: RequestHandler = async (req, res) => {
-  // 1. 관리자 권한 확인
-  const adminSecret = req.get('X-Admin-Secret');
-  if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
-    throw new ForbiddenException('관리자 권한이 필요합니다');
-  }
-
-  // 2. ID 파라미터 검증
+  // 1. ID 파라미터 검증
   const { id } = noticeIdSchema.parse(req.params);
 
   logger.debug({ noticeId: id }, 'Deleting notice');
@@ -397,18 +379,12 @@ export const deleteNotice: RequestHandler = async (req, res) => {
  * @param req - Express 요청 객체 (params: { id }, body: { isPinned })
  * @param res - Express 응답 객체
  * @returns 200: { id, title, isPinned, updatedAt }
- * @throws ForbiddenException 관리자 권한이 없는 경우
+ * @throws ForbiddenException 관리자 권한이 없는 경우 (requireAdmin 미들웨어에서 처리)
  * @throws NotFoundException 공지사항을 찾을 수 없는 경우
  * @throws ValidationException 요청 검증 실패 시
  */
 export const pinNotice: RequestHandler = async (req, res) => {
-  // 1. 관리자 권한 확인
-  const adminSecret = req.get('X-Admin-Secret');
-  if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
-    throw new ForbiddenException('관리자 권한이 필요합니다');
-  }
-
-  // 2. ID 파라미터 검증
+  // 1. ID 파라미터 검증
   const { id } = noticeIdSchema.parse(req.params);
 
   // 3. 요청 body 검증
