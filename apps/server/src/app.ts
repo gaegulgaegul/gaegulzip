@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import authRouter from './modules/auth';
@@ -13,6 +14,7 @@ import { errorHandler } from './middleware/error-handler';
 export const app = express();
 
 // Middleware
+app.use(cors());
 app.use(express.json());
 
 // Swagger UI (OpenAPI Documentation)
