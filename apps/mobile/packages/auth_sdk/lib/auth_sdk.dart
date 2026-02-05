@@ -29,9 +29,8 @@ export 'src/models/refresh_response.dart';
 export 'src/models/user_model.dart';
 
 // Widgets (re-exported from design_system)
-export 'package:design_system/src/widgets/social_login_button.dart';
-export 'package:design_system/src/enums/social_login_platform.dart';
-export 'package:design_system/src/enums/apple_sign_in_style.dart';
+export 'package:design_system/design_system.dart'
+    show SocialLoginButton, SocialLoginPlatform, AppleSignInStyle;
 
 // Main SDK class
 export 'src/auth_sdk.dart';

@@ -99,10 +99,14 @@ class AuthSdk {
     }
 
     // AuthApiService 등록
-    Get.lazyPut<AuthApiService>(() => AuthApiService());
+    if (!Get.isRegistered<AuthApiService>()) {
+      Get.lazyPut<AuthApiService>(() => AuthApiService());
+    }
 
     // AuthRepository 등록
-    Get.lazyPut<AuthRepository>(() => AuthRepository());
+    if (!Get.isRegistered<AuthRepository>()) {
+      Get.lazyPut<AuthRepository>(() => AuthRepository());
+    }
 
     // AuthInterceptor 등록
     final dio = Get.find<Dio>();
