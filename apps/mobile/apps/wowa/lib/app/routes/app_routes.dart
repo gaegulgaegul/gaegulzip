@@ -10,4 +10,7 @@ abstract class Routes {
 
   /// 설정 화면
   static const SETTINGS = '/settings';
+
+  /// 알림 목록 화면
+  static const NOTIFICATIONS = '/notifications';
 }
