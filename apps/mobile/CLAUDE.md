@@ -47,7 +47,6 @@ core (foundation — no internal dependencies)
 
 ## SDK Packaging Convention
 
-- **SDK는 모바일(Flutter) 패키지로만 생성** — 서버는 모듈로 유지, SDK 추출 안 함
 - SDK 패키지 위치: `packages/*_sdk/` (예: `packages/auth_sdk/`)
 - SDK는 `core`, `api`, `design_system` 패키지에 의존 가능, `wowa` 앱에 의존 금지
 - SDK는 앱에 독립적 — 하드코딩된 앱 이름, 라우트, 화면 이동 포함 금지

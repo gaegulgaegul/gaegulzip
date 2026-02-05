@@ -22,6 +22,7 @@ pnpm drizzle-kit push       # Push schema changes (dev only)
 Required in `.env`:
 - `PORT` — Server port (default: 3001)
 - `DATABASE_URL` — PostgreSQL connection string
+- `ADMIN_SECRET` — 관리자 API 인증 시크릿 (notice 등 관리자 엔드포인트)
 
 ## Project Structure
 
@@ -39,12 +40,6 @@ src/
 ├── app.ts                  # Express app setup
 └── server.ts               # Entry point
 ```
-
-## Module Convention
-
-- **서버 기능은 `src/modules/` 내 모듈로 유지** — SDK 패키지로 추출하지 않음
-- SDK 패키지화는 모바일(Flutter)에서만 수행
-- 모바일 SDK가 서버 API를 호출하는 구조 (서버는 API만 제공)
 
 ## Express Conventions
 
