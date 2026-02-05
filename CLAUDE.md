@@ -37,7 +37,7 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 |----------|-----------|------|
 | Server | `apps/server/CLAUDE.md` | 서버 커맨드, Express 컨벤션, API 설계, Drizzle ORM, 로깅, 테스팅 |
 | Mobile | `apps/mobile/CLAUDE.md` | 모바일 커맨드, 패키지 구조, Flutter/GetX/Design System, 코드 생성, Troubleshooting |
-| Web | `apps/web/admin/` | Next.js 16 + shadcn/ui, Tailwind CSS, Playwright E2E only |
+| Web | `apps/web/admin/CLAUDE.md` | Next.js 16 + shadcn/ui, Tailwind CSS, Playwright E2E only |
 
 ## Core Principles
 
