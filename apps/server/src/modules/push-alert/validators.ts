@@ -24,11 +24,11 @@ export const sendPushSchema = z
   .object({
     appCode: z.string().min(1, 'App code is required'),
     userId: z.number().int().positive().optional(),
-    userIds: z.array(z.number().int().positive()).optional(),
+    userIds: z.array(z.number().int().positive()).max(10000, 'Too many user IDs (max 10000)').optional(),
     targetType: z.enum(['single', 'multiple', 'all']).optional(),
     title: z.string().min(1, 'Title is required').max(255, 'Title is too long'),
     body: z.string().min(1, 'Body is required').max(1000, 'Body is too long'),
-    data: z.record(z.string(), z.any()).optional(),
+    data: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
     imageUrl: z.string().url({ message: 'Invalid image URL' }).max(500).optional(),
   })
   .refine(
@@ -62,3 +62,21 @@ export const listAlertsSchema = z.object({
 });
 
 export type ListAlertsQuery = z.infer<typeof listAlertsSchema>;
+
+/**
+ * 내 알림 목록 조회 쿼리 스키마 (인증된 사용자용)
+ */
+export const listMyNotificationsSchema = z.object({
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+  unreadOnly: z.coerce.boolean().optional(),
+});
+
+export type ListMyNotificationsQuery = z.infer<typeof listMyNotificationsSchema>;
+
+/**
+ * Alert 상세 조회 쿼리 스키마
+ */
+export const getAlertQuerySchema = z.object({
+  appCode: z.string().min(1, 'App code is required'),
+});

@@ -50,6 +50,8 @@ dependencies:
     path: ../../packages/design_system
   admob:
     path: ../../packages/admob
+  push:
+    path: ../../packages/push
   auth_sdk:
     path: ../../packages/auth_sdk
   qna:
