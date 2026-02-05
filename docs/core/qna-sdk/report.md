@@ -37,7 +37,7 @@
 
 ### 2.1 Plan 단계
 
-**문서**: `/Users/lms/dev/repository/feature-qna/docs/core/qna-sdk/user-story.md`
+**문서**: `docs/core/qna-sdk/user-story.md`
 
 **계획 사항**:
 - SDK 패키지 구조 설계 (models, services, repository, controller, binding, view)
@@ -53,7 +53,7 @@
 
 ### 2.2 Design 단계
 
-**문서**: `/Users/lms/dev/repository/feature-qna/docs/core/qna-sdk/mobile-brief.md`
+**문서**: `docs/core/qna-sdk/mobile-brief.md`
 
 **설계 사항**:
 - 새 패키지 구조: `packages/qna/`
@@ -74,7 +74,7 @@
 
 ### 2.3 Do 단계
 
-**문서**: `/Users/lms/dev/repository/feature-qna/docs/core/qna-sdk/mobile-work-plan.md`
+**문서**: `docs/core/qna-sdk/mobile-work-plan.md`
 
 **구현 범위** (4 Phase, 순차 실행):
 
@@ -184,7 +184,7 @@ wowa app_pages.dart
 
 ### 2.5 Act 단계 (CTO 통합 리뷰)
 
-**문서**: `/Users/lms/dev/repository/feature-qna/docs/core/qna-sdk/mobile-cto-review.md`
+**문서**: `docs/core/qna-sdk/mobile-cto-review.md`
 
 **리뷰 결과**: ✅ **승인** (Approved)
 
@@ -221,7 +221,7 @@ wowa app_pages.dart
 
 ### 3.1 SDK 패키지 구조
 
-**위치**: `/Users/lms/dev/repository/feature-qna/apps/mobile/packages/qna/`
+**위치**: `apps/mobile/packages/qna/`
 
 ```
 packages/qna/
@@ -576,22 +576,22 @@ wowa app
 
 | 문서 | 경로 | 설명 |
 |------|------|------|
-| User Story | `/Users/lms/dev/repository/feature-qna/docs/core/qna-sdk/user-story.md` | 7개 사용자 스토리, 5개 시나리오, 20개 인수 조건 |
-| Mobile Brief | `/Users/lms/dev/repository/feature-qna/docs/core/qna-sdk/mobile-brief.md` | 기술 아키텍처, 패키지 구조, appCode 메커니즘 |
-| Mobile Work Plan | `/Users/lms/dev/repository/feature-qna/docs/core/qna-sdk/mobile-work-plan.md` | 4단계 마이그레이션 플랜, 검증 기준 |
-| CTO Review | `/Users/lms/dev/repository/feature-qna/docs/core/qna-sdk/mobile-cto-review.md` | 통합 리뷰, 품질 점수, 승인 |
+| User Story | `docs/core/qna-sdk/user-story.md` | 7개 사용자 스토리, 5개 시나리오, 20개 인수 조건 |
+| Mobile Brief | `docs/core/qna-sdk/mobile-brief.md` | 기술 아키텍처, 패키지 구조, appCode 메커니즘 |
+| Mobile Work Plan | `docs/core/qna-sdk/mobile-work-plan.md` | 4단계 마이그레이션 플랜, 검증 기준 |
+| CTO Review | `docs/core/qna-sdk/mobile-cto-review.md` | 통합 리뷰, 품질 점수, 승인 |
 
 ### 10.2 관련 파일 위치
 
 **SDK 패키지**:
-- `/Users/lms/dev/repository/feature-qna/apps/mobile/packages/qna/`
+- `apps/mobile/packages/qna/`
 
 **wowa 앱 수정**:
-- `/Users/lms/dev/repository/feature-qna/apps/mobile/apps/wowa/pubspec.yaml`
-- `/Users/lms/dev/repository/feature-qna/apps/mobile/apps/wowa/lib/app/routes/app_pages.dart`
+- `apps/mobile/apps/wowa/pubspec.yaml`
+- `apps/mobile/apps/wowa/lib/app/routes/app_pages.dart`
 
 **API 패키지**:
-- `/Users/lms/dev/repository/feature-qna/apps/mobile/packages/api/lib/api.dart`
+- `apps/mobile/packages/api/lib/api.dart`
 
 ### 10.3 주요 코드 변경 사항
 

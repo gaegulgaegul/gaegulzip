@@ -12,12 +12,14 @@ class QnaRepository {
   /// 앱 코드 (생성자로 주입)
   final String appCode;
 
-  final QnaApiService _apiService = Get.find<QnaApiService>();
+  final QnaApiService _apiService;
 
   /// 생성자
   ///
   /// [appCode] 앱 식별 코드 (예: 'wowa', 'other-app')
-  QnaRepository({required this.appCode});
+  /// [apiService] API 서비스 (테스트 시 주입 가능, 기본값: Get.find)
+  QnaRepository({required this.appCode, QnaApiService? apiService})
+      : _apiService = apiService ?? Get.find<QnaApiService>();
 
   /// 질문 제출 처리
   ///
@@ -78,6 +80,13 @@ class QnaRepository {
       // 앱 설정 없음
       return NetworkException(
         message: '서비스 설정 오류가 발생했습니다',
+        statusCode: statusCode,
+      );
+    }
+
+    if (statusCode == 401 || statusCode == 403) {
+      return NetworkException(
+        message: '인증이 필요합니다. 다시 로그인해주세요',
         statusCode: statusCode,
       );
     }

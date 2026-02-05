@@ -18,26 +18,47 @@ let cachedInstance: Octokit | null = null;
  * env 기반으로 Octokit 인스턴스를 생성합니다
  * @returns Octokit 인스턴스
  */
+/**
+ * 환경 변수에서 installation ID를 파싱합니다
+ * @param value - 문자열 형태의 installation ID
+ * @returns 파싱된 숫자
+ * @throws Error - 유효하지 않은 숫자인 경우
+ */
+const parseInstallationId = (value: string): number => {
+  const parsed = parseInt(value, 10);
+  if (Number.isNaN(parsed)) {
+    throw new Error(`QNA_GITHUB_INSTALLATION_ID must be a valid number, got: "${value}"`);
+  }
+  return parsed;
+};
+
 const createOctokitInstance = (): Octokit => {
+  if (!env.QNA_GITHUB_APP_ID || !env.QNA_GITHUB_PRIVATE_KEY || !env.QNA_GITHUB_INSTALLATION_ID) {
+    throw new Error('QnA GitHub App credentials are not configured. Check QNA_GITHUB_APP_ID, QNA_GITHUB_PRIVATE_KEY, QNA_GITHUB_INSTALLATION_ID.');
+  }
+
   return new MyOctokit({
     authStrategy: createAppAuth,
     auth: {
       appId: env.QNA_GITHUB_APP_ID,
       privateKey: env.QNA_GITHUB_PRIVATE_KEY,
-      installationId: parseInt(env.QNA_GITHUB_INSTALLATION_ID, 10),
+      installationId: parseInstallationId(env.QNA_GITHUB_INSTALLATION_ID),
     },
     throttle: {
       onRateLimit: (retryAfter, options, octokit, retryCount) => {
         octokit.log.warn(`Rate limit hit: ${options.method} ${options.url}`);
         if (retryCount < 2) {
           octokit.log.info(`Retrying after ${retryAfter}s`);
-          return true; // 재시도
+          return true;
         }
-        return false; // 포기
+        return false;
       },
-      onSecondaryRateLimit: (retryAfter, options, octokit) => {
+      onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
         octokit.log.warn(`Secondary rate limit: ${options.method} ${options.url}`);
-        return true; // 콘텐츠 생성은 secondary rate limit에 민감하므로 재시도
+        if (retryCount < 2) {
+          return true;
+        }
+        return false;
       },
     },
     retry: {

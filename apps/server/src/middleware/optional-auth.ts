@@ -6,6 +6,16 @@ import { eq } from 'drizzle-orm';
 import { logger } from '../utils/logger';
 
 /**
+ * JWT 페이로드 타입
+ */
+interface JwtPayload {
+  userId: number;
+  appId: number;
+  iat?: number;
+  exp?: number;
+}
+
+/**
  * 선택적 인증 미들웨어
  * Authorization 헤더가 있으면 JWT를 검증하고 req.user를 설정합니다.
  * Authorization 헤더가 없으면 그냥 통과합니다 (익명 사용자 허용).
@@ -28,10 +38,14 @@ export const optionalAuthenticate = async (
       return;
     }
 
-    // Bearer 토큰 추출
-    const token = authHeader.startsWith('Bearer ')
-      ? authHeader.substring(7)
-      : authHeader;
+    // Bearer 형식이 아닌 경우 익명 사용자로 통과
+    if (!authHeader.startsWith('Bearer ')) {
+      logger.debug('Invalid Authorization header format, proceeding as anonymous user');
+      next();
+      return;
+    }
+
+    const token = authHeader.substring(7);
 
     if (!token) {
       logger.debug('Empty token, proceeding as anonymous user');
@@ -40,31 +54,33 @@ export const optionalAuthenticate = async (
     }
 
     // JWT 디코딩 (검증 전에 appId 추출을 위해)
-    const decoded = jwt.decode(token) as any;
+    const decoded = jwt.decode(token);
 
-    if (!decoded || !decoded.appId) {
+    if (!decoded || typeof decoded === 'string' || !('appId' in decoded)) {
       logger.debug('Invalid token format, proceeding as anonymous user');
       next();
       return;
     }
 
+    const payload = decoded as JwtPayload;
+
     // 앱 조회 (JWT 시크릿 가져오기)
     const [app] = await db
       .select()
       .from(apps)
-      .where(eq(apps.id, decoded.appId));
+      .where(eq(apps.id, payload.appId));
 
     if (!app) {
-      logger.debug({ appId: decoded.appId }, 'App not found, proceeding as anonymous user');
+      logger.debug({ appId: payload.appId }, 'App not found, proceeding as anonymous user');
       next();
       return;
     }
 
     // JWT 검증
-    const verified = jwt.verify(token, app.jwtSecret) as any;
+    const verified = jwt.verify(token, app.jwtSecret) as JwtPayload;
 
     // req.user 설정
-    (req as any).user = {
+    req.user = {
       userId: verified.userId,
       appId: verified.appId,
     };

@@ -52,7 +52,7 @@
   - 모바일 Repository: `apps/mobile/apps/wowa/lib/app/data/repositories/qna_repository.dart`
   - 모바일 화면: `apps/mobile/apps/wowa/lib/app/modules/qna/views/qna_submit_view.dart`
 - **새 제품 적용 방법**:
-  1. `qna_config` 테이블에 앱별 GitHub App 설정 추가 (appId, repoOwner, repoName, appId, installationId, privateKey)
+  1. `qna_config` 테이블에 앱별 GitHub App 설정 추가 (appId, repoOwner, repoName, installationId, privateKey)
   2. `apps` 테이블에 새 앱 레코드 추가 (code: "새앱코드")
   3. 모바일에서 `Get.toNamed(Routes.QNA)` 호출 (QnaRepository의 appCode 변경)
   4. API 호출: `POST /qna/questions { appCode: "새앱코드", title: "...", body: "..." }`

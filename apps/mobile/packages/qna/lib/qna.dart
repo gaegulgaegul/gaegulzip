@@ -1,20 +1,20 @@
 library qna;
 
-// Models
+// 모델
 export 'src/models/qna_submit_request.dart';
 export 'src/models/qna_submit_response.dart';
 
-// Services
+// 서비스
 export 'src/services/qna_api_service.dart';
 
-// Repositories
+// 레포지토리
 export 'src/repositories/qna_repository.dart';
 
-// Controllers
+// 컨트롤러
 export 'src/controllers/qna_controller.dart';
 
-// Bindings
+// 바인딩
 export 'src/bindings/qna_binding.dart';
 
-// Views
+// 뷰
 export 'src/views/qna_submit_view.dart';

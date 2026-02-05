@@ -15,13 +15,13 @@ import { logger } from '../../utils/logger';
  */
 export const submitQuestion: RequestHandler = async (req: Request, res: Response) => {
   const { appCode, title, body } = submitQuestionSchema.parse(req.body);
-  const user = (req as any).user as { userId: number; appId: number } | undefined;
+  const user = req.user;
 
   logger.debug({ appCode, title: title.substring(0, 50), userId: user?.userId }, 'Submitting question');
 
   const result = await createQuestion({
     appCode,
-    userId: user?.userId || null,
+    userId: user?.userId ?? null,
     title,
     body,
   });
@@ -29,7 +29,7 @@ export const submitQuestion: RequestHandler = async (req: Request, res: Response
   qnaProbe.questionSubmitted({
     questionId: result.questionId,
     appCode,
-    userId: user?.userId || null,
+    userId: user?.userId ?? null,
     issueNumber: result.issueNumber,
   });
 

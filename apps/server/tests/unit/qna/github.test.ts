@@ -1,9 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { RequestError } from '@octokit/request-error';
 import { createGitHubIssue } from '../../../src/modules/qna/github';
 import { ExternalApiException, NotFoundException, BusinessException } from '../../../src/utils/errors';
 
+/**
+ * Octokit mock 타입 (필요한 메서드만 정의)
+ */
+interface MockOctokit {
+  rest: {
+    issues: {
+      create: ReturnType<typeof vi.fn>;
+    };
+  };
+  log: {
+    warn: ReturnType<typeof vi.fn>;
+    info: ReturnType<typeof vi.fn>;
+    error: ReturnType<typeof vi.fn>;
+  };
+}
+
 // Octokit 인스턴스 모킹
-const mockOctokit = {
+const mockOctokit: MockOctokit = {
   rest: {
     issues: {
       create: vi.fn(),
@@ -14,7 +31,23 @@ const mockOctokit = {
     info: vi.fn(),
     error: vi.fn(),
   },
-} as any;
+};
+
+/**
+ * HTTP 에러 헬퍼 (RequestError 생성)
+ */
+const createHttpError = (message: string, status: number): RequestError =>
+  new RequestError(message, status, {
+    request: { method: 'POST', url: '/repos/org/repo/issues', headers: {} },
+  });
+
+const defaultParams = {
+  owner: 'org',
+  repo: 'repo',
+  title: 'Title',
+  body: 'Body',
+  labels: ['qna'],
+};
 
 describe('QnA GitHub', () => {
   beforeEach(() => {
@@ -33,7 +66,7 @@ describe('QnA GitHub', () => {
         data: mockIssueData,
       });
 
-      const result = await createGitHubIssue(mockOctokit, {
+      const result = await createGitHubIssue(mockOctokit as any, {
         owner: 'gaegulzip-org',
         repo: 'wowa-issues',
         title: '운동 강도 조절',
@@ -56,89 +89,20 @@ describe('QnA GitHub', () => {
       });
     });
 
-    it('should throw ExternalApiException on 401 error', async () => {
-      const error = new Error('Bad credentials') as any;
-      error.status = 401;
-
+    it.each([
+      { status: 401, message: 'Bad credentials', expectedException: ExternalApiException },
+      { status: 403, message: 'Forbidden', expectedException: ExternalApiException },
+      { status: 404, message: 'Not Found', expectedException: NotFoundException },
+      { status: 422, message: 'Validation Failed', expectedException: BusinessException },
+      { status: 429, message: 'API rate limit exceeded', expectedException: ExternalApiException },
+      { status: 500, message: 'Internal Server Error', expectedException: ExternalApiException },
+    ])('should throw $expectedException.name on $status error', async ({ status, message, expectedException }) => {
+      const error = createHttpError(message, status);
       mockOctokit.rest.issues.create.mockRejectedValue(error);
 
       await expect(
-        createGitHubIssue(mockOctokit, {
-          owner: 'org',
-          repo: 'repo',
-          title: 'Title',
-          body: 'Body',
-          labels: ['qna'],
-        })
-      ).rejects.toThrow(ExternalApiException);
-    });
-
-    it('should throw NotFoundException on 404 error', async () => {
-      const error = new Error('Not Found') as any;
-      error.status = 404;
-
-      mockOctokit.rest.issues.create.mockRejectedValue(error);
-
-      await expect(
-        createGitHubIssue(mockOctokit, {
-          owner: 'org',
-          repo: 'repo',
-          title: 'Title',
-          body: 'Body',
-          labels: ['qna'],
-        })
-      ).rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw BusinessException on 422 error', async () => {
-      const error = new Error('Validation Failed') as any;
-      error.status = 422;
-
-      mockOctokit.rest.issues.create.mockRejectedValue(error);
-
-      await expect(
-        createGitHubIssue(mockOctokit, {
-          owner: 'org',
-          repo: 'repo',
-          title: 'Title',
-          body: 'Body',
-          labels: ['qna'],
-        })
-      ).rejects.toThrow(BusinessException);
-    });
-
-    it('should throw ExternalApiException on 429 error', async () => {
-      const error = new Error('API rate limit exceeded') as any;
-      error.status = 429;
-
-      mockOctokit.rest.issues.create.mockRejectedValue(error);
-
-      await expect(
-        createGitHubIssue(mockOctokit, {
-          owner: 'org',
-          repo: 'repo',
-          title: 'Title',
-          body: 'Body',
-          labels: ['qna'],
-        })
-      ).rejects.toThrow(ExternalApiException);
-    });
-
-    it('should throw ExternalApiException on other errors', async () => {
-      const error = new Error('Internal Server Error') as any;
-      error.status = 500;
-
-      mockOctokit.rest.issues.create.mockRejectedValue(error);
-
-      await expect(
-        createGitHubIssue(mockOctokit, {
-          owner: 'org',
-          repo: 'repo',
-          title: 'Title',
-          body: 'Body',
-          labels: ['qna'],
-        })
-      ).rejects.toThrow(ExternalApiException);
+        createGitHubIssue(mockOctokit as any, defaultParams)
+      ).rejects.toThrow(expectedException);
     });
   });
 });

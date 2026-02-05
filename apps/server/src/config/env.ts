@@ -5,11 +5,11 @@ const envSchema = z.object({
   JWT_SECRET_FALLBACK: z.string().min(32),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3001'),
-  QNA_GITHUB_APP_ID: z.string(),
-  QNA_GITHUB_PRIVATE_KEY: z.string(),
-  QNA_GITHUB_INSTALLATION_ID: z.string(),
-  QNA_GITHUB_REPO_OWNER: z.string(),
-  QNA_GITHUB_REPO_NAME: z.string(),
+  QNA_GITHUB_APP_ID: z.string().optional(),
+  QNA_GITHUB_PRIVATE_KEY: z.string().optional(),
+  QNA_GITHUB_INSTALLATION_ID: z.string().optional(),
+  QNA_GITHUB_REPO_OWNER: z.string().optional(),
+  QNA_GITHUB_REPO_NAME: z.string().optional(),
 });
 
 /**

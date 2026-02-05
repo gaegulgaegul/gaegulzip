@@ -27,7 +27,7 @@
         },
         "notes": "PDCA 완료. 리팩토링 포함 최종 Match Rate 100%. 116/116 테스트 통과.",
         "phaseNumber": 6,
-        "lastFile": "/Users/lms/dev/repository/feature-qna/docs/04-report/qna.report.md",
+        "lastFile": "docs/04-report/qna.report.md",
         "timestamps": {
           "lastUpdated": "2026-02-05T12:06:00.000Z"
         }
@@ -62,7 +62,7 @@
           "started": "2026-02-04T10:23:41.822Z",
           "lastUpdated": "2026-02-04T11:53:31.301Z"
         },
-        "lastFile": "/Users/lms/dev/repository/feature-qna/apps/server/tests/unit/qna/services.test.ts"
+        "lastFile": "apps/server/tests/unit/qna/services.test.ts"
       }
     },
     "pipeline": {

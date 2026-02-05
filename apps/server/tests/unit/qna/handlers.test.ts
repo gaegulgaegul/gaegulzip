@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
+import { ZodError } from 'zod';
 import { submitQuestion } from '../../../src/modules/qna/handlers';
 import * as services from '../../../src/modules/qna/services';
 import * as qnaProbe from '../../../src/modules/qna/qna.probe';
@@ -7,8 +8,15 @@ import * as qnaProbe from '../../../src/modules/qna/qna.probe';
 vi.mock('../../../src/modules/qna/services');
 vi.mock('../../../src/modules/qna/qna.probe');
 
+/**
+ * 테스트용 Request 타입 (user 속성 포함)
+ */
+interface MockRequest extends Partial<Request> {
+  user?: { userId: number; appId: number };
+}
+
 describe('QnA Handlers', () => {
-  let mockReq: Partial<Request>;
+  let mockReq: MockRequest;
   let mockRes: Partial<Response>;
 
   beforeEach(() => {
@@ -30,7 +38,7 @@ describe('QnA Handlers', () => {
         title: '운동 강도 조절',
         body: '운동 강도를 어떻게 조절하나요?',
       };
-      (mockReq as any).user = { userId: 123, appId: 1 };
+      mockReq.user = { userId: 123, appId: 1 };
 
       vi.mocked(services.createQuestion).mockResolvedValue({
         questionId: 1,
@@ -70,7 +78,7 @@ describe('QnA Handlers', () => {
         title: '질문',
         body: '내용',
       };
-      (mockReq as any).user = undefined; // 비인증 사용자
+      mockReq.user = undefined;
 
       vi.mocked(services.createQuestion).mockResolvedValue({
         questionId: 2,
@@ -83,7 +91,7 @@ describe('QnA Handlers', () => {
 
       expect(services.createQuestion).toHaveBeenCalledWith({
         appCode: 'wowa',
-        userId: null, // 익명 사용자
+        userId: null,
         title: '질문',
         body: '내용',
       });
@@ -98,7 +106,7 @@ describe('QnA Handlers', () => {
       expect(mockRes.status).toHaveBeenCalledWith(201);
     });
 
-    it('should throw validation error for missing title', async () => {
+    it('should throw ZodError for missing title', async () => {
       mockReq.body = {
         appCode: 'wowa',
         body: '내용',
@@ -106,10 +114,10 @@ describe('QnA Handlers', () => {
 
       await expect(
         submitQuestion(mockReq as Request, mockRes as Response)
-      ).rejects.toThrow(); // Zod 에러
+      ).rejects.toThrow(ZodError);
     });
 
-    it('should throw validation error for missing body', async () => {
+    it('should throw ZodError for missing body', async () => {
       mockReq.body = {
         appCode: 'wowa',
         title: '제목',
@@ -117,10 +125,10 @@ describe('QnA Handlers', () => {
 
       await expect(
         submitQuestion(mockReq as Request, mockRes as Response)
-      ).rejects.toThrow(); // Zod 에러
+      ).rejects.toThrow(ZodError);
     });
 
-    it('should throw validation error for missing appCode', async () => {
+    it('should throw ZodError for missing appCode', async () => {
       mockReq.body = {
         title: '제목',
         body: '내용',
@@ -128,7 +136,7 @@ describe('QnA Handlers', () => {
 
       await expect(
         submitQuestion(mockReq as Request, mockRes as Response)
-      ).rejects.toThrow(); // Zod 에러
+      ).rejects.toThrow(ZodError);
     });
   });
 });

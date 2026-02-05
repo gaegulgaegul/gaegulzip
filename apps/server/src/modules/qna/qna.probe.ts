@@ -14,7 +14,7 @@ export const questionSubmitted = (data: {
     {
       questionId: data.questionId,
       appCode: data.appCode,
-      userId: data.userId || 'anonymous',
+      userId: data.userId ?? 'anonymous',
       issueNumber: data.issueNumber,
     },
     'Question submitted to GitHub'

@@ -7,7 +7,7 @@ import '../models/qna_submit_response.dart';
 ///
 /// 질문 제출 API를 호출합니다.
 class QnaApiService {
-  final Dio _dio = Get.find<Dio>();
+  late final Dio _dio = Get.find<Dio>();
 
   /// 질문 제출 API 호출
   ///

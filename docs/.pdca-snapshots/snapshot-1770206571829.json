@@ -25,7 +25,7 @@
         },
         "notes": "리팩토링 완료: qnaConfig DB → 환경변수 전환, Issue 제목에 [appCode] 추가. Match Rate 100%.",
         "phaseNumber": 4,
-        "lastFile": "/Users/lms/dev/repository/feature-qna/docs/03-analysis/qna-refactor.analysis.md",
+        "lastFile": "docs/03-analysis/qna-refactor.analysis.md",
         "timestamps": {
           "lastUpdated": "2026-02-05T11:56:00.000Z"
         }
@@ -41,7 +41,7 @@
           "started": "2026-02-04T10:23:41.822Z",
           "lastUpdated": "2026-02-04T11:53:31.301Z"
         },
-        "lastFile": "/Users/lms/dev/repository/feature-qna/apps/server/tests/unit/qna/services.test.ts"
+        "lastFile": "apps/server/tests/unit/qna/services.test.ts"
       }
     },
     "pipeline": {

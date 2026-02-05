@@ -5,6 +5,7 @@ import { apps } from '../auth/schema';
 import { getOctokitInstance } from './octokit';
 import { createGitHubIssue } from './github';
 import { NotFoundException } from '../../utils/errors';
+import { logger } from '../../utils/logger';
 import { eq } from 'drizzle-orm';
 
 /**
@@ -36,6 +37,14 @@ export interface CreateQuestionResult {
 }
 
 /**
+ * 사용자 입력을 새니타이징합니다 (제어 문자 제거, 탭과 개행은 유지)
+ * @param input - 사용자 입력 문자열
+ * @returns 새니타이징된 문자열
+ */
+const sanitizeInput = (input: string): string =>
+  input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim();
+
+/**
  * GitHub Issue 본문을 생성합니다 (질문 내용 + 메타데이터)
  * @param body - 질문 본문
  * @param metadata - 메타데이터 (userId, appCode, timestamp)
@@ -45,10 +54,7 @@ const buildIssueBody = (
   body: string,
   metadata: { userId: number | null; appCode: string; timestamp: string }
 ): string => {
-  // 사용자 입력 새니타이징 (제어 문자 제거, 탭과 개행은 유지)
-  const sanitizedBody = body
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-    .trim();
+  const sanitizedBody = sanitizeInput(body);
 
   const userInfo = metadata.userId
     ? `사용자 ID: ${metadata.userId}`
@@ -79,6 +85,11 @@ const buildIssueBody = (
  * @throws ExternalApiException - GitHub API 호출 실패
  */
 export const createQuestion = async (params: CreateQuestionParams): Promise<CreateQuestionResult> => {
+  // 0. QnA GitHub 설정 확인
+  if (!env.QNA_GITHUB_REPO_OWNER || !env.QNA_GITHUB_REPO_NAME) {
+    throw new Error('QnA GitHub configuration is not set. Check QNA_GITHUB_* environment variables.');
+  }
+
   // 1. 앱 조회
   const [app] = await db.select().from(apps).where(eq(apps.code, params.appCode));
   if (!app) {
@@ -95,27 +106,42 @@ export const createQuestion = async (params: CreateQuestionParams): Promise<Crea
     timestamp: new Date().toISOString(),
   });
 
-  // 4. GitHub Issue 생성
+  // 4. GitHub Issue 생성 (title도 새니타이징)
+  const sanitizedTitle = sanitizeInput(params.title);
   const githubResult = await createGitHubIssue(octokit, {
     owner: env.QNA_GITHUB_REPO_OWNER,
     repo: env.QNA_GITHUB_REPO_NAME,
-    title: `[${params.appCode}] ${params.title}`,
+    title: `[${params.appCode}] ${sanitizedTitle}`,
     body: issueBody,
     labels: ['qna'],
   });
 
   // 5. DB에 질문 이력 저장
-  const [question] = await db
-    .insert(qnaQuestions)
-    .values({
-      appId: app.id,
-      userId: params.userId,
-      title: params.title,
-      body: params.body,
-      issueNumber: githubResult.issueNumber,
-      issueUrl: githubResult.issueUrl,
-    })
-    .returning();
+  let question;
+  try {
+    [question] = await db
+      .insert(qnaQuestions)
+      .values({
+        appId: app.id,
+        userId: params.userId,
+        title: params.title,
+        body: params.body,
+        issueNumber: githubResult.issueNumber,
+        issueUrl: githubResult.issueUrl,
+      })
+      .returning();
+  } catch (error) {
+    logger.error(
+      {
+        issueNumber: githubResult.issueNumber,
+        issueUrl: githubResult.issueUrl,
+        appCode: params.appCode,
+        error,
+      },
+      'Failed to save question to DB after GitHub issue creation'
+    );
+    throw error;
+  }
 
   return {
     questionId: question.id,

@@ -8,7 +8,16 @@ import '../controllers/qna_controller.dart';
 ///
 /// 질문 제목과 본문을 입력하고 제출할 수 있습니다.
 class QnaSubmitView extends GetView<QnaController> {
-  const QnaSubmitView({Key? key}) : super(key: key);
+  /// 본문 글자 수 경고 임계값
+  static const int bodyWarningThreshold = 60000;
+
+  /// 본문 글자 수 오류 임계값
+  static const int bodyErrorThreshold = 65000;
+
+  /// 본문 최대 글자 수
+  static const int bodyMaxLength = 65536;
+
+  const QnaSubmitView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +107,7 @@ class QnaSubmitView extends GetView<QnaController> {
           label: '질문 내용 *',
           hint: '구체적으로 작성할수록 빠른 답변을 받을 수 있습니다',
           controller: controller.bodyController,
-          maxLength: 65536,
+          maxLength: bodyMaxLength,
           minLines: 8,
           maxLines: 20,
           errorText: controller.bodyError.value.isEmpty
@@ -112,13 +121,13 @@ class QnaSubmitView extends GetView<QnaController> {
   Widget _buildCharCounter() {
     return Obx(() {
       final count = controller.bodyLength.value;
-      final isWarning = count > 60000;
-      final isError = count > 65000;
+      final isWarning = count > bodyWarningThreshold;
+      final isError = count > bodyErrorThreshold;
 
       return Align(
         alignment: Alignment.centerRight,
         child: Text(
-          '본문: $count / 65536자',
+          '본문: $count / $bodyMaxLength자',
           style: TextStyle(
             fontSize: 12,
             color: isError
