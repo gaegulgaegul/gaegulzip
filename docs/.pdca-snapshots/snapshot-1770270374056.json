@@ -1,0 +1,234 @@
+{
+  "timestamp": "2026-02-05T05:46:14.054Z",
+  "reason": "compaction",
+  "status": {
+    "version": "2.0",
+    "lastUpdated": "2026-02-05T03:11:46.555Z",
+    "activeFeatures": [
+      "auth_sdk",
+      "social-login",
+      "auth",
+      "server"
+    ],
+    "primaryFeature": "auth_sdk",
+    "features": {
+      "auth_sdk": {
+        "phase": "completed",
+        "platform": "mobile",
+        "startedAt": "2026-02-04T21:00:00.000Z",
+        "completedAt": "2026-02-05T00:00:00.000Z",
+        "matchRate": 100,
+        "iterationCount": 3,
+        "coderabbitReview": {
+          "issuesFound": 35,
+          "issuesFixed": 29,
+          "commits": 5
+        },
+        "documents": {
+          "plan": "docs/social-login-sdk/brief.md",
+          "design": "docs/social-login-sdk/design-approval.md",
+          "analysis": "docs/social-login-sdk/analysis.md",
+          "cto-review": "docs/social-login-sdk/mobile-cto-review.md",
+          "report": "docs/social-login-sdk/report.md"
+        }
+      },
+      "social-login": {
+        "phase": "completed",
+        "platform": "fullstack",
+        "startedAt": "2026-02-04T08:09:41.903Z",
+        "completedAt": "2026-02-04T09:15:00.000Z",
+        "matchRate": {
+          "server": 100,
+          "mobile": 97,
+          "overall": 98
+        },
+        "documents": {
+          "analysis-reference": "docs/core/social-login.md",
+          "report": "docs/04-report/social-login.report.md"
+        }
+      },
+      "auth": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-04T08:25:01.115Z",
+          "lastUpdated": "2026-02-05T03:11:11.444Z"
+        },
+        "lastFile": "/Users/lms/dev/repository/feature-social-login/apps/server/src/modules/auth/services.ts"
+      },
+      "server": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-04T08:35:27.805Z",
+          "lastUpdated": "2026-02-05T03:11:46.555Z"
+        },
+        "lastFile": "/Users/lms/dev/repository/feature-social-login/apps/server/tests/unit/auth/handlers.test.ts"
+      }
+    },
+    "pipeline": {
+      "currentPhase": 1,
+      "level": "Dynamic",
+      "phaseHistory": []
+    },
+    "session": {
+      "startedAt": "2026-02-04T08:09:41.903Z",
+      "onboardingCompleted": false,
+      "lastActivity": "2026-02-05T03:11:46.555Z"
+    },
+    "history": [
+      {
+        "timestamp": "2026-02-04T08:25:01.115Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:25:19.680Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:25:26.547Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:25:51.666Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:33:49.547Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:33:58.567Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:34:11.256Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:34:18.330Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:35:27.805Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:35:42.223Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:36:10.749Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:36:15.879Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:36:28.503Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:37:06.875Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:39:51.375Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-04T08:39:58.507Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T03:09:10.076Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T03:09:22.677Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T03:09:56.734Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T03:10:06.643Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T03:10:50.122Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T03:10:59.449Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T03:11:11.444Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T03:11:46.555Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      }
+    ]
+  }
+}
