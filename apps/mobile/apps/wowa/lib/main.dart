@@ -12,10 +12,16 @@ Future<void> main() async {
   // 1. 환경변수 로드
   await dotenv.load(fileName: ".env");
 
-  // 2. AuthSdk 초기화
+  // 2. API_BASE_URL 확인
+  final apiBaseUrl = dotenv.env['API_BASE_URL'];
+  if (apiBaseUrl == null || apiBaseUrl.isEmpty) {
+    throw Exception('API_BASE_URL이 .env 파일에 설정되지 않았습니다');
+  }
+
+  // 3. AuthSdk 초기화
   await AuthSdk.initialize(
     appCode: 'wowa',
-    apiBaseUrl: dotenv.env['API_BASE_URL']!,
+    apiBaseUrl: apiBaseUrl,
     providers: {
       SocialProvider.kakao: const ProviderConfig(),
       SocialProvider.naver: const ProviderConfig(),
@@ -24,7 +30,7 @@ Future<void> main() async {
     },
   );
 
-  // 3. AdMob 초기화
+  // 4. AdMob 초기화
   final adMobService = Get.put(AdMobService());
   await adMobService.initialize();
 

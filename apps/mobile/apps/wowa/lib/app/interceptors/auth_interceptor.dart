@@ -73,11 +73,17 @@ class AuthInterceptor extends Interceptor {
     // 갱신 성공 — 새 토큰으로 원래 요청 재시도
     try {
       final accessToken = await _storageService.getAccessToken();
+      if (accessToken == null) {
+        return handler.next(err);
+      }
       err.requestOptions.headers['Authorization'] = 'Bearer $accessToken';
       final response = await Get.find<Dio>().fetch(err.requestOptions);
       handler.resolve(response);
     } on DioException catch (retryErr) {
       handler.next(retryErr);
+    } catch (e) {
+      // DioException 외 다른 예외 처리
+      handler.next(err);
     }
   }
 

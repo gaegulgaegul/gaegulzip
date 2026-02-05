@@ -76,6 +76,9 @@ class AuthStateService extends GetxService {
     final refreshed = await refreshToken();
     if (!refreshed) {
       status.value = AuthStatus.unauthenticated;
+    } else {
+      // 갱신 성공 시 authenticated 상태로 설정
+      status.value = AuthStatus.authenticated;
     }
   }
 
@@ -91,8 +94,13 @@ class AuthStateService extends GetxService {
   ///
   /// 서버 토큰 무효화 + 로컬 데이터 삭제 + 상태 업데이트
   Future<void> logout({bool revokeAll = false}) async {
-    await _authRepository.logout(revokeAll: revokeAll);
-    status.value = AuthStatus.unauthenticated;
+    try {
+      await _authRepository.logout(revokeAll: revokeAll);
+    } catch (_) {
+      // 서버 로그아웃 실패해도 상태는 unauthenticated로 전환
+    } finally {
+      status.value = AuthStatus.unauthenticated;
+    }
   }
 
   /// 토큰 갱신
@@ -102,8 +110,13 @@ class AuthStateService extends GetxService {
   Future<bool> refreshToken() async {
     try {
       await _authRepository.refreshAccessToken();
+      status.value = AuthStatus.authenticated;
       return true;
     } on AuthException {
+      status.value = AuthStatus.unauthenticated;
+      return false;
+    } catch (_) {
+      // 네트워크 오류 등 다른 예외 처리
       status.value = AuthStatus.unauthenticated;
       return false;
     }
