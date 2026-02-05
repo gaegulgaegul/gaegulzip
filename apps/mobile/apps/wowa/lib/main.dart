@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:admob/admob.dart';
 import 'package:api/api.dart';
+import 'package:core/core.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -59,12 +60,16 @@ Future<void> main() async {
 
   // 8. 디바이스 토큰 변경 시 서버에 자동 등록
   final pushApiClient = Get.find<PushApiClient>();
-  ever(pushService.deviceToken, (String? token) {
+  ever(pushService.deviceToken, (String? token) async {
     if (token != null && token.isNotEmpty) {
-      pushApiClient.registerDevice(DeviceTokenRequest(
-        token: token,
-        platform: Platform.isIOS ? 'ios' : 'android',
-      ));
+      try {
+        await pushApiClient.registerDevice(DeviceTokenRequest(
+          token: token,
+          platform: Platform.isIOS ? 'ios' : 'android',
+        ));
+      } catch (e) {
+        Logger.error('디바이스 토큰 등록 실패', error: e);
+      }
     }
   });
 

@@ -1,4 +1,5 @@
 import 'package:api/api.dart';
+import 'package:core/core.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 
@@ -25,6 +26,9 @@ class NotificationController extends GetxController {
 
   /// 더 불러올 데이터 존재 여부
   final hasMore = true.obs;
+
+  /// 읽음 처리 진행 중인 알림 ID (더블탭 방어)
+  final _pendingReads = <int>{};
 
   /// 페이지 당 로딩 개수
   static const _pageSize = 20;
@@ -77,8 +81,8 @@ class NotificationController extends GetxController {
       );
       notifications.addAll(response.notifications);
       hasMore.value = notifications.length < response.total;
-    } on DioException {
-      // 추가 로딩 실패 시 조용히 처리 (기존 목록 유지)
+    } on DioException catch (e) {
+      Logger.warn('추가 알림 로딩 실패: ${e.message}');
     } finally {
       isLoadingMore.value = false;
     }
@@ -89,8 +93,8 @@ class NotificationController extends GetxController {
     try {
       final response = await _apiClient.getUnreadCount();
       unreadCount.value = response.unreadCount;
-    } on DioException {
-      // 개수 조회 실패 시 조용히 처리
+    } on DioException catch (e) {
+      Logger.warn('읽지 않은 알림 개수 조회 실패: ${e.message}');
     }
   }
 
@@ -101,11 +105,13 @@ class NotificationController extends GetxController {
   ///
   /// [notification] 탭한 알림 모델
   Future<void> handleNotificationTap(NotificationModel notification) async {
-    // 이미 읽은 알림이면 딥링크만 처리
-    if (notification.isRead) {
+    // 이미 읽은 알림 또는 읽음 처리 진행 중이면 딥링크만 처리
+    if (notification.isRead || _pendingReads.contains(notification.id)) {
       _handleDeepLink(notification.data);
       return;
     }
+
+    _pendingReads.add(notification.id);
 
     // 낙관적 업데이트: 원본 보존 후 UI 즉시 변경
     final index = notifications.indexWhere((n) => n.id == notification.id);
@@ -125,6 +131,8 @@ class NotificationController extends GetxController {
         notifications[index] = notification;
         unreadCount.value++;
       }
+    } finally {
+      _pendingReads.remove(notification.id);
     }
 
     // 딥링크 처리

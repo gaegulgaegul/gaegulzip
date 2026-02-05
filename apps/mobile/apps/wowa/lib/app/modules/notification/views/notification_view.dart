@@ -159,8 +159,10 @@ class NotificationView extends GetView<NotificationController> {
         ),
         itemCount: itemCount,
         itemBuilder: (context, index) {
-          // 무한 스크롤 트리거 (끝에서 3개 전)
-          if (index >= items.length - 3 && controller.hasMore.value) {
+          // 무한 스크롤 트리거 (끝에서 3개 전, 로딩 중이 아닐 때만)
+          if (index >= items.length - 3 &&
+              controller.hasMore.value &&
+              !controller.isLoadingMore.value) {
             controller.loadMore();
           }
 
