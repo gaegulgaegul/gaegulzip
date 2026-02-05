@@ -19,8 +19,22 @@ import {
 import { findAppByCode } from '../auth/services';
 import { getFCMInstance, sendToMultipleDevices, FCMMessage } from './fcm';
 import * as pushProbe from './push.probe';
-import { NotFoundException, BusinessException } from '../../utils/errors';
+import { NotFoundException, BusinessException, ValidationException, UnauthorizedException } from '../../utils/errors';
 import { logger } from '../../utils/logger';
+
+/**
+ * 인증된 사용자 정보를 안전하게 추출
+ * @param req - Express 요청 객체
+ * @returns { userId, appId } — 인증 미들웨어가 주입한 사용자 정보
+ * @throws UnauthorizedException — 인증 정보가 없는 경우
+ */
+const getAuthUser = (req: Request): { userId: number; appId: number } => {
+  const user = (req as any).user;
+  if (!user?.userId || !user?.appId) {
+    throw new UnauthorizedException('Authentication required');
+  }
+  return { userId: user.userId, appId: user.appId };
+};
 
 /**
  * 디바이스 토큰 등록 핸들러 (인증 필요)
@@ -30,7 +44,7 @@ import { logger } from '../../utils/logger';
  */
 export const registerDevice = async (req: Request, res: Response) => {
   const { token, platform, deviceId } = registerDeviceSchema.parse(req.body);
-  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+  const { userId, appId } = getAuthUser(req);
 
   logger.debug({ userId, appId, platform }, 'Registering device token');
 
@@ -66,7 +80,7 @@ export const registerDevice = async (req: Request, res: Response) => {
  * @returns 200: 디바이스 목록
  */
 export const listDevices = async (req: Request, res: Response) => {
-  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+  const { userId, appId } = getAuthUser(req);
 
   const devices = await findDevicesByUserId(userId, appId);
 
@@ -91,7 +105,10 @@ export const listDevices = async (req: Request, res: Response) => {
 export const deactivateDevice = async (req: Request, res: Response) => {
   const idParam = req.params.id;
   const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam, 10);
-  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+  if (isNaN(id) || id <= 0) {
+    throw new ValidationException('Invalid device ID');
+  }
+  const { userId, appId } = getAuthUser(req);
 
   const device = await deactivateDeviceService(id, userId, appId);
 
@@ -307,6 +324,9 @@ export const listAlerts = async (req: Request, res: Response) => {
 export const getAlert = async (req: Request, res: Response) => {
   const idParam = req.params.id;
   const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam, 10);
+  if (isNaN(id) || id <= 0) {
+    throw new ValidationException('Invalid alert ID');
+  }
   const appCode = req.query.appCode as string;
 
   if (!appCode) {
@@ -351,7 +371,7 @@ export const getAlert = async (req: Request, res: Response) => {
  */
 export const listMyNotifications = async (req: Request, res: Response) => {
   const { limit, offset, unreadOnly } = listMyNotificationsSchema.parse(req.query);
-  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+  const { userId, appId } = getAuthUser(req);
 
   logger.debug({ userId, appId, limit, offset, unreadOnly }, 'Listing user notifications');
 
@@ -383,7 +403,7 @@ export const listMyNotifications = async (req: Request, res: Response) => {
  * @returns 200: 읽지 않은 알림 개수
  */
 export const getUnreadCount = async (req: Request, res: Response) => {
-  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+  const { userId, appId } = getAuthUser(req);
 
   const unreadCount = await countUnreadNotifications(userId, appId);
 
@@ -399,7 +419,10 @@ export const getUnreadCount = async (req: Request, res: Response) => {
 export const markAsRead = async (req: Request, res: Response) => {
   const idParam = req.params.id;
   const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam, 10);
-  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+  if (isNaN(id) || id <= 0) {
+    throw new ValidationException('Invalid notification ID');
+  }
+  const { userId, appId } = getAuthUser(req);
 
   logger.debug({ id, userId, appId }, 'Marking notification as read');
 

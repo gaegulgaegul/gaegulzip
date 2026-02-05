@@ -110,4 +110,7 @@ export const pushNotificationReceipts = pgTable('push_notification_receipts', {
   // 복합 인덱스: 사용자별 알림 목록 조회 최적화
   userAppReceivedIdx: index('idx_push_notification_receipts_user_app_received')
     .on(table.userId, table.appId, table.receivedAt),
+  // 복합 인덱스: 읽지 않은 알림 개수 조회 최적화
+  userAppUnreadIdx: index('idx_push_notification_receipts_user_app_unread')
+    .on(table.userId, table.appId, table.isRead),
 }));
