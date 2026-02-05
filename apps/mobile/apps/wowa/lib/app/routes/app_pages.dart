@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:qna/qna.dart';
 import '../modules/login/views/login_view.dart';
 import '../modules/login/bindings/login_binding.dart';
 import '../modules/box/views/box_search_view.dart';
@@ -86,6 +87,13 @@ class AppPages {
       page: () => const SettingsView(),
       binding: SettingsBinding(),
       transition: Transition.leftToRight,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.QNA,
+      page: () => const QnaSubmitView(),
+      binding: QnaBinding(appCode: 'wowa'),
+      transition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 300),
     ),
   ];
