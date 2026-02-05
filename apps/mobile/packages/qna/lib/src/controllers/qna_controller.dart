@@ -31,6 +31,12 @@ class QnaController extends GetxController {
   /// 본문 에러 메시지
   final bodyError = ''.obs;
 
+  /// 제목 텍스트 (반응형 미러)
+  final titleText = ''.obs;
+
+  /// 본문 텍스트 (반응형 미러)
+  final bodyText = ''.obs;
+
   /// 본문 글자 수
   final bodyLength = 0.obs;
 
@@ -47,10 +53,10 @@ class QnaController extends GetxController {
   /// - 본문 길이가 65536자 이하
   /// - 제출 중이 아님
   bool get isSubmitEnabled =>
-      titleController.text.trim().isNotEmpty &&
-      bodyController.text.trim().isNotEmpty &&
-      titleController.text.length <= 256 &&
-      bodyController.text.length <= 65536 &&
+      titleText.value.trim().isNotEmpty &&
+      bodyText.value.trim().isNotEmpty &&
+      titleText.value.length <= 256 &&
+      bodyText.value.length <= 65536 &&
       !isSubmitting.value;
 
   // ===== 초기화 =====
@@ -62,16 +68,18 @@ class QnaController extends GetxController {
     // Repository 주입
     _repository = Get.find<QnaRepository>();
 
-    // 본문 입력 리스너 (글자 수 추적, 에러 재검증)
+    // 본문 입력 리스너 (Rx 동기화, 글자 수 추적, 에러 재검증)
     bodyController.addListener(() {
+      bodyText.value = bodyController.text;
       bodyLength.value = bodyController.text.length;
       if (bodyError.value.isNotEmpty) {
         validateBody();
       }
     });
 
-    // 제목 입력 리스너 (에러 재검증)
+    // 제목 입력 리스너 (Rx 동기화, 에러 재검증)
     titleController.addListener(() {
+      titleText.value = titleController.text;
       if (titleError.value.isNotEmpty) {
         validateTitle();
       }
@@ -127,6 +135,9 @@ class QnaController extends GetxController {
   /// 3. 성공 시: 성공 모달 표시 → 이전 화면 복귀
   /// 4. 실패 시: 실패 모달 표시 → 재시도 옵션
   Future<void> submitQuestion() async {
+    // 0. 중복 제출 방지
+    if (isSubmitting.value) return;
+
     // 1. 입력 검증
     validateTitle();
     validateBody();
@@ -169,8 +180,12 @@ class QnaController extends GetxController {
   /// - 모달 닫기 (Get.back)
   /// - QnA 화면 닫기 (Get.back)
   void _showSuccessModal() {
+    if (isClosed) return;
+    final context = Get.context;
+    if (context == null) return;
+
     SketchModal.show(
-      context: Get.context!,
+      context: context,
       title: '질문이 등록되었습니다',
       barrierDismissible: false,
       width: 340,
@@ -193,7 +208,7 @@ class QnaController extends GetxController {
           text: '확인',
           style: SketchButtonStyle.primary,
           onPressed: () {
-            Navigator.of(Get.context!).pop(); // 모달 닫기
+            Navigator.of(context).pop(); // 모달 닫기
             Get.back(); // QnA 화면 닫기
           },
         ),
@@ -206,8 +221,12 @@ class QnaController extends GetxController {
   /// "닫기" 버튼: 모달만 닫기
   /// "재시도" 버튼: 모달 닫기 → submitQuestion() 재호출
   void _showErrorModal() {
+    if (isClosed) return;
+    final context = Get.context;
+    if (context == null) return;
+
     SketchModal.show(
-      context: Get.context!,
+      context: context,
       title: '질문 등록에 실패했습니다',
       barrierDismissible: false,
       width: 340,
@@ -229,13 +248,13 @@ class QnaController extends GetxController {
         SketchButton(
           text: '닫기',
           style: SketchButtonStyle.outline,
-          onPressed: () => Navigator.of(Get.context!).pop(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         SketchButton(
           text: '재시도',
           style: SketchButtonStyle.primary,
           onPressed: () {
-            Navigator.of(Get.context!).pop(); // 모달 닫기
+            Navigator.of(context).pop(); // 모달 닫기
             submitQuestion(); // 재시도
           },
         ),
