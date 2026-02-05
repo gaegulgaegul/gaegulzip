@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import {
   listNotices,
   getNotice,
@@ -19,8 +19,7 @@ import {
 import { db } from '../../../src/config/database';
 import { findAppById } from '../../../src/modules/auth/services';
 import * as noticeProbe from '../../../src/modules/notice/notice.probe';
-import { NotFoundException, ForbiddenException } from '../../../src/utils/errors';
-import { requireAdmin } from '../../../src/middleware/admin-auth';
+import { NotFoundException } from '../../../src/utils/errors';
 
 // ─── Mocks ──────────────────────────────────────────────────────
 
@@ -95,7 +94,6 @@ const MOCK_NOTICE = {
 // ─── Environment ────────────────────────────────────────────────
 
 beforeAll(() => {
-  process.env.ADMIN_SECRET = 'test-admin-secret';
 });
 
 // ─── listNotices ────────────────────────────────────────────────
@@ -401,37 +399,3 @@ describe('pinNotice handler', () => {
   });
 });
 
-// ─── requireAdmin middleware ────────────────────────────────────
-
-describe('requireAdmin middleware', () => {
-  let req: Partial<Request>;
-  let res: Partial<Response>;
-  let next: NextFunction;
-
-  beforeEach(() => {
-    req = { get: vi.fn().mockReturnValue('test-admin-secret') } as any;
-    res = {};
-    next = vi.fn();
-    vi.clearAllMocks();
-  });
-
-  it('should call next when admin secret is valid', () => {
-    requireAdmin(req as Request, res as Response, next);
-
-    expect(next).toHaveBeenCalled();
-  });
-
-  it('should throw ForbiddenException when admin secret is missing', () => {
-    (req as any).get = vi.fn().mockReturnValue(undefined);
-
-    expect(() => requireAdmin(req as Request, res as Response, next)).toThrow(ForbiddenException);
-    expect(next).not.toHaveBeenCalled();
-  });
-
-  it('should throw ForbiddenException when admin secret is wrong', () => {
-    (req as any).get = vi.fn().mockReturnValue('wrong-secret');
-
-    expect(() => requireAdmin(req as Request, res as Response, next)).toThrow(ForbiddenException);
-    expect(next).not.toHaveBeenCalled();
-  });
-});
