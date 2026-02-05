@@ -61,6 +61,18 @@
 
 ---
 
+### 알림 (Notification)
+
+- **모듈 경로**: `apps/mobile/apps/wowa/lib/app/modules/notification/`
+- **상태**: ⚠️ UI 스캐폴드 완료 (서버 연동 필요)
+- **핵심 파일**:
+  - `controllers/notification_controller.dart` — GetxController
+  - `views/notification_view.dart` — 알림 목록 화면
+  - `bindings/notification_binding.dart` — DI 등록
+- **사용 패키지**: notice (SDK 패키지)
+
+---
+
 ### 홈 (Home)
 
 - **상태**: ❌ 미구현 (라우트만 정의됨)
@@ -264,6 +276,92 @@ HTTP 통신 패키지. Dio 기반.
 
 ---
 
+### Auth SDK (`apps/mobile/packages/auth_sdk/`)
+
+인증 기능 SDK 패키지. 앱 간 재사용 가능한 독립 패키지.
+
+**의존성**: `core`, `api`, `dio`, `freezed`, 소셜 로그인 SDK들
+**상태**: ✅ 완료
+
+#### 핵심 클래스
+
+| 클래스 | 용도 |
+|--------|------|
+| `AuthSdk` | SDK 초기화 및 DI 등록 (config 기반) |
+| `AuthRepository` | 로그인/로그아웃/토큰 갱신 |
+| `AuthStateService` | 인증 상태 관리 (로그인 여부, 토큰 만료) |
+| `AuthInterceptor` | Dio 인터셉터 (자동 토큰 주입, 401 갱신) |
+| `AuthApiService` | 서버 API 호출 (login, refresh) |
+
+#### 소셜 로그인 프로바이더
+
+| 프로바이더 | SDK |
+|-----------|-----|
+| `KakaoLoginProvider` | `kakao_flutter_sdk` |
+| `NaverLoginProvider` | `flutter_naver_login` |
+| `GoogleLoginProvider` | `google_sign_in` |
+| `AppleLoginProvider` | `sign_in_with_apple` |
+
+- **기반 클래스**: `SocialLoginProvider` (abstract — `signIn()`, `signOut()`)
+
+#### Freezed 모델
+
+`LoginRequest`, `LoginResponse`, `RefreshRequest`, `RefreshResponse`, `UserModel`
+
+- **Quick Start**:
+  1. `AuthSdk.initialize(config)` 호출 (appCode, apiBaseUrl 설정)
+  2. `AuthRepository.login(provider, code)` 으로 OAuth 로그인
+  3. `AuthInterceptor`가 자동으로 토큰 주입 및 갱신 처리
+
+---
+
+### Notice SDK (`apps/mobile/packages/notice/`)
+
+공지사항 기능 SDK 패키지.
+
+**의존성**: `core`, `api`, `design_system`, `dio`, `get`
+**상태**: ✅ 완료
+
+#### 핵심 클래스
+
+| 클래스 | 용도 |
+|--------|------|
+| `NoticeListController` | 공지 목록 조회, 페이지네이션, 새로고침 |
+| `NoticeDetailController` | 공지 상세 조회 |
+| `NoticeApiService` | 서버 API 호출 (목록, 상세, 미읽음 수) |
+| `NoticeRoutes` | 공지 관련 라우트 정의 |
+
+#### 모델
+
+| 모델 | 용도 |
+|------|------|
+| `NoticeModel` | 공지 데이터 (id, title, content, category, isPinned, viewCount) |
+| `NoticeListResponse` | 목록 응답 (items, totalCount, page, hasNext) |
+| `UnreadCountResponse` | 미읽음 수 응답 |
+
+#### 위젯
+
+| 위젯 | 용도 |
+|------|------|
+| `NoticeListCard` | 공지 목록 카드 (읽음/미읽음 표시, 고정 배지) |
+| `UnreadNoticeBadge` | 미읽음 공지 수 배지 |
+| `NoticeListView` | 공지 목록 화면 |
+| `NoticeDetailView` | 공지 상세 화면 |
+
+- **서버 연동 API**:
+  | 메서드 | 경로 | 용도 |
+  |--------|------|------|
+  | GET | `/notices` | 공지 목록 |
+  | GET | `/notices/:id` | 공지 상세 |
+  | GET | `/notices/unread-count` | 미읽음 수 |
+
+- **Quick Start**:
+  1. `NoticeRoutes`를 앱 라우트에 등록
+  2. `NoticeListController`가 목록 자동 로드
+  3. `UnreadNoticeBadge` 위젯으로 미읽음 수 표시
+
+---
+
 ### Design System (`apps/mobile/packages/design_system/`)
 
 Frame0 스케치 스타일 UI 컴포넌트 패키지.
@@ -381,6 +479,9 @@ core (기반 - 내부 의존성 없음)
   ├── api (HTTP 통신, 데이터 모델)
   ├── admob (Google 모바일 광고)
   ├── design_system (UI 컴포넌트, 테마)
+  ├── auth_sdk (인증 SDK — core, api 의존)
+  ├── qna (QnA SDK — core, api, design_system 의존)
+  ├── notice (공지사항 SDK — core, api, design_system 의존)
   └── wowa app (모듈, 라우팅, 통합)
 ```
 
