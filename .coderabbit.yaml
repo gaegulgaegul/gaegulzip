@@ -26,6 +26,7 @@ reviews:
     - "!**/*.g.dart"
     - "!**/*.freezed.dart"
     - "!**/generated/**"
+    - "!docs/.pdca-snapshots/**"
 
   tools:
     shellcheck:
