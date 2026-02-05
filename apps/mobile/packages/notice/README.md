@@ -1,157 +1,113 @@
-# Notice SDK Package
+# Notice SDK 연동 가이드
 
-공지사항 기능을 제공하는 재사용 가능한 Flutter 패키지입니다.
+공지사항 기능을 앱에 통합하기 위한 Flutter SDK 패키지입니다.
+목록/상세 화면, 읽음 처리, 무한 스크롤, 고정 공지 분리를 제공합니다.
 
-## 개요
+## 의존성 구조
 
-- **사용자 조회 기능**: 공지사항 목록, 상세 조회, 읽지 않은 개수 확인
-- **GetX 패턴**: Controller/View/Binding 분리
-- **Freezed 모델**: 불변 데이터 클래스
-- **Frame0 Sketch 스타일**: Design System 컴포넌트 활용
-- **마크다운 렌더링**: 풍부한 콘텐츠 표현
+```
+core (DI, 로깅, extensions)
+  ↑
+  api (Dio 클라이언트, HTTP 인터셉터)
+  ↑
+  notice ← design_system (SketchCard, SketchChip, SketchButton)
+```
 
-## 설치
+## 연동 절차
 
 ### 1. pubspec.yaml에 의존성 추가
 
 ```yaml
+# apps/wowa/pubspec.yaml
 dependencies:
   notice:
     path: ../../packages/notice
 ```
 
-### 2. 의존성 설치
-
 ```bash
 melos bootstrap
 ```
 
-## 앱 통합 가이드
+### 2. Freezed 코드 생성
 
-### 1단계: Dio 설정 (api 패키지에서 제공)
-
-Dio 인스턴스는 `api` 패키지에서 제공되어야 합니다. JWT 토큰 인터셉터를 포함해야 합니다.
-
-```dart
-// main.dart
-import 'package:dio/dio.dart';
-import 'package:get/get.dart';
-
-void setupDio() {
-  final dio = Dio(BaseOptions(
-    baseUrl: 'https://api.example.com',
-    headers: {'Content-Type': 'application/json'},
-  ));
-
-  // JWT 토큰 인터셉터
-  dio.interceptors.add(InterceptorsWrapper(
-    onRequest: (options, handler) {
-      final token = Get.find<AuthService>().accessToken;
-      if (token != null) {
-        options.headers['Authorization'] = 'Bearer $token';
-      }
-      handler.next(options);
-    },
-  ));
-
-  Get.put<Dio>(dio, permanent: true);
-}
+```bash
+cd apps/mobile/packages/notice
+flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
-### 2단계: NoticeApiService 등록
+또는 Melos 사용:
+
+```bash
+melos generate
+```
+
+### 3. NoticeApiService 등록
+
+`NoticeApiService`는 내부에서 `Get.find<Dio>()`로 Dio 인스턴스를 가져옵니다.
+Dio가 먼저 등록되어 있어야 합니다.
 
 ```dart
-// main.dart
+// app_binding.dart 또는 main.dart
 import 'package:notice/notice.dart';
 
-void main() {
-  setupDio(); // Dio 초기화
-
-  // NoticeApiService 전역 등록
-  Get.put<NoticeApiService>(NoticeApiService(), permanent: true);
-
-  runApp(const MyApp());
-}
+Get.put<NoticeApiService>(NoticeApiService(), permanent: true);
 ```
 
-### 3단계: 라우트 등록
+### 4. GetX 라우트 등록
 
 ```dart
 // app_pages.dart
-import 'package:get/get.dart';
 import 'package:notice/notice.dart';
 
 class AppPages {
   static final routes = [
+    // ... 기존 라우트
+
     // 공지사항 목록
     GetPage(
-      name: NoticeRoutes.list,
+      name: NoticeRoutes.list,       // '/notice/list'
       page: () => const NoticeListView(),
       binding: BindingsBuilder(() {
-        Get.lazyPut<NoticeListController>(() => NoticeListController());
+        Get.lazyPut(() => NoticeListController());
       }),
-      transition: Transition.fadeIn,
-      transitionDuration: const Duration(milliseconds: 300),
     ),
 
     // 공지사항 상세
     GetPage(
-      name: NoticeRoutes.detail,
+      name: NoticeRoutes.detail,     // '/notice/detail'
       page: () => const NoticeDetailView(),
       binding: BindingsBuilder(() {
-        Get.lazyPut<NoticeDetailController>(() => NoticeDetailController());
+        Get.lazyPut(() => NoticeDetailController());
       }),
-      transition: Transition.fadeIn,
-      transitionDuration: const Duration(milliseconds: 300),
     ),
   ];
 }
 ```
 
-### 4단계: 메인 화면에서 UnreadNoticeBadge 사용 (선택)
+### 5. 네비게이션
 
 ```dart
-// home_view.dart
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:notice/notice.dart';
+// 목록 화면으로 이동
+Get.toNamed(NoticeRoutes.list);
 
-class HomeView extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          // 읽지 않은 공지 개수를 표시하는 뱃지
-          Obx(() {
-            final unreadCount = Get.find<UnreadCountController>().unreadCount.value;
-
-            return UnreadNoticeBadge(
-              unreadCount: unreadCount,
-              child: IconButton(
-                icon: const Icon(Icons.notifications),
-                onPressed: () => Get.toNamed(NoticeRoutes.list),
-              ),
-            );
-          }),
-        ],
-      ),
-      // ...
-    );
-  }
-}
+// 상세 화면으로 이동 (noticeId를 arguments로 전달)
+Get.toNamed(NoticeRoutes.detail, arguments: noticeId);
 ```
 
-### 5단계: UnreadCountController 구현 (선택)
+> **주의**: 상세 화면은 `Get.arguments as int`로 ID를 추출합니다.
+> 반드시 `int` 타입의 noticeId를 arguments로 전달해야 합니다.
+
+## 읽지 않은 공지 뱃지 (선택)
+
+앱바 등에 읽지 않은 공지 개수를 표시하려면 `UnreadNoticeBadge` 위젯을 사용합니다.
+
+### 뱃지 컨트롤러 구현
+
+SDK에는 뱃지용 컨트롤러가 포함되지 않으므로, 앱 측에서 구현합니다:
 
 ```dart
-// unread_count_controller.dart
-import 'package:get/get.dart';
-import 'package:notice/notice.dart';
-
 class UnreadCountController extends GetxController {
-  final NoticeApiService _apiService = Get.find<NoticeApiService>();
-
+  final _apiService = Get.find<NoticeApiService>();
   final unreadCount = 0.obs;
 
   @override
@@ -164,97 +120,135 @@ class UnreadCountController extends GetxController {
     try {
       final response = await _apiService.getUnreadCount();
       unreadCount.value = response.unreadCount;
-    } catch (e) {
-      // 에러 무시 (비치명적)
+    } catch (_) {
+      // 비치명적 — 실패 시 0 유지
     }
   }
 }
 ```
 
-## 네비게이션
+### 뱃지 위젯 사용
 
 ```dart
-// 공지사항 목록으로 이동
-Get.toNamed(NoticeRoutes.list);
-
-// 특정 공지사항 상세로 이동
-Get.toNamed(NoticeRoutes.detail, arguments: noticeId);
+Obx(() {
+  final count = Get.find<UnreadCountController>().unreadCount.value;
+  return UnreadNoticeBadge(
+    unreadCount: count,
+    child: IconButton(
+      icon: const Icon(Icons.notifications),
+      onPressed: () => Get.toNamed(NoticeRoutes.list),
+    ),
+  );
+})
 ```
 
-## Public API
+뱃지는 99 초과 시 `99+`로 표시되며, 0이면 숨겨집니다.
+
+## API Reference
 
 ### Models
 
-- `NoticeModel`: 공지사항 데이터 모델
-- `NoticeListResponse`: 목록 응답 래퍼
-- `UnreadCountResponse`: 읽지 않은 개수 응답
+| 클래스 | 용도 | 주요 필드 |
+|--------|------|----------|
+| `NoticeModel` | 공지사항 데이터 | `id`, `title`, `content?`, `category?`, `isPinned`, `isRead`, `viewCount`, `createdAt`, `updatedAt?` |
+| `NoticeListResponse` | 목록 응답 래퍼 | `items`, `totalCount`, `page`, `limit`, `hasNext` |
+| `UnreadCountResponse` | 읽지 않은 개수 | `unreadCount` |
 
 ### Services
 
-- `NoticeApiService`: API 클라이언트
+**`NoticeApiService`** — 서버 API 호출 (내부에서 `Get.find<Dio>()` 사용)
+
+| 메서드 | 엔드포인트 | 반환 |
+|--------|-----------|------|
+| `getNotices({page, limit, category?, pinnedOnly?})` | `GET /notices` | `NoticeListResponse` |
+| `getNoticeDetail(int id)` | `GET /notices/:id` | `NoticeModel` |
+| `getUnreadCount()` | `GET /notices/unread-count` | `UnreadCountResponse` |
 
 ### Controllers
 
-- `NoticeListController`: 목록 화면 상태 관리
-- `NoticeDetailController`: 상세 화면 상태 관리
+| 클래스 | 역할 | Observable 상태 |
+|--------|------|----------------|
+| `NoticeListController` | 목록 + 무한 스크롤 | `notices`, `pinnedNotices`, `isLoading`, `isLoadingMore`, `hasMore`, `errorMessage` |
+| `NoticeDetailController` | 상세 조회 + 읽음 동기화 | `notice`, `isLoading`, `errorMessage` |
+
+**NoticeListController 주요 메서드:**
+
+| 메서드 | 용도 |
+|--------|------|
+| `fetchNotices()` | 초기 로드 (고정 + 일반 공지) |
+| `refreshNotices()` | Pull to Refresh |
+| `loadMoreNotices()` | 무한 스크롤 다음 페이지 |
+| `markAsRead(int noticeId)` | 읽음 상태 UI 반영 |
 
 ### Views
 
-- `NoticeListView`: 목록 화면 UI
-- `NoticeDetailView`: 상세 화면 UI
+| 클래스 | 화면 |
+|--------|------|
+| `NoticeListView` | 목록 화면 (고정 공지 분리, 무한 스크롤) |
+| `NoticeDetailView` | 상세 화면 (마크다운 렌더링) |
 
 ### Widgets
 
-- `NoticeListCard`: 목록 카드 위젯
-- `UnreadNoticeBadge`: 읽지 않은 개수 뱃지
+| 클래스 | 용도 | Props |
+|--------|------|-------|
+| `NoticeListCard` | 목록 카드 | `notice: NoticeModel`, `onTap: VoidCallback` |
+| `UnreadNoticeBadge` | 읽지 않은 개수 뱃지 | `unreadCount: int`, `child: Widget` |
 
 ### Routes
 
-- `NoticeRoutes`: 라우트 이름 상수
+| 상수 | 값 |
+|------|---|
+| `NoticeRoutes.list` | `'/notice/list'` |
+| `NoticeRoutes.detail` | `'/notice/detail'` |
 
-## 코드 생성
+## 동작 흐름
 
-Freezed 및 json_serializable 코드 생성:
+### 목록 → 상세 → 읽음 처리
 
-```bash
-cd packages/notice
-flutter pub run build_runner build --delete-conflicting-outputs
+```
+1. NoticeListView 진입
+   → NoticeListController.fetchNotices()
+   → 고정 공지 (pinnedOnly: true) + 일반 공지 조회
+
+2. 카드 탭
+   → Get.toNamed(NoticeRoutes.detail, arguments: noticeId)
+
+3. NoticeDetailView 진입
+   → NoticeDetailController.fetchNoticeDetail()
+   → 서버: viewCount +1, notice_reads INSERT (자동)
+   → NoticeListController.markAsRead(noticeId) (목록 UI 즉시 반영)
+
+4. 뒤로 가기
+   → 목록에서 해당 카드가 읽음 상태로 표시됨
 ```
 
-또는 Melos 사용:
+### 무한 스크롤
 
-```bash
-melos generate
+```
+스크롤 하단 도달
+  → loadMoreNotices()
+  → hasMore == true → 다음 페이지 요청
+  → hasMore == false → 중단
 ```
 
-## 의존성
+## 서버 API 요구사항
 
-- `core`: 기초 유틸리티
-- `api`: Dio 클라이언트
-- `design_system`: Frame0 스타일 UI 컴포넌트
-- `get`: 상태 관리
-- `freezed_annotation`, `json_annotation`: 데이터 모델
-- `flutter_markdown`: 마크다운 렌더링
-- `url_launcher`: 링크 열기
+이 SDK는 다음 서버 엔드포인트를 필요로 합니다:
 
-## 핵심 기능
+| 메서드 | 경로 | 인증 | 설명 |
+|--------|------|------|------|
+| GET | `/notices` | JWT | 목록 (page, limit, category, pinnedOnly) |
+| GET | `/notices/:id` | JWT | 상세 (viewCount 자동 증가, 읽음 자동 처리) |
+| GET | `/notices/unread-count` | JWT | 읽지 않은 공지 개수 |
 
-### 무한 스크롤 페이지네이션
+JWT 토큰은 Dio 인터셉터에서 `Authorization: Bearer {token}` 형태로 자동 주입됩니다.
 
-목록 화면에서 자동으로 다음 페이지를 로드합니다.
+## Troubleshooting
 
-### 고정 공지 분리 표시
-
-상단에 고정 공지를 별도 섹션으로 표시합니다.
-
-### 읽음 상태 관리
-
-읽지 않은 공지는 시각적으로 강조 표시됩니다.
-
-### 마크다운 렌더링
-
-공지사항 본문을 풍부한 포맷으로 표시합니다.
-
-## 라이선스
-
-Private - Not for public distribution
+| 증상 | 원인 | 해결 |
+|------|------|------|
+| `NoticeApiService` not found | DI 미등록 | `Get.put<NoticeApiService>(...)` 확인 |
+| `Dio` not found | api 패키지 초기화 안 됨 | `Get.put<Dio>(...)` 먼저 등록 |
+| 상세 화면 타입 에러 | arguments에 int 미전달 | `Get.toNamed(route, arguments: noticeId)` 확인 |
+| `.freezed.dart` 파일 없음 | 코드 생성 안 됨 | `melos generate` 실행 |
+| Import 에러 | 의존성 미설치 | `melos bootstrap` 실행 |
