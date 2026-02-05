@@ -1,0 +1,45 @@
+name: notice
+description: "Notice SDK package - reusable across all apps"
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.10.7 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Internal dependencies
+  core:
+    path: ../core
+  api:
+    path: ../api
+  design_system:
+    path: ../design_system
+
+  # State management
+  get: ^4.6.6
+
+  # Immutable data models
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+
+  # Markdown rendering
+  flutter_markdown: ^0.6.18
+
+  # URL launcher (for markdown links)
+  url_launcher: ^6.2.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Code generation
+  build_runner: ^2.4.8
+  freezed: ^2.4.7
+  json_serializable: ^6.7.1
+
+flutter:
