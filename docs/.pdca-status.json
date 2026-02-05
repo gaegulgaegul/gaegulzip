@@ -1,13 +1,14 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-05T13:42:40.823Z",
+  "lastUpdated": "2026-02-05T14:41:09.870Z",
   "activeFeatures": [
     "auth_sdk",
     "social-login",
     "auth",
     "server",
     "web",
-    "notice"
+    "notice",
+    "qna"
   ],
   "primaryFeature": "auth_sdk",
   "features": {
@@ -68,7 +69,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T08:35:27.805Z",
-        "lastUpdated": "2026-02-05T13:34:36.511Z"
+        "lastUpdated": "2026-02-05T14:41:09.870Z"
       },
       "lastFile": "/Users/lms/dev/repository/feature-notice/apps/server/src/app.ts"
     },
@@ -81,9 +82,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-05T12:27:56.494Z",
-        "lastUpdated": "2026-02-05T13:42:40.823Z"
+        "lastUpdated": "2026-02-05T14:24:54.627Z"
       },
-      "lastFile": "/Users/lms/dev/repository/feature-notice/apps/web/admin/src/app/(dashboard)/notices/new/page.tsx"
+      "lastFile": "/Users/lms/dev/repository/feature-notice/apps/web/admin/e2e/notices.spec.ts"
     },
     "notice": {
       "phase": "do",
@@ -94,9 +95,22 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-05T12:37:56.194Z",
-        "lastUpdated": "2026-02-05T13:34:27.076Z"
+        "lastUpdated": "2026-02-05T14:10:15.237Z"
       },
-      "lastFile": "/Users/lms/dev/repository/feature-notice/apps/server/src/modules/notice/admin-routes.ts"
+      "lastFile": "/Users/lms/dev/repository/feature-notice/apps/server/src/modules/notice/admin-validators.ts"
+    },
+    "qna": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-05T14:32:34.581Z",
+        "lastUpdated": "2026-02-05T14:37:49.668Z"
+      },
+      "lastFile": "/Users/lms/dev/repository/feature-notice/apps/server/src/modules/qna/handlers.ts"
     }
   },
   "pipeline": {
@@ -107,7 +121,7 @@
   "session": {
     "startedAt": "2026-02-04T08:09:41.903Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-05T13:42:40.823Z"
+    "lastActivity": "2026-02-05T14:41:09.870Z"
   },
   "history": [
     {
@@ -485,6 +499,78 @@
     {
       "timestamp": "2026-02-05T13:42:40.823Z",
       "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:09:26.800Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:09:36.020Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:09:44.326Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:10:04.362Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:10:15.237Z",
+      "feature": "notice",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:10:35.292Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:24:03.023Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:24:54.627Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:32:34.581Z",
+      "feature": "qna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:34:53.346Z",
+      "feature": "qna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:37:49.668Z",
+      "feature": "qna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T14:41:09.870Z",
+      "feature": "server",
       "phase": "do",
       "action": "updated"
     }
