@@ -32,6 +32,12 @@ abstract class Routes {
   /// 알림 목록 화면
   static const NOTIFICATIONS = '/notifications';
 
+  /// 공지사항 목록 화면
+  static const NOTICE_LIST = '/notice/list';
+
+  /// 공지사항 상세 화면
+  static const NOTICE_DETAIL = '/notice/detail';
+
   /// QnA 질문 작성 화면
   static const QNA = '/qna';
 }

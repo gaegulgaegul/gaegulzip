@@ -1,4 +1,4 @@
-# melos_managed_dependency_overrides: admob,api,auth_sdk,core,design_system,push,qna
+# melos_managed_dependency_overrides: admob,api,auth_sdk,core,design_system,push,qna,notice
 dependency_overrides:
   admob:
     path: ../../packages/admob
@@ -10,6 +10,8 @@ dependency_overrides:
     path: ../../packages/core
   design_system:
     path: ../../packages/design_system
+  notice:
+    path: ../../packages/notice
   push:
     path: ../../packages/push
   qna:

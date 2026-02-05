@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:api/api.dart';
-import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/box_repository.dart';
 import '../controllers/settings_controller.dart';
 
@@ -12,7 +11,6 @@ class SettingsBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<BoxApiClient>(() => BoxApiClient());
     Get.lazyPut<BoxRepository>(() => BoxRepository());
-    Get.lazyPut<AuthRepository>(() => AuthRepository());
     Get.lazyPut<SettingsController>(() => SettingsController());
   }
 }

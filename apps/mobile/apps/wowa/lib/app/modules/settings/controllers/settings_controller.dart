@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:api/api.dart';
 import 'package:core/core.dart';
-import '../../../data/repositories/auth_repository.dart';
+import 'package:auth_sdk/auth_sdk.dart';
+import 'package:notice/notice.dart';
 import '../../../data/repositories/box_repository.dart';
 import '../../../routes/app_routes.dart';
 
@@ -17,10 +19,14 @@ class SettingsController extends GetxController {
   /// 로딩 상태
   final isLoading = false.obs;
 
+  /// 읽지 않은 공지사항 개수
+  final unreadCount = 0.obs;
+
   // ===== 비반응형 상태 =====
 
   late final AuthRepository _authRepository;
   late final BoxRepository _boxRepository;
+  late final NoticeApiService _noticeApiService;
 
   // ===== 초기화 =====
 
@@ -29,7 +35,9 @@ class SettingsController extends GetxController {
     super.onInit();
     _authRepository = Get.find<AuthRepository>();
     _boxRepository = Get.find<BoxRepository>();
+    _noticeApiService = Get.find<NoticeApiService>();
     _loadSettings();
+    _fetchUnreadCount();
   }
 
   /// 설정 데이터 로드
@@ -44,6 +52,26 @@ class SettingsController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  // ===== 읽지 않은 공지사항 개수 조회 =====
+
+  /// 읽지 않은 공지사항 개수 조회
+  Future<void> _fetchUnreadCount() async {
+    try {
+      final response = await _noticeApiService.getUnreadCount();
+      unreadCount.value = response.unreadCount;
+    } catch (e) {
+      // 비치명적 오류 — 실패 시 0 유지
+      debugPrint('Failed to fetch unread notice count: $e');
+    }
+  }
+
+  // ===== 공지사항 =====
+
+  /// 공지사항 목록으로 이동
+  void goToNoticeList() {
+    Get.toNamed(Routes.NOTICE_LIST);
   }
 
   // ===== 박스 변경 =====

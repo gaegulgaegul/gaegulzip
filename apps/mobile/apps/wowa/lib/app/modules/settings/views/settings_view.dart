@@ -77,6 +77,46 @@ class SettingsView extends GetView<SettingsController> {
   Widget _buildMenuSection() {
     return Column(
       children: [
+        // 공지사항
+        Obx(() {
+          final count = controller.unreadCount.value;
+          return _buildMenuItem(
+            icon: Icons.notifications_outlined,
+            title: '공지사항',
+            subtitle: '앱 업데이트 및 중요 안내사항',
+            onTap: controller.goToNoticeList,
+            badge: count > 0
+                ? Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: count < 10 ? 6 : 4,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF44336),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: Center(
+                      child: Text(
+                        count > 99 ? '99+' : count.toString(),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  )
+                : null,
+          );
+        }),
+        const SizedBox(height: 12),
+
         // 박스 변경
         _buildMenuItem(
           icon: Icons.swap_horiz,
@@ -94,13 +134,26 @@ class SettingsView extends GetView<SettingsController> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    Widget? badge,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: SketchCard(
         body: Row(
           children: [
-            Icon(icon, size: 24, color: Colors.grey[700]),
+            // 아이콘 + 뱃지
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon, size: 24, color: Colors.grey[700]),
+                if (badge != null)
+                  Positioned(
+                    right: -8,
+                    top: -8,
+                    child: badge,
+                  ),
+              ],
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

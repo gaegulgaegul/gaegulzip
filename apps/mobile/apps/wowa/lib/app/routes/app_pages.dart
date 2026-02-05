@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:qna/qna.dart';
+import 'package:notice/notice.dart';
 import '../modules/login/views/login_view.dart';
 import '../modules/login/bindings/login_binding.dart';
 import '../modules/box/views/box_search_view.dart';
@@ -96,6 +97,24 @@ class AppPages {
       page: () => const NotificationView(),
       binding: NotificationBinding(),
       transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.NOTICE_LIST,
+      page: () => const NoticeListView(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<NoticeListController>(() => NoticeListController());
+      }),
+      transition: Transition.cupertino,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.NOTICE_DETAIL,
+      page: () => const NoticeDetailView(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<NoticeDetailController>(() => NoticeDetailController());
+      }),
+      transition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 300),
     ),
     GetPage(
