@@ -14,15 +14,21 @@
 gaegulzip/
 ├── apps/
 │   ├── server/                 # 공통 백엔드 (Express + Drizzle + PostgreSQL)
-│   │   └── src/modules/        # 기능 모듈 (auth, push-alert, ...)
-│   └── mobile/                 # Flutter 모노레포 (Melos)
-│       ├── apps/wowa/          # 제품: 크로스핏 WOD 알리미
-│       ├── apps/[next-app]/    # 다음 제품은 여기에
-│       └── packages/           # 공유 패키지
-│           ├── core/           #   DI, 로깅, 유틸리티
-│           ├── api/            #   Dio HTTP 클라이언트, Freezed 모델
-│           └── design_system/  #   UI 컴포넌트, 테마
-├── turbo.json                  # Turborepo (서버 빌드/테스트 오케스트레이션)
+│   │   └── src/modules/        # 기능 모듈 (auth, push-alert, qna, notice)
+│   ├── mobile/                 # Flutter 모노레포 (Melos)
+│   │   ├── apps/wowa/          # 제품: 크로스핏 WOD 알리미
+│   │   ├── apps/[next-app]/    # 다음 제품은 여기에
+│   │   └── packages/           # 공유 패키지
+│   │       ├── core/           #   DI, 로깅, 유틸리티
+│   │       ├── api/            #   Dio HTTP 클라이언트, Freezed 모델
+│   │       ├── design_system/  #   UI 컴포넌트, 테마
+│   │       ├── auth_sdk/       #   인증 SDK (소셜 로그인, 토큰 관리)
+│   │       ├── notice/         #   공지사항 SDK
+│   │       ├── qna/            #   QnA SDK
+│   │       └── admob/          #   Google 광고 SDK
+│   └── web/
+│       └── admin/              # 관리자 대시보드 (Next.js 16 + shadcn/ui)
+├── turbo.json                  # Turborepo (서버/웹 빌드 오케스트레이션)
 ├── pnpm-workspace.yaml         # pnpm 워크스페이스 (Node.js)
 └── melos.yaml                  # Melos (Flutter 패키지 관리)
 ```
@@ -92,6 +98,13 @@ melos generate:watch         # 코드 생성 watch 모드
 melos analyze                # 전체 패키지 정적 분석
 ```
 
+### 웹 (Admin)
+
+```bash
+pnpm --filter gaegulzip-admin dev     # 개발 서버
+pnpm --filter gaegulzip-admin build   # 프로덕션 빌드
+```
+
 ## 새 제품 추가하는 법
 
 ### 모바일 앱
@@ -134,6 +147,7 @@ melos analyze                # 전체 패키지 정적 분석
 | `SUPABASE_URL` | Supabase 프로젝트 URL | - |
 | `SUPABASE_ANON_KEY` | Supabase anon 키 | - |
 | `LOG_LEVEL` | 로그 레벨 | info |
+| `ADMIN_SECRET` | 관리자 API 시크릿 | - |
 
 ## 기술 스택
 
@@ -146,10 +160,13 @@ melos analyze                # 전체 패키지 정적 분석
 | 상태 관리 | GetX |
 | HTTP 클라이언트 | Dio (api 패키지 격리) |
 | 코드 생성 | Freezed + json_serializable |
-| 모노레포 | pnpm + Turborepo (서버) / Melos (모바일) |
-| 테스트 | Vitest (서버만. 모바일은 테스트 안 함) |
-| 배포 | Docker + Render |
+| 웹 프레임워크 | Next.js 16 (App Router) |
+| 웹 UI | shadcn/ui + Tailwind CSS v4 |
+| 모노레포 | pnpm + Turborepo (서버/웹) / Melos (모바일) |
+| 테스트 | Vitest (서버) / Playwright (웹 E2E) / 모바일은 테스트 안 함 |
+| 배포 | Docker + Render (서버) |
 
 ## 현재 제품
 
 - **[WOWA (오와)](docs/wowa/mvp/prd.md)** — 크로스핏 WOD 알리미. 박스 구성원 누구나 WOD를 등록·수정하고, 합의된 WOD를 기준으로 기록과 선택을 돕는 앱
+- **Admin** — WOWA 관리자 대시보드 (Next.js). 공지사항 관리, 사용자 관리 등

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wowa Admin",
-  description: "Wowa 앱 어드민 대시보드",
+  title: "Gaegul Admin",
+  description: "Gaegul 어드민 대시보드",
 };
 
 export default function RootLayout({

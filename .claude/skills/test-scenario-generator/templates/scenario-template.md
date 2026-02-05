@@ -15,8 +15,7 @@
 - **Flutter 버전**: [예: 3.16.0]
 - **GetX 버전**: [예: 4.6.6]
 - **테스트 도구**:
-  - **FlutterTestMcp** (자동화): `npx -y flutter-test-mcp`
-  - **@mobilenext/mobile-mcp** (UI 검증): `npx -y @mobilenext/mobile-mcp`
+  - **@mobilenext/mobile-mcp** (자동화 + UI 검증): `.mcp.json`에 등록된 MCP 서버
 
 ## 사전 조건
 
@@ -60,34 +59,22 @@
 3. [단계 3]
    - 예상 결과: [무엇을 확인해야 하는지]
 
-**자동화 테스트 (FlutterTestMcp)**:
-```bash
-# npx로 FlutterTestMcp 실행 (설치 불필요, 항상 최신 버전 사용)
-npx -y flutter-test-mcp
-
-# 자연어 기반 테스트 시나리오
-- "앱을 실행한다"
-- "홈 화면이 로드될 때까지 기다린다"
-- "[위젯명]을 찾는다"
-- "[버튼명] 버튼을 탭한다"
-- "[예상 텍스트]가 화면에 표시되는지 확인한다"
-- "2초 동안 기다린다"
-- "[상태]가 변경되었는지 확인한다"
+**자동화 테스트 및 UI 검증 (@mobilenext/mobile-mcp)**:
 ```
+# MCP 서버(.mcp.json)에 등록됨 — Claude가 직접 도구로 호출
 
-**UI 검증 (@mobilenext/mobile-mcp)**:
-```bash
-# npx로 @mobilenext/mobile-mcp 실행 (설치 불필요, 항상 최신 버전 사용)
-npx -y @mobilenext/mobile-mcp
+# 자동화 테스트 (UI 인터랙션)
+- mobile_list_elements_on_screen: 화면 요소 확인
+- mobile_click_on_screen_at_coordinates: "[버튼명]" 탭
+- mobile_type_keys: "[필드명]에 '[텍스트]' 입력"
+- mobile_take_screenshot: "[scenario_name]_before.png" 캡처
 
-# 접근성 트리 기반 UI 검증
-- "현재 화면 스크린샷 캡처 (파일명: [scenario_name]_before.png)"
-- "접근성 트리에서 '[텍스트]' 텍스트 요소 확인"
-- "접근성 트리에서 '[레이블]' 버튼 요소 확인"
-- "터치 영역이 44x44pt 이상인지 확인"
-- "색 대비가 WCAG AA 기준을 만족하는지 확인"
-- "현재 화면 스크린샷 캡처 (파일명: [scenario_name]_after.png)"
-- "design-spec.md의 [화면명] 디자인과 일치하는지 비교"
+# UI 검증 (접근성 트리 기반)
+- mobile_list_elements_on_screen: '[텍스트]' 요소 확인, '[레이블]' 버튼 확인
+- mobile_take_screenshot: "[scenario_name]_after.png" 캡처
+- 터치 영역이 44x44pt 이상인지 확인
+- 색 대비가 WCAG AA 기준을 만족하는지 확인
+- design-spec.md의 [화면명] 디자인과 일치하는지 비교
 ```
 
 **검증 체크리스트**:
@@ -122,16 +109,10 @@ npx -y @mobilenext/mobile-mcp
 **수동 테스트 절차**:
 1. [단계별 절차]
 
-**자동화 테스트 (FlutterTestMcp)**:
-```bash
-npx -y flutter-test-mcp
-# [자연어 스크립트]
+**자동화 테스트 및 UI 검증 (@mobilenext/mobile-mcp)**:
 ```
-
-**UI 검증 (@mobilenext/mobile-mcp)**:
-```bash
-npx -y @mobilenext/mobile-mcp
-# [UI 검증 스크립트]
+# mobile_list_elements_on_screen, mobile_click_on_screen_at_coordinates,
+# mobile_type_keys, mobile_take_screenshot 등 MCP 도구 호출
 ```
 
 **검증 체크리스트**:
@@ -167,16 +148,10 @@ npx -y @mobilenext/mobile-mcp
 1. [엣지 케이스 재현 방법]
 2. [예상 동작 확인]
 
-**자동화 테스트 (FlutterTestMcp)**:
-```bash
-npx -y flutter-test-mcp
-# [엣지 케이스 시뮬레이션 스크립트]
+**자동화 테스트 및 UI 검증 (@mobilenext/mobile-mcp)**:
 ```
-
-**UI 검증 (@mobilenext/mobile-mcp)**:
-```bash
-npx -y @mobilenext/mobile-mcp
-# [UI 검증 스크립트]
+# mobile_list_elements_on_screen, mobile_click_on_screen_at_coordinates,
+# mobile_type_keys, mobile_take_screenshot 등 MCP 도구 호출
 ```
 
 **검증 체크리스트**:
@@ -221,23 +196,13 @@ npx -y @mobilenext/mobile-mcp
 3. [에러 메시지 및 UI 상태 확인]
 4. [복구 시나리오 테스트]
 
-**자동화 테스트 (FlutterTestMcp)**:
-```bash
-npx -y flutter-test-mcp
-# [에러 시뮬레이션 스크립트]
-- "네트워크를 오프라인 모드로 전환한다"
-- "[액션]을 수행한다"
-- "에러 메시지 '[메시지]'가 표시되는지 확인한다"
-- "재시도 버튼이 나타나는지 확인한다"
+**자동화 테스트 및 UI 검증 (@mobilenext/mobile-mcp)**:
 ```
-
-**UI 검증 (@mobilenext/mobile-mcp)**:
-```bash
-npx -y @mobilenext/mobile-mcp
-# [에러 상태 UI 검증]
-- "에러 화면 스크린샷 캡처 (파일명: error_state.png)"
-- "접근성 트리에서 에러 메시지 요소 확인"
-- "에러 아이콘이 표시되는지 확인"
+# 에러 시뮬레이션 및 검증
+- mobile_list_elements_on_screen: 에러 메시지 요소 확인
+- mobile_take_screenshot: "error_state.png" 캡처
+- mobile_click_on_screen_at_coordinates: 재시도 버튼 탭
+- 접근성 트리에서 에러 아이콘 표시 확인
 ```
 
 **검증 체크리스트**:
@@ -266,10 +231,9 @@ npx -y @mobilenext/mobile-mcp
 2. [각 화면 전환 확인]
 3. [데이터 일관성 확인]
 
-**자동화 테스트 (FlutterTestMcp)**:
-```bash
-npx -y flutter-test-mcp
-# [전체 플로우 자동화 스크립트]
+**자동화 테스트 및 UI 검증 (@mobilenext/mobile-mcp)**:
+```
+# 전체 플로우 자동화 — mobile_* 도구로 순차 실행
 ```
 
 ---
@@ -350,46 +314,27 @@ npx -y flutter-test-mcp
    - 모든 체크리스트 항목을 하나씩 검증
    - 통과/실패 여부 표시
 
-### 자동화 테스트 실행 방법 (FlutterTestMcp)
+### 자동화 테스트 및 UI 검증 실행 방법 (@mobilenext/mobile-mcp)
 
 ```bash
 # 1. 앱이 에뮬레이터/시뮬레이터에서 실행 중인지 확인
 flutter devices
 
-# 2. FlutterTestMcp 실행 (npx로 동적 실행, 설치 불필요)
-npx -y flutter-test-mcp
+# 2. mobile-mcp는 .mcp.json에 MCP 서버로 등록됨
+#    Claude가 mobile_* 도구를 직접 호출하여 테스트 수행
 
-# 3. 각 시나리오의 자연어 스크립트를 순차적으로 입력/실행
+# 3. 자동화 테스트 (UI 인터랙션)
+#    - mobile_list_elements_on_screen: 화면 요소 목록
+#    - mobile_click_on_screen_at_coordinates: 탭
+#    - mobile_type_keys: 텍스트 입력
+#    - mobile_swipe_on_screen: 스크롤/스와이프
 
-# 4. 테스트 결과 리포트 확인
-# - 성공/실패 여부
-# - 실패 시 에러 메시지 및 스택 트레이스
-# - 스크린샷 (실패 시 자동 캡처)
+# 4. UI 검증
+#    - mobile_take_screenshot: 스크린샷 캡처
+#    - mobile_list_elements_on_screen: 접근성 트리 검증
+#    - design-spec.md와 비교 (색상, 타이포, 스페이싱)
 
 # 5. 실패한 시나리오는 수동으로 재확인
-```
-
-### UI 검증 실행 방법 (@mobilenext/mobile-mcp)
-
-```bash
-# 1. 에뮬레이터/시뮬레이터 실행 확인
-flutter devices
-
-# 2. @mobilenext/mobile-mcp 실행 (npx로 동적 실행, 설치 불필요)
-npx -y @mobilenext/mobile-mcp
-
-# 3. 각 시나리오의 UI 검증 스크립트 실행
-# - 스크린샷 캡처
-# - 접근성 트리 덤프
-# - UI 요소 속성 확인
-
-# 4. design-spec.md와 비교
-# - 색상 팔레트
-# - 타이포그래피 스케일
-# - 스페이싱 시스템
-# - Border Radius, Elevation
-
-# 5. 차이점 발견 시 기록
 ```
 
 ---

@@ -95,6 +95,37 @@
 
 ---
 
+### 공지사항 (Notice)
+
+- **모듈 경로**: `apps/server/src/modules/notice/`
+- **상태**: ✅ 완료
+- **핵심 파일**:
+  - `handlers.ts` — 목록/상세/미읽음 수 조회, CRUD, 고정/해제 핸들러
+  - `schema.ts` — notices, notice_reads Drizzle 테이블 (soft delete, 읽음 추적)
+  - `validators.ts` — Zod 입력 검증 (listNotices, create, update, pin, noticeId)
+  - `types.ts` — NoticeListResponse, NoticeDetail, NoticeSummary, UnreadCountResponse 타입
+  - `notice.probe.ts` — 운영 로그 (created, updated, deleted, viewed, pinToggled, notFound)
+  - `index.ts` — Router 정의 (사용자: GET, 관리자: POST/PUT/DELETE/PATCH + requireAdmin)
+- **API 엔드포인트**:
+  | 메서드 | 경로 | 인증 | 설명 |
+  |--------|------|------|------|
+  | GET | `/notices` | ✅ | 공지 목록 (페이지네이션, 카테고리/고정 필터) |
+  | GET | `/notices/unread-count` | ✅ | 읽지 않은 공지 수 |
+  | GET | `/notices/:id` | ✅ | 공지 상세 (조회수 증가 + 읽음 처리) |
+  | POST | `/notices` | ✅ + Admin | 공지 작성 |
+  | PUT | `/notices/:id` | ✅ + Admin | 공지 수정 |
+  | DELETE | `/notices/:id` | ✅ + Admin | 공지 삭제 (soft delete) |
+  | PATCH | `/notices/:id/pin` | ✅ + Admin | 고정/해제 토글 |
+- **DB 테이블**: `notices`, `notice_reads`
+- **특이사항**: 모든 엔드포인트에 `authenticate` 미들웨어 적용 (app.ts에서 라우터 레벨), 관리자 엔드포인트는 추가로 `requireAdmin` (X-Admin-Secret 헤더)
+- **Quick Start**:
+  1. `.env`에 `ADMIN_SECRET` 설정
+  2. 사용자: `GET /notices?page=1&limit=10` (Authorization: Bearer 필수)
+  3. 관리자: `POST /notices` + `X-Admin-Secret` 헤더
+  4. 읽음 추적: 상세 조회 시 자동 처리 (`notice_reads` 테이블, onConflictDoNothing)
+
+---
+
 ## 공유 미들웨어
 
 ### authenticate
@@ -113,6 +144,15 @@
 - **사용법**: `router.post('/route', optionalAuthenticate, handler)`
 - **동작**: Authorization 헤더 있으면 JWT 검증 → `req.user` 설정, 없거나 실패 시 `req.user = undefined`로 통과
 - **사용 모듈**: QnA (익명 + 로그인 사용자 모두 질문 가능)
+
+### requireAdmin
+
+- **경로**: `apps/server/src/middleware/admin-auth.ts`
+- **용도**: 관리자 API 인증 (X-Admin-Secret 헤더 검증)
+- **사용법**: `router.post('/route', requireAdmin, handler)`
+- **동작**: `X-Admin-Secret` 헤더 → 환경변수 `ADMIN_SECRET`과 `timingSafeEqual` 비교
+- **에러**: `ForbiddenException` (시크릿 불일치/미제공)
+- **사용 모듈**: Notice (관리자 CRUD)
 
 ### errorHandler
 
@@ -134,6 +174,7 @@
   ├── BusinessException (400)
   │   └── ValidationException (400)
   ├── UnauthorizedException (401)
+  ├── ForbiddenException (403)
   ├── NotFoundException (404)
   └── ExternalApiException (502)
   ```
@@ -160,7 +201,7 @@
 **미들웨어 체인 순서**:
 1. `express.json()` — JSON 파싱
 2. Swagger UI — `/api-docs` (OpenAPI 문서)
-3. 라우트 마운트: `/auth/*`, `/push/*`, `/qna/*`
+3. 라우트 마운트: `/auth/*`, `/push/*`, `/qna/*`, `/notices/*` (authenticate)
 4. `errorHandler` — 전역 에러 핸들러 (마지막)
 
 **헬스 체크**:
@@ -178,6 +219,7 @@
 | `PORT` | ❌ | 서버 포트 | `3001` |
 | `NODE_ENV` | ❌ | 환경 | `development` |
 | `LOG_LEVEL` | ❌ | 로그 레벨 | `info` |
+| `ADMIN_SECRET` | ❌ | 관리자 API 시크릿 (notice 관리) | - |
 
 ---
 

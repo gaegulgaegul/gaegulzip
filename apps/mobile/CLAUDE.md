@@ -47,11 +47,20 @@ core (foundation — no internal dependencies)
 
 ## SDK Packaging Convention
 
-- **SDK는 모바일(Flutter) 패키지로만 생성** — 서버는 모듈로 유지, SDK 추출 안 함
 - SDK 패키지 위치: `packages/*_sdk/` (예: `packages/auth_sdk/`)
 - SDK는 `core`, `api`, `design_system` 패키지에 의존 가능, `wowa` 앱에 의존 금지
 - SDK는 앱에 독립적 — 하드코딩된 앱 이름, 라우트, 화면 이동 포함 금지
 - SDK 초기화는 config 객체로 주입 (appCode, apiBaseUrl 등)
+
+## SDK Packages
+
+| 패키지 | 사용 상황 | 참조 |
+|--------|----------|------|
+| `auth_sdk` | 소셜 로그인 (카카오/네이버/구글/애플), 토큰 관리, 인증 상태 | `packages/auth_sdk/README.md` |
+| `push` | FCM 푸시 알림 수신, 디바이스 토큰 등록, 알림 콜백 처리 | `packages/push/README.md` |
+| `notice` | 공지사항 목록/상세 조회, 읽음 추적, 미읽음 배지 | `packages/notice/README.md` |
+| `qna` | QnA 질문 제출 (GitHub Issue 연동) | `packages/qna/README.md` |
+| `admob` | Google 배너/전면/리워드 광고 | `packages/admob/README.md` |
 
 ## Quick Reference
 

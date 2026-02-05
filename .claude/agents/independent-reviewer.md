@@ -4,7 +4,7 @@ description: |
   Fresh Eyes 검증 담당. 구현 과정을 모르는 상태에서 요구사항만 보고
   최종 결과물이 요구사항을 충족하는지 독립적으로 검증합니다.
   Server: brief.md + pnpm test + pnpm build
-  Mobile: brief.md + design-spec.md + test-scenarios.md + FlutterTestMcp + @mobilenext/mobile-mcp
+  Mobile: brief.md + design-spec.md + test-scenarios.md + @mobilenext/mobile-mcp
   "검증해줘", "요구사항 충족하는지 확인해줘" 요청 시 사용합니다.
 tools:
   - Read
@@ -96,19 +96,12 @@ flutter run --debug
 - test-scenarios.md의 각 시나리오 따라 수동 테스트
 - UI가 design-spec.md와 일치하는지 확인
 
-#### 2. FlutterTestMcp 자동화 테스트
-```bash
-npx -y flutter-test-mcp
-```
-- 자연어 테스트 시나리오 자동 실행
-- UI 인터랙션 자동화
-
-#### 3. @mobilenext/mobile-mcp 모바일 테스트
-```bash
-npx -y @mobilenext/mobile-mcp
-```
-- 접근성 트리 기반 UI 검증
-- 주요 화면 스크린샷 캡처
+#### 2. @mobilenext/mobile-mcp 자동화 테스트 및 UI 검증
+- `.mcp.json`에 등록된 MCP 서버 — Claude가 mobile_* 도구를 직접 호출
+- `mobile_list_elements_on_screen`: 접근성 트리 기반 UI 요소 확인
+- `mobile_click_on_screen_at_coordinates`: UI 인터랙션 자동화
+- `mobile_type_keys`: 텍스트 입력 자동화
+- `mobile_take_screenshot`: 주요 화면 스크린샷 캡처
 - design-spec.md와 비교
 
 #### 4. UI/UX 정확성 검증
@@ -128,7 +121,7 @@ npx -y @mobilenext/mobile-mcp
 - 스크린 리더 지원
 
 ### 출력
-- `docs/[product]/[feature]/mobile-review-report.md` (수동 테스트, FlutterTestMcp, mobile-mcp, UI/UX, 시나리오, GetX, 접근성 결과 포함)
+- `docs/[product]/[feature]/mobile-review-report.md` (수동 테스트, mobile-mcp, UI/UX, 시나리오, GetX, 접근성 결과 포함)
 
 ---
 

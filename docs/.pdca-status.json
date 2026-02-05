@@ -5,7 +5,9 @@
     "auth_sdk",
     "social-login",
     "auth",
-    "server"
+    "server",
+    "web",
+    "notice"
   ],
   "primaryFeature": "sdk-integration",
   "features": {
@@ -82,9 +84,35 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T08:35:27.805Z",
-        "lastUpdated": "2026-02-05T05:53:50.820Z"
+        "lastUpdated": "2026-02-05T12:39:12.756Z"
       },
-      "lastFile": "/Users/lms/dev/repository/feature-social-login/apps/server/tests/unit/auth/handlers.test.ts"
+      "lastFile": "/Users/lms/dev/repository/feature-admin-auth/apps/server/tests/unit/notice/handlers.test.ts"
+    },
+    "web": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-05T12:27:56.494Z",
+        "lastUpdated": "2026-02-05T12:57:11.919Z"
+      },
+      "lastFile": "/Users/lms/dev/repository/feature-admin-auth/apps/web/admin/src/instrumentation.ts"
+    },
+    "notice": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-05T12:37:56.194Z",
+        "lastUpdated": "2026-02-05T12:38:12.887Z"
+      },
+      "lastFile": "/Users/lms/dev/repository/feature-admin-auth/apps/server/src/modules/notice/handlers.ts"
     }
   },
   "pipeline": {
@@ -251,6 +279,138 @@
     {
       "timestamp": "2026-02-05T05:53:50.820Z",
       "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:27:56.494Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:31:32.830Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:33:14.515Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:33:20.113Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:33:27.172Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:33:32.766Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:33:35.853Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:35:51.422Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:37:56.194Z",
+      "feature": "notice",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:38:03.652Z",
+      "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:38:12.887Z",
+      "feature": "notice",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:38:37.497Z",
+      "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:38:44.448Z",
+      "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:38:48.820Z",
+      "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:39:12.756Z",
+      "feature": "server",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:47:42.648Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:47:44.508Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:47:47.190Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:56:55.248Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:56:56.629Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:56:58.855Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-05T12:57:11.919Z",
+      "feature": "web",
       "phase": "do",
       "action": "updated"
     },
