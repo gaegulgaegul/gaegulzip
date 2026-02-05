@@ -65,15 +65,54 @@
 
 ---
 
+### QnA 질문과 답변 (QnA)
+
+- **모듈 경로**: `apps/server/src/modules/qna/`
+- **상태**: ✅ 완료 (28 테스트 통과)
+- **핵심 파일**:
+  - `handlers.ts` — 질문 제출 핸들러 (submitQuestion)
+  - `services.ts` — 질문 생성 로직 (createQuestion, buildIssueBody)
+  - `github.ts` — GitHub Issue 생성 (createGitHubIssue), 에러 매핑
+  - `octokit.ts` — GitHub App Octokit 인스턴스 팩토리 (캐싱, throttling, retry)
+  - `schema.ts` — qna_config, qna_questions Drizzle 테이블
+  - `validators.ts` — Zod 입력 검증 (appCode, title 1-256, body 1-65536)
+  - `qna.probe.ts` — 운영 로그 (questionSubmitted, rateLimitWarning, githubApiError, configNotFound)
+  - `index.ts` — Router 정의 및 export
+- **API 엔드포인트**:
+  | 메서드 | 경로 | 인증 | 설명 |
+  |--------|------|------|------|
+  | POST | `/qna/questions` | ⚪ 선택적 | 질문 제출 (GitHub Issue 자동 생성) |
+- **DB 테이블**: `qna_config` (앱별 GitHub 설정), `qna_questions` (질문 이력)
+- **Quick Start**:
+  1. `apps` 테이블에 앱 레코드 확인 (code: "wowa")
+  2. `qna_config` 테이블에 GitHub App 설정 추가:
+     - `appId`, `githubRepoOwner`, `githubRepoName`, `githubAppId`, `githubInstallationId`, `githubPrivateKey`
+  3. `POST /qna/questions` 호출: `{ appCode: "wowa", title: "질문 제목", body: "질문 내용" }`
+  4. 응답: `{ questionId, issueNumber, issueUrl, createdAt }` (201 Created)
+  5. 인증된 사용자: `Authorization: Bearer <token>` 헤더 추가 시 질문에 userId 기록
+- **새 앱에 적용**: `qna_config` 테이블에 새 앱의 GitHub App 설정 행 추가만 하면 됨
+- **상세 설계**: [`docs/core/qna/server-brief.md`](../core/qna/server-brief.md)
+
+---
+
 ## 공유 미들웨어
 
 ### authenticate
 
 - **경로**: `apps/server/src/middleware/auth.ts`
+- **별칭**: `authenticate` (필수 인증)
 - **용도**: JWT 검증 및 사용자 컨텍스트 주입
 - **사용법**: `router.post('/route', authenticate, handler)`
 - **동작**: `Authorization: Bearer <token>` 헤더에서 JWT 추출 → 앱별 시크릿으로 검증 → `req.user = { userId, appId }` 설정
 - **에러**: `UnauthorizedException` (INVALID_TOKEN, EXPIRED_TOKEN)
+
+### optionalAuthenticate
+
+- **경로**: `apps/server/src/middleware/optional-auth.ts`
+- **용도**: JWT가 있으면 검증하고, 없어도 통과시키는 선택적 인증
+- **사용법**: `router.post('/route', optionalAuthenticate, handler)`
+- **동작**: Authorization 헤더 있으면 JWT 검증 → `req.user` 설정, 없거나 실패 시 `req.user = undefined`로 통과
+- **사용 모듈**: QnA (익명 + 로그인 사용자 모두 질문 가능)
 
 ### errorHandler
 
@@ -121,7 +160,7 @@
 **미들웨어 체인 순서**:
 1. `express.json()` — JSON 파싱
 2. Swagger UI — `/api-docs` (OpenAPI 문서)
-3. 라우트 마운트: `/auth/*`, `/push/*`
+3. 라우트 마운트: `/auth/*`, `/push/*`, `/qna/*`
 4. `errorHandler` — 전역 에러 핸들러 (마지막)
 
 **헬스 체크**:

@@ -13,4 +13,7 @@ abstract class Routes {
 
   /// 알림 목록 화면
   static const NOTIFICATIONS = '/notifications';
+
+  /// QnA 질문 작성 화면
+  static const QNA = '/qna';
 }

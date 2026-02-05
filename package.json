@@ -3,8 +3,10 @@
   "private": true,
   "scripts": {
     "dev:server": "turbo run dev --filter=gaegulzip-server",
+    "dev:admin": "turbo run dev --filter=gaegulzip-admin",
     "dev:mobile": "cd apps/mobile && flutter run",
     "build:server": "turbo run build --filter=gaegulzip-server",
+    "build:admin": "turbo run build --filter=gaegulzip-admin",
     "test:server": "turbo run test --filter=gaegulzip-server",
     "mobile:bootstrap": "cd apps/mobile && melos bootstrap",
     "mobile:generate": "cd apps/mobile && melos generate",

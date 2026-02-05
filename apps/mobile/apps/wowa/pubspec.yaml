@@ -52,6 +52,8 @@ dependencies:
     path: ../../packages/admob
   push:
     path: ../../packages/push
+  qna:
+    path: ../../packages/qna
 
   # Social login SDKs
   kakao_flutter_sdk: ^1.9.0

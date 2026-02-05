@@ -29,6 +29,38 @@
 
 ---
 
+### QnA 질문 작성 (QnA)
+
+- **모듈 경로**: `apps/mobile/apps/wowa/lib/app/modules/qna/`
+- **상태**: ✅ 완료 (flutter analyze 0 errors)
+- **핵심 파일**:
+  - `controllers/qna_controller.dart` — GetxController (입력 검증, 제출, 성공/실패 모달)
+  - `views/qna_submit_view.dart` — GetView 화면 (SketchInput x2, 글자 수 카운터, SketchButton)
+  - `bindings/qna_binding.dart` — QnaApiService, QnaRepository, QnaController DI 등록
+- **사용 패키지**: core (NetworkException), api (QnaSubmitRequest/Response, QnaApiService), design_system (SketchInput, SketchButton, SketchModal)
+- **서버 연동 API**:
+  | 메서드 | 경로 | 용도 |
+  |--------|------|------|
+  | POST | `/api/qna/questions` | 질문 제출 (GitHub Issue 자동 생성) |
+- **반응형 상태 (.obs)**:
+  | 변수 | 타입 | 용도 |
+  |------|------|------|
+  | `isSubmitting` | RxBool | 제출 중 로딩 상태 |
+  | `titleError` | RxString | 제목 유효성 검증 에러 |
+  | `bodyError` | RxString | 본문 유효성 검증 에러 |
+  | `bodyLength` | RxInt | 본문 글자 수 (색상 변화: 60000 warning, 65000 error) |
+  | `errorMessage` | RxString | API 에러 메시지 |
+- **Quick Start**:
+  1. `QnaBinding`이 모든 의존성 자동 주입
+  2. `Get.toNamed(Routes.QNA)` 호출로 질문 작성 화면 이동
+  3. 제목(1-256자) + 본문(1-65536자) 입력 후 "질문 제출" 버튼 클릭
+  4. 성공 시 SketchModal → 확인 → 이전 화면으로 복귀
+  5. 실패 시 SketchModal → 닫기/재시도 선택
+- **새 앱에 적용**: `QnaRepository`의 `appCode: 'wowa'`를 새 앱 코드로 변경
+- **상세 설계**: [`docs/core/qna/mobile-design-spec.md`](../core/qna/mobile-design-spec.md), [`docs/core/qna/mobile-brief.md`](../core/qna/mobile-brief.md)
+
+---
+
 ### 홈 (Home)
 
 - **상태**: ❌ 미구현 (라우트만 정의됨)
@@ -49,6 +81,7 @@
   | 경로 | 뷰 | 바인딩 | 트랜지션 |
   |------|-----|--------|---------|
   | `/login` | `LoginView` | `LoginBinding` | fadeIn (300ms) |
+  | `/qna` | `QnaSubmitView` | `QnaBinding` | cupertino (300ms) |
   | `/home` | 미구현 | - | - |
   | `/settings` | 미구현 | - | - |
 - **초기 라우트**: `Routes.LOGIN`
@@ -56,6 +89,21 @@
 ---
 
 ## 앱 데이터 레이어
+
+### QnaRepository
+
+- **경로**: `apps/mobile/apps/wowa/lib/app/data/repositories/qna_repository.dart`
+- **상태**: ✅ 완료
+- **의존성**: QnaApiService (Get.find)
+- **메서드**:
+  | 메서드 | 반환 | 설명 |
+  |--------|------|------|
+  | `submitQuestion(title, body)` | `QnaSubmitResponse` | 질문 제출 (appCode 자동 설정) |
+- **에러 처리 패턴**:
+  - `DioException` timeout/connection → `NetworkException('네트워크 연결을 확인해주세요')`
+  - `DioException` 400 → `NetworkException('제목과 내용을 확인해주세요')`
+  - `DioException` 404 → `NetworkException('서비스 설정 오류가 발생했습니다')`
+  - `DioException` 5xx → `NetworkException('일시적인 오류가 발생했습니다')`
 
 ### AuthRepository
 
@@ -183,12 +231,14 @@ Frame0 스케치 스타일 디자인 시스템의 기본 토큰입니다.
 HTTP 통신 패키지. Dio 기반.
 
 **의존성**: `core`, `dio`, `json_annotation`, `freezed`, `build_runner`
-**상태**: ✅ Auth API 구현 완료
+**상태**: ✅ Auth + QnA API 구현 완료
 
 #### 데이터 모델 (Freezed)
 
 | 모델 | 경로 | 주요 필드 |
 |------|------|---------|
+| `QnaSubmitRequest` | `src/models/qna/qna_submit_request.dart` | `appCode`, `title`, `body` |
+| `QnaSubmitResponse` | `src/models/qna/qna_submit_response.dart` | `questionId`, `issueNumber`, `issueUrl`, `createdAt` |
 | `LoginRequest` | `src/models/auth/login_request.dart` | `provider`, `code` |
 | `LoginResponse` | `src/models/auth/login_response.dart` | `accessToken`, `refreshToken`, `tokenType`, `expiresIn`, `user` |
 | `RefreshRequest` | `src/models/auth/refresh_request.dart` | `refreshToken` |
@@ -199,6 +249,7 @@ HTTP 통신 패키지. Dio 기반.
 
 | 서비스 | 메서드 | 엔드포인트 | 반환 |
 |--------|--------|-----------|------|
+| `QnaApiService` | `submitQuestion(request)` | POST `/api/qna/questions` | `QnaSubmitResponse` |
 | `AuthApiService` | `login(provider, code)` | POST `/api/auth/oauth/login` | `LoginResponse` |
 | `AuthApiService` | `refreshToken(refreshToken)` | POST `/api/auth/refresh` | `RefreshResponse` |
 

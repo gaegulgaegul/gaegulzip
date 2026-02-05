@@ -1,5 +1,5 @@
 {
-  "id": "0b8a8898-15b7-4d1d-bf06-54bda3c4fa0b",
+  "id": "f52555ad-47f9-4838-96ad-31f0662bb756",
   "prevId": "0566f720-af9a-4634-894f-45c5d70cbd89",
   "version": "7",
   "dialect": "postgresql",
@@ -730,8 +730,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.push_notification_receipts": {
-      "name": "push_notification_receipts",
+    "public.qna_questions": {
+      "name": "qna_questions",
       "schema": "",
       "columns": {
         "id": {
@@ -750,70 +750,43 @@
           "name": "user_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
-        },
-        "alert_id": {
-          "name": "alert_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "title": {
           "name": "title",
-          "type": "varchar(255)",
+          "type": "varchar(256)",
           "primaryKey": false,
           "notNull": true
         },
         "body": {
           "name": "body",
-          "type": "varchar(1000)",
+          "type": "varchar(65536)",
           "primaryKey": false,
           "notNull": true
         },
-        "data": {
-          "name": "data",
-          "type": "jsonb",
+        "issue_number": {
+          "name": "issue_number",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'{}'::jsonb"
+          "notNull": true
         },
-        "image_url": {
-          "name": "image_url",
+        "issue_url": {
+          "name": "issue_url",
           "type": "varchar(500)",
           "primaryKey": false,
-          "notNull": false
-        },
-        "is_read": {
-          "name": "is_read",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "read_at": {
-          "name": "read_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "received_at": {
-          "name": "received_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "now()"
         }
       },
       "indexes": {
-        "idx_push_notification_receipts_app_id": {
-          "name": "idx_push_notification_receipts_app_id",
+        "idx_qna_questions_app_id": {
+          "name": "idx_qna_questions_app_id",
           "columns": [
             {
               "expression": "app_id",
@@ -827,8 +800,8 @@
           "method": "btree",
           "with": {}
         },
-        "idx_push_notification_receipts_user_id": {
-          "name": "idx_push_notification_receipts_user_id",
+        "idx_qna_questions_user_id": {
+          "name": "idx_qna_questions_user_id",
           "columns": [
             {
               "expression": "user_id",
@@ -842,11 +815,11 @@
           "method": "btree",
           "with": {}
         },
-        "idx_push_notification_receipts_alert_id": {
-          "name": "idx_push_notification_receipts_alert_id",
+        "idx_qna_questions_issue_number": {
+          "name": "idx_qna_questions_issue_number",
           "columns": [
             {
-              "expression": "alert_id",
+              "expression": "issue_number",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -857,53 +830,11 @@
           "method": "btree",
           "with": {}
         },
-        "idx_push_notification_receipts_is_read": {
-          "name": "idx_push_notification_receipts_is_read",
+        "idx_qna_questions_created_at": {
+          "name": "idx_qna_questions_created_at",
           "columns": [
             {
-              "expression": "is_read",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_push_notification_receipts_received_at": {
-          "name": "idx_push_notification_receipts_received_at",
-          "columns": [
-            {
-              "expression": "received_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_push_notification_receipts_user_app_received": {
-          "name": "idx_push_notification_receipts_user_app_received",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "app_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "received_at",
+              "expression": "created_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
