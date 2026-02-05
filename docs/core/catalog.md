@@ -7,9 +7,10 @@
 
 | 기능 | 상세 문서 | 서버 | 모바일 |
 |------|----------|------|--------|
-| 소셜 로그인 | [`social-login.md`](./social-login.md) | ✅ 완료 | ⚠️ SDK 연동 완료 (실 서버 테스트 필요) |
+| 소셜 로그인 | [`social-login.md`](./social-login.md) | ✅ 완료 | ✅ auth_sdk 패키지 완료 |
 | FCM 푸시 알림 | [`fcm-push-notification.md`](./fcm-push-notification.md) | ✅ 완료 | ❌ 미구현 |
-| QnA (질문과 답변) | [`qna/`](./qna/) | ✅ 완료 | ✅ 완료 |
+| QnA (질문과 답변) | [`qna/`](./qna/) | ✅ 완료 | ✅ qna 패키지 완료 |
+| 공지사항 (Notice) | - | ✅ 완료 | ✅ notice 패키지 완료 |
 
 ## 소셜 로그인
 
@@ -57,6 +58,23 @@
   3. 모바일에서 `Get.toNamed(Routes.QNA)` 호출 (QnaRepository의 appCode 변경)
   4. API 호출: `POST /qna/questions { appCode: "새앱코드", title: "...", body: "..." }`
 - **설계 문서**: [`qna/server-brief.md`](./qna/server-brief.md), [`qna/mobile-design-spec.md`](./qna/mobile-design-spec.md), [`qna/mobile-brief.md`](./qna/mobile-brief.md)
+
+## 공지사항 (Notice)
+
+- **멀티테넌트**: `appCode`로 앱별 공지 분리
+- **서버**: CRUD + 고정/해제, 읽음 추적, soft delete, 관리자 인증 (X-Admin-Secret)
+- **모바일**: 목록/상세 화면, 미읽음 배지, 페이지네이션
+- **핵심 진입점**:
+  - 서버 핸들러: `apps/server/src/modules/notice/handlers.ts`
+  - 서버 스키마: `apps/server/src/modules/notice/schema.ts` (notices, notice_reads)
+  - 관리자 인증: `apps/server/src/middleware/admin-auth.ts` > `requireAdmin()`
+  - 모바일 컨트롤러: `apps/mobile/packages/notice/lib/src/controllers/`
+  - 모바일 화면: `apps/mobile/packages/notice/lib/src/views/`
+  - 모바일 위젯: `apps/mobile/packages/notice/lib/src/widgets/` (NoticeListCard, UnreadNoticeBadge)
+- **새 제품 적용 방법**:
+  1. `apps` 테이블에 앱 레코드 추가 (code: "새앱코드")
+  2. 서버: `authenticate` 미들웨어로 앱별 자동 분리 (appCode 기반)
+  3. 모바일: notice 패키지를 앱 의존성에 추가, NoticeRoutes 등록
 
 ## 제품별 카탈로그 참조
 

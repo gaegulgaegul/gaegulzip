@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-gaegulzip — TypeScript/Express 백엔드 + Flutter 모바일 앱의 하이브리드 모노레포
+gaegulzip — TypeScript/Express 백엔드 + Flutter 모바일 + Next.js 웹의 하이브리드 모노레포
 
 ## Monorepo Structure
 
@@ -8,12 +8,14 @@ gaegulzip — TypeScript/Express 백엔드 + Flutter 모바일 앱의 하이브�
 gaegulzip/
 ├── apps/
 │   ├── server/              # TypeScript/Express backend (Node.js)
-│   └── mobile/              # Flutter monorepo (managed by Melos)
-│       ├── apps/wowa/       # Main Flutter application
-│       └── packages/        # Shared Flutter packages
-│           ├── core/        # Foundation utilities, DI, logging
-│           ├── api/         # HTTP client, data models
-│           └── design_system/ # UI components, theme
+│   ├── mobile/              # Flutter monorepo (managed by Melos)
+│   │   ├── apps/wowa/       # Main Flutter application
+│   │   └── packages/        # Shared Flutter packages
+│   │       ├── core/        # Foundation utilities, DI, logging
+│   │       ├── api/         # HTTP client, data models
+│   │       └── design_system/ # UI components, theme
+│   └── web/
+│       └── admin/           # Next.js admin dashboard (shadcn/ui)
 ├── turbo.json              # Turborepo task configuration
 ├── pnpm-workspace.yaml     # pnpm workspace definition
 └── melos.yaml              # Melos configuration for Flutter packages
@@ -35,11 +37,18 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 |----------|-----------|------|
 | Server | `apps/server/CLAUDE.md` | 서버 커맨드, Express 컨벤션, API 설계, Drizzle ORM, 로깅, 테스팅 |
 | Mobile | `apps/mobile/CLAUDE.md` | 모바일 커맨드, 패키지 구조, Flutter/GetX/Design System, 코드 생성, Troubleshooting |
+| Web | `apps/web/admin/` | Next.js 16 + shadcn/ui, Tailwind CSS, Playwright E2E only |
 
 ## Core Principles
 
 - **Avoid over-engineering**: Make only necessary changes, don't add features beyond what's requested
 - **No backwards-compatibility hacks**: Delete unused code completely instead of renaming or commenting
+
+## SDK Convention
+
+- **SDK는 항상 모바일(Flutter) 패키지만 해당** — `apps/mobile/packages/` 하위에 생성
+- **서버는 SDK로 추출하지 않음** — 서버 기능은 `apps/server/src/modules/` 내 모듈로 유지
+- 서버 API를 모바일에서 사용할 때: 모바일 SDK 패키지가 서버 API를 호출하는 구조
 
 ## Core Features (재사용 가능한 공통 기능)
 

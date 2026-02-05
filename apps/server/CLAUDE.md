@@ -22,6 +22,7 @@ pnpm drizzle-kit push       # Push schema changes (dev only)
 Required in `.env`:
 - `PORT` — Server port (default: 3001)
 - `DATABASE_URL` — PostgreSQL connection string
+- `ADMIN_SECRET` — 관리자 API 인증 시크릿 (notice 등 관리자 엔드포인트)
 
 ## Project Structure
 

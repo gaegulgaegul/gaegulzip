@@ -99,6 +99,7 @@ const convertDataToStringRecord = (data?: Record<string, any>): Record<string, s
 
   const stringData: Record<string, string> = {};
   for (const [key, value] of Object.entries(data)) {
+    if (value == null) continue;
     stringData[key] = typeof value === 'string' ? value : JSON.stringify(value);
   }
 
@@ -122,6 +123,10 @@ export const sendToDevice = async (
         ...(message.imageUrl && { imageUrl: message.imageUrl }),
       },
       data: convertDataToStringRecord(message.data),
+      ...(message.imageUrl && {
+        android: { notification: { imageUrl: message.imageUrl } },
+        apns: { payload: { aps: { 'mutable-content': 1 } }, fcmOptions: { imageUrl: message.imageUrl } },
+      }),
     };
 
     const messageId = await fcmInstance.messaging().send(payload);
@@ -175,6 +180,10 @@ export const sendToMultipleDevices = async (
         ...(message.imageUrl && { imageUrl: message.imageUrl }),
       },
       data: convertDataToStringRecord(message.data),
+      ...(message.imageUrl && {
+        android: { notification: { imageUrl: message.imageUrl } },
+        apns: { payload: { aps: { 'mutable-content': 1 } }, fcmOptions: { imageUrl: message.imageUrl } },
+      }),
     };
 
     const response = await fcmInstance.messaging().sendEachForMulticast(payload);

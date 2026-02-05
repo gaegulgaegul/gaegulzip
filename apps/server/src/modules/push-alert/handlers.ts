@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { registerDeviceSchema, sendPushSchema, listAlertsSchema } from './validators';
+import { registerDeviceSchema, sendPushSchema, listAlertsSchema, listMyNotificationsSchema, getAlertQuerySchema } from './validators';
 import {
   upsertDevice,
   findDevicesByUserId,
@@ -11,12 +11,32 @@ import {
   findActiveDevicesByUserIds,
   getAllActiveUserIds,
   deactivateDeviceByToken,
+  createReceiptsForUsers,
+  findNotificationsByUser,
+  countNotificationsByUser,
+  countUnreadNotifications,
+  markNotificationAsRead,
+  countAlerts,
 } from './services';
 import { findAppByCode } from '../auth/services';
 import { getFCMInstance, sendToMultipleDevices, FCMMessage } from './fcm';
 import * as pushProbe from './push.probe';
-import { NotFoundException, BusinessException } from '../../utils/errors';
+import { NotFoundException, BusinessException, ValidationException, UnauthorizedException } from '../../utils/errors';
 import { logger } from '../../utils/logger';
+
+/**
+ * 인증된 사용자 정보를 안전하게 추출
+ * @param req - Express 요청 객체
+ * @returns { userId, appId } — 인증 미들웨어가 주입한 사용자 정보
+ * @throws UnauthorizedException — 인증 정보가 없는 경우
+ */
+const getAuthUser = (req: Request): { userId: number; appId: number } => {
+  const user = (req as any).user;
+  if (!user?.userId || !user?.appId) {
+    throw new UnauthorizedException('Authentication required');
+  }
+  return { userId: user.userId, appId: user.appId };
+};
 
 /**
  * 디바이스 토큰 등록 핸들러 (인증 필요)
@@ -26,7 +46,7 @@ import { logger } from '../../utils/logger';
  */
 export const registerDevice = async (req: Request, res: Response) => {
   const { token, platform, deviceId } = registerDeviceSchema.parse(req.body);
-  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+  const { userId, appId } = getAuthUser(req);
 
   logger.debug({ userId, appId, platform }, 'Registering device token');
 
@@ -62,7 +82,7 @@ export const registerDevice = async (req: Request, res: Response) => {
  * @returns 200: 디바이스 목록
  */
 export const listDevices = async (req: Request, res: Response) => {
-  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+  const { userId, appId } = getAuthUser(req);
 
   const devices = await findDevicesByUserId(userId, appId);
 
@@ -87,7 +107,10 @@ export const listDevices = async (req: Request, res: Response) => {
 export const deactivateDevice = async (req: Request, res: Response) => {
   const idParam = req.params.id;
   const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam, 10);
-  const { userId, appId } = (req as any).user as { userId: number; appId: number };
+  if (isNaN(id) || id <= 0) {
+    throw new ValidationException('Invalid device ID');
+  }
+  const { userId, appId } = getAuthUser(req);
 
   const device = await deactivateDeviceService(id, userId, appId);
 
@@ -205,7 +228,24 @@ export const sendPush = async (req: Request, res: Response) => {
       }
     }
 
-    // 8. Alert 상태 업데이트
+    // 8. Receipt 생성 (각 대상 사용자별 1개 레코드)
+    await createReceiptsForUsers({
+      appId: app.id,
+      alertId: alert.id,
+      userIds: targetUserIds,
+      title,
+      body,
+      data,
+      imageUrl,
+    });
+
+    pushProbe.receiptsCreated({
+      alertId: alert.id,
+      appId: app.id,
+      userCount: targetUserIds.length,
+    });
+
+    // 9. Alert 상태 업데이트
     await updateAlertStatus(alert.id, {
       status: 'completed',
       sentCount: result.successCount,
@@ -260,7 +300,10 @@ export const listAlerts = async (req: Request, res: Response) => {
     throw new NotFoundException('App', appCode);
   }
 
-  const alerts = await findAlertsService(app.id, limit, offset);
+  const [alerts, total] = await Promise.all([
+    findAlertsService(app.id, limit, offset),
+    countAlerts(app.id),
+  ]);
 
   res.json({
     alerts: alerts.map((a) => ({
@@ -273,7 +316,7 @@ export const listAlerts = async (req: Request, res: Response) => {
       sentAt: a.sentAt,
       createdAt: a.createdAt,
     })),
-    total: alerts.length,
+    total,
   });
 };
 
@@ -286,11 +329,10 @@ export const listAlerts = async (req: Request, res: Response) => {
 export const getAlert = async (req: Request, res: Response) => {
   const idParam = req.params.id;
   const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam, 10);
-  const appCode = req.query.appCode as string;
-
-  if (!appCode) {
-    throw new BusinessException('App code is required', 'VALIDATION_ERROR');
+  if (isNaN(id) || id <= 0) {
+    throw new ValidationException('Invalid alert ID');
   }
+  const { appCode } = getAlertQuerySchema.parse(req.query);
 
   const app = await findAppByCode(appCode);
   if (!app) {
@@ -318,4 +360,83 @@ export const getAlert = async (req: Request, res: Response) => {
     sentAt: alert.sentAt,
     createdAt: alert.createdAt,
   });
+};
+
+// ─── 사용자 알림 API 핸들러 ─────────────────────────────────────────
+
+/**
+ * 내 알림 목록 조회 핸들러 (인증 필요)
+ * @param req - Express 요청 객체 (query: { limit?, offset?, unreadOnly? }, user: { userId, appId })
+ * @param res - Express 응답 객체
+ * @returns 200: 알림 목록
+ */
+export const listMyNotifications = async (req: Request, res: Response) => {
+  const { limit, offset, unreadOnly } = listMyNotificationsSchema.parse(req.query);
+  const { userId, appId } = getAuthUser(req);
+
+  logger.debug({ userId, appId, limit, offset, unreadOnly }, 'Listing user notifications');
+
+  const [notifications, total] = await Promise.all([
+    findNotificationsByUser(userId, appId, { limit, offset, unreadOnly }),
+    countNotificationsByUser(userId, appId, { unreadOnly }),
+  ]);
+
+  res.json({
+    notifications: notifications.map((n) => ({
+      id: n.id,
+      title: n.title,
+      body: n.body,
+      data: n.data,
+      imageUrl: n.imageUrl,
+      isRead: n.isRead,
+      readAt: n.readAt?.toISOString() ?? null,
+      receivedAt: n.receivedAt.toISOString(),
+    })),
+    total,
+  });
+};
+
+/**
+ * 읽지 않은 알림 개수 조회 핸들러 (인증 필요)
+ * @param req - Express 요청 객체 (user: { userId, appId })
+ * @param res - Express 응답 객체
+ * @returns 200: 읽지 않은 알림 개수
+ */
+export const getUnreadCount = async (req: Request, res: Response) => {
+  const { userId, appId } = getAuthUser(req);
+
+  const unreadCount = await countUnreadNotifications(userId, appId);
+
+  res.json({ unreadCount });
+};
+
+/**
+ * 알림 읽음 처리 핸들러 (인증 필요)
+ * @param req - Express 요청 객체 (params: { id }, user: { userId, appId })
+ * @param res - Express 응답 객체
+ * @returns 200: 읽음 처리 성공
+ */
+export const markAsRead = async (req: Request, res: Response) => {
+  const idParam = req.params.id;
+  const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam, 10);
+  if (isNaN(id) || id <= 0) {
+    throw new ValidationException('Invalid notification ID');
+  }
+  const { userId, appId } = getAuthUser(req);
+
+  logger.debug({ id, userId, appId }, 'Marking notification as read');
+
+  const success = await markNotificationAsRead(id, userId, appId);
+
+  if (!success) {
+    throw new NotFoundException('Notification', id);
+  }
+
+  pushProbe.notificationRead({
+    notificationId: id,
+    userId,
+    appId,
+  });
+
+  res.json({ success: true });
 };

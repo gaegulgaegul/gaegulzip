@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:api/api.dart';
 import 'package:core/core.dart';
@@ -13,7 +14,7 @@ class AuthRepository {
   /// 소셜 로그인 처리
   ///
   /// [provider] 소셜 플랫폼
-  /// [code] OAuth code
+  /// [accessToken] 소셜 SDK에서 획득한 OAuth access token
   ///
   /// Returns: [UserModel] 로그인한 사용자 정보
   ///
@@ -23,13 +24,13 @@ class AuthRepository {
   ///   - [Exception] 기타 서버 오류
   Future<UserModel> login({
     required String provider,
-    required String code,
+    required String accessToken,
   }) async {
     try {
       // 1. API 호출
       final response = await _apiService.login(
         provider: provider,
-        code: code,
+        accessToken: accessToken,
       );
 
       // 2. 토큰 저장
@@ -104,8 +105,24 @@ class AuthRepository {
   }
 
   /// 로그아웃
-  Future<void> logout() async {
-    await _storageService.clearAll();
+  ///
+  /// 서버에 토큰 무효화 요청 후 로컬 저장소를 초기화합니다.
+  /// 서버 API 실패 시에도 로컬 데이터는 삭제합니다.
+  Future<void> logout({bool revokeAll = false}) async {
+    try {
+      final refreshToken = await _storageService.getRefreshToken();
+      if (refreshToken != null) {
+        await _apiService.logout(
+          refreshToken: refreshToken,
+          revokeAll: revokeAll,
+        );
+      }
+    } catch (e) {
+      // 서버 로그아웃 실패해도 로컬 데이터는 삭제
+      debugPrint('서버 로그아웃 실패 (로컬 데이터는 삭제됨): $e');
+    } finally {
+      await _storageService.clearAll();
+    }
   }
 
   /// 로그인 여부 확인

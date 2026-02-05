@@ -1,7 +1,7 @@
 import { db } from '../../config/database';
-import { pushDeviceTokens, pushAlerts } from './schema';
+import { pushDeviceTokens, pushAlerts, pushNotificationReceipts } from './schema';
 import { users } from '../auth/schema';
-import { eq, and, inArray, desc } from 'drizzle-orm';
+import { eq, and, inArray, desc, count } from 'drizzle-orm';
 
 /**
  * 디바이스 토큰 등록 또는 업데이트
@@ -207,6 +207,18 @@ export const findAlerts = async (appId: number, limit: number = 50, offset: numb
 };
 
 /**
+ * Alert 전체 개수 조회
+ */
+export const countAlerts = async (appId: number): Promise<number> => {
+  const result = await db
+    .select({ count: count() })
+    .from(pushAlerts)
+    .where(eq(pushAlerts.appId, appId));
+
+  return result[0]?.count || 0;
+};
+
+/**
  * 단일 Alert 조회
  */
 export const findAlertById = async (id: number, appId: number) => {
@@ -229,4 +241,175 @@ export const getAllActiveUserIds = async (appId: number): Promise<number[]> => {
     .where(eq(users.appId, appId));
 
   return result.map((row) => row.userId);
+};
+
+// ─── 알림 수신 기록 (Receipt) ───────────────────────────────────────
+
+/**
+ * 알림 수신 기록 생성 (발송 시 대상 사용자별 1개 레코드 생성)
+ */
+export const createReceiptsForUsers = async (data: {
+  appId: number;
+  alertId: number;
+  userIds: number[];
+  title: string;
+  body: string;
+  data?: Record<string, any>;
+  imageUrl?: string;
+}) => {
+  if (data.userIds.length === 0) {
+    return [];
+  }
+
+  const now = new Date();
+  const BATCH_SIZE = 1000;
+  const allInserted: (typeof pushNotificationReceipts.$inferSelect)[] = [];
+
+  for (let i = 0; i < data.userIds.length; i += BATCH_SIZE) {
+    const batch = data.userIds.slice(i, i + BATCH_SIZE);
+    const receipts = batch.map((userId) => ({
+      appId: data.appId,
+      userId,
+      alertId: data.alertId,
+      title: data.title,
+      body: data.body,
+      data: data.data || {},
+      imageUrl: data.imageUrl,
+      isRead: false,
+      receivedAt: now,
+      createdAt: now,
+    }));
+
+    const inserted = await db.insert(pushNotificationReceipts).values(receipts).returning();
+    allInserted.push(...inserted);
+  }
+
+  return allInserted;
+};
+
+/**
+ * 사용자의 알림 목록 조회 (인증된 사용자 전용)
+ */
+export const findNotificationsByUser = async (
+  userId: number,
+  appId: number,
+  options?: {
+    limit?: number;
+    offset?: number;
+    unreadOnly?: boolean;
+  }
+) => {
+  const limit = options?.limit || 20;
+  const offset = options?.offset || 0;
+
+  const conditions = [
+    eq(pushNotificationReceipts.userId, userId),
+    eq(pushNotificationReceipts.appId, appId),
+  ];
+
+  if (options?.unreadOnly) {
+    conditions.push(eq(pushNotificationReceipts.isRead, false));
+  }
+
+  const results = await db
+    .select()
+    .from(pushNotificationReceipts)
+    .where(and(...conditions))
+    .orderBy(desc(pushNotificationReceipts.receivedAt))
+    .limit(limit)
+    .offset(offset);
+
+  return results;
+};
+
+/**
+ * 사용자 알림 전체 개수 조회 (페이지네이션용)
+ */
+export const countNotificationsByUser = async (
+  userId: number,
+  appId: number,
+  options?: { unreadOnly?: boolean }
+): Promise<number> => {
+  const conditions = [
+    eq(pushNotificationReceipts.userId, userId),
+    eq(pushNotificationReceipts.appId, appId),
+  ];
+
+  if (options?.unreadOnly) {
+    conditions.push(eq(pushNotificationReceipts.isRead, false));
+  }
+
+  const result = await db
+    .select({ count: count() })
+    .from(pushNotificationReceipts)
+    .where(and(...conditions));
+
+  return result[0]?.count || 0;
+};
+
+/**
+ * 읽지 않은 알림 개수 조회 (배지 표시용)
+ */
+export const countUnreadNotifications = async (userId: number, appId: number): Promise<number> => {
+  const result = await db
+    .select({ count: count() })
+    .from(pushNotificationReceipts)
+    .where(
+      and(
+        eq(pushNotificationReceipts.userId, userId),
+        eq(pushNotificationReceipts.appId, appId),
+        eq(pushNotificationReceipts.isRead, false)
+      )
+    );
+
+  return result[0]?.count || 0;
+};
+
+/**
+ * 알림 읽음 처리 (멱등성 보장)
+ */
+export const markNotificationAsRead = async (
+  id: number,
+  userId: number,
+  appId: number
+): Promise<boolean> => {
+  const updated = await db
+    .update(pushNotificationReceipts)
+    .set({
+      isRead: true,
+      readAt: new Date(),
+    })
+    .where(
+      and(
+        eq(pushNotificationReceipts.id, id),
+        eq(pushNotificationReceipts.userId, userId),
+        eq(pushNotificationReceipts.appId, appId)
+      )
+    )
+    .returning();
+
+  return updated.length > 0;
+};
+
+/**
+ * 알림 상세 조회 (권한 검증 포함)
+ */
+export const findNotificationById = async (
+  id: number,
+  userId: number,
+  appId: number
+) => {
+  const result = await db
+    .select()
+    .from(pushNotificationReceipts)
+    .where(
+      and(
+        eq(pushNotificationReceipts.id, id),
+        eq(pushNotificationReceipts.userId, userId),
+        eq(pushNotificationReceipts.appId, appId)
+      )
+    )
+    .limit(1);
+
+  return result[0] || null;
 };

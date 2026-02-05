@@ -7,11 +7,16 @@ import {
   sendPush,
   listAlerts,
   getAlert,
+  listMyNotifications,
+  getUnreadCount,
+  markAsRead,
 } from '../../../src/modules/push-alert/handlers';
 import {
   registerDeviceSchema,
   sendPushSchema,
   listAlertsSchema,
+  listMyNotificationsSchema,
+  getAlertQuerySchema,
 } from '../../../src/modules/push-alert/validators';
 import {
   upsertDevice,
@@ -24,6 +29,12 @@ import {
   findActiveDevicesByUserIds,
   getAllActiveUserIds,
   deactivateDeviceByToken,
+  createReceiptsForUsers,
+  findNotificationsByUser,
+  countUnreadNotifications,
+  countNotificationsByUser,
+  markNotificationAsRead,
+  countAlerts,
 } from '../../../src/modules/push-alert/services';
 import { findAppByCode } from '../../../src/modules/auth/services';
 import * as fcm from '../../../src/modules/push-alert/fcm';
@@ -41,6 +52,12 @@ vi.mock('../../../src/modules/push-alert/validators', () => ({
   listAlertsSchema: {
     parse: vi.fn(),
   },
+  listMyNotificationsSchema: {
+    parse: vi.fn(),
+  },
+  getAlertQuerySchema: {
+    parse: vi.fn(),
+  },
 }));
 
 vi.mock('../../../src/modules/push-alert/services', () => ({
@@ -54,6 +71,12 @@ vi.mock('../../../src/modules/push-alert/services', () => ({
   findActiveDevicesByUserIds: vi.fn(),
   getAllActiveUserIds: vi.fn(),
   deactivateDeviceByToken: vi.fn(),
+  createReceiptsForUsers: vi.fn(),
+  findNotificationsByUser: vi.fn(),
+  countUnreadNotifications: vi.fn(),
+  countNotificationsByUser: vi.fn(),
+  markNotificationAsRead: vi.fn(),
+  countAlerts: vi.fn(),
 }));
 
 vi.mock('../../../src/modules/auth/services', () => ({
@@ -72,6 +95,8 @@ vi.mock('../../../src/modules/push-alert/push.probe', () => ({
   pushSent: vi.fn(),
   pushFailed: vi.fn(),
   invalidTokenDetected: vi.fn(),
+  receiptsCreated: vi.fn(),
+  notificationRead: vi.fn(),
 }));
 
 describe('registerDevice handler', () => {
@@ -249,11 +274,12 @@ describe('sendPush handler', () => {
     expect(createAlert).toHaveBeenCalled();
     expect(findActiveDevicesByUserIds).toHaveBeenCalledWith([1], 1);
     expect(fcm.sendToMultipleDevices).toHaveBeenCalled();
+    expect(createReceiptsForUsers).toHaveBeenCalled();
+    expect(pushProbe.receiptsCreated).toHaveBeenCalled();
     expect(updateAlertStatus).toHaveBeenCalledWith(1, {
       status: 'completed',
       sentCount: 2,
       failedCount: 0,
-      errorMessage: undefined,
     });
     expect(pushProbe.pushSent).toHaveBeenCalled();
     expect(res.json).toHaveBeenCalledWith({
@@ -422,10 +448,12 @@ describe('listAlerts handler', () => {
     });
     vi.mocked(findAppByCode).mockResolvedValue(mockApp as any);
     vi.mocked(findAlertsService).mockResolvedValue(mockAlerts as any);
+    vi.mocked(countAlerts).mockResolvedValue(1);
 
     await listAlerts(req as Request, res as Response);
 
     expect(findAlertsService).toHaveBeenCalledWith(1, 10, 0);
+    expect(countAlerts).toHaveBeenCalledWith(1);
     expect(res.json).toHaveBeenCalledWith({
       alerts: mockAlerts,
       total: 1,
@@ -466,6 +494,7 @@ describe('getAlert handler', () => {
       createdAt: new Date(),
     };
 
+    vi.mocked(getAlertQuerySchema.parse).mockReturnValue({ appCode: 'wowa' });
     vi.mocked(findAppByCode).mockResolvedValue(mockApp as any);
     vi.mocked(findAlertById).mockResolvedValue(mockAlert as any);
 
@@ -478,9 +507,135 @@ describe('getAlert handler', () => {
   it('should throw error when alert not found', async () => {
     const mockApp = { id: 1, code: 'wowa' };
 
+    vi.mocked(getAlertQuerySchema.parse).mockReturnValue({ appCode: 'wowa' });
     vi.mocked(findAppByCode).mockResolvedValue(mockApp as any);
     vi.mocked(findAlertById).mockResolvedValue(null);
 
     await expect(getAlert(req as Request, res as Response)).rejects.toThrow(NotFoundException);
+  });
+});
+
+describe('listMyNotifications handler', () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+
+  beforeEach(() => {
+    req = {
+      query: { limit: '20', offset: '0' },
+      user: { userId: 1, appId: 1 },
+    };
+    res = {
+      json: vi.fn(),
+    };
+    vi.clearAllMocks();
+  });
+
+  it('should return user notifications', async () => {
+    const receivedAt = new Date('2026-02-04T10:00:00Z');
+    const mockNotifications = [
+      {
+        id: 1,
+        title: 'Test',
+        body: 'Test body',
+        data: {},
+        imageUrl: null,
+        isRead: false,
+        readAt: null,
+        receivedAt,
+      },
+    ];
+
+    vi.mocked(listMyNotificationsSchema.parse).mockReturnValue({
+      limit: 20,
+      offset: 0,
+    });
+    vi.mocked(findNotificationsByUser).mockResolvedValue(mockNotifications as any);
+    vi.mocked(countNotificationsByUser).mockResolvedValue(1);
+
+    await listMyNotifications(req as Request, res as Response);
+
+    expect(findNotificationsByUser).toHaveBeenCalledWith(1, 1, {
+      limit: 20,
+      offset: 0,
+      unreadOnly: undefined,
+    });
+    expect(countNotificationsByUser).toHaveBeenCalledWith(1, 1, {
+      unreadOnly: undefined,
+    });
+    expect(res.json).toHaveBeenCalledWith({
+      notifications: [
+        {
+          id: 1,
+          title: 'Test',
+          body: 'Test body',
+          data: {},
+          imageUrl: null,
+          isRead: false,
+          readAt: null,
+          receivedAt: receivedAt.toISOString(),
+        },
+      ],
+      total: 1,
+    });
+  });
+});
+
+describe('getUnreadCount handler', () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+
+  beforeEach(() => {
+    req = {
+      user: { userId: 1, appId: 1 },
+    };
+    res = {
+      json: vi.fn(),
+    };
+    vi.clearAllMocks();
+  });
+
+  it('should return unread count', async () => {
+    vi.mocked(countUnreadNotifications).mockResolvedValue(5);
+
+    await getUnreadCount(req as Request, res as Response);
+
+    expect(countUnreadNotifications).toHaveBeenCalledWith(1, 1);
+    expect(res.json).toHaveBeenCalledWith({ unreadCount: 5 });
+  });
+});
+
+describe('markAsRead handler', () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+
+  beforeEach(() => {
+    req = {
+      params: { id: '1' },
+      user: { userId: 1, appId: 1 },
+    };
+    res = {
+      json: vi.fn(),
+    };
+    vi.clearAllMocks();
+  });
+
+  it('should mark notification as read', async () => {
+    vi.mocked(markNotificationAsRead).mockResolvedValue(true);
+
+    await markAsRead(req as Request, res as Response);
+
+    expect(markNotificationAsRead).toHaveBeenCalledWith(1, 1, 1);
+    expect(pushProbe.notificationRead).toHaveBeenCalledWith({
+      notificationId: 1,
+      userId: 1,
+      appId: 1,
+    });
+    expect(res.json).toHaveBeenCalledWith({ success: true });
+  });
+
+  it('should throw NotFoundException when notification not found', async () => {
+    vi.mocked(markNotificationAsRead).mockResolvedValue(false);
+
+    await expect(markAsRead(req as Request, res as Response)).rejects.toThrow(NotFoundException);
   });
 });

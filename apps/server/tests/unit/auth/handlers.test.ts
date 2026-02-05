@@ -4,7 +4,10 @@ import { oauthLogin, refreshToken, logout } from '../../../src/modules/auth/hand
 import { oauthLoginSchema, refreshTokenSchema, logoutSchema } from '../../../src/modules/auth/validators';
 import {
   findAppByCode,
-  upsertUser,
+  findAppById,
+  findUserByProvider,
+  createUser,
+  updateUserLogin,
   generateJWT,
   generateRefreshToken,
   storeRefreshToken,
@@ -34,7 +37,10 @@ vi.mock('../../../src/modules/auth/validators', () => ({
 
 vi.mock('../../../src/modules/auth/services', () => ({
   findAppByCode: vi.fn(),
-  upsertUser: vi.fn(),
+  findAppById: vi.fn(),
+  findUserByProvider: vi.fn(),
+  createUser: vi.fn(),
+  updateUserLogin: vi.fn(),
   generateJWT: vi.fn(),
   generateRefreshToken: vi.fn(),
   storeRefreshToken: vi.fn(),
@@ -146,7 +152,8 @@ describe('oauthLogin handler', () => {
       profileImage: 'https://example.com/image.jpg',
     });
 
-    vi.mocked(upsertUser).mockResolvedValue({
+    vi.mocked(findUserByProvider).mockResolvedValue(null);
+    vi.mocked(createUser).mockResolvedValue({
       id: 1,
       appId: 1,
       provider: 'kakao',
@@ -265,6 +272,90 @@ describe('oauthLogin handler', () => {
     });
   });
 
+  it('should call updateUserLogin for existing user', async () => {
+    vi.mocked(oauthLoginSchema.parse).mockReturnValue({
+      code: 'test-app',
+      provider: 'kakao',
+      accessToken: 'valid-token',
+    });
+
+    vi.mocked(findAppByCode).mockResolvedValue({
+      id: 1,
+      code: 'test-app',
+      name: 'Test App',
+      kakaoRestApiKey: 'kakao-key',
+      kakaoClientSecret: 'kakao-secret',
+      jwtSecret: 'jwt-secret',
+      jwtExpiresIn: '7d',
+      accessTokenExpiresIn: '30m',
+      refreshTokenExpiresIn: '14d',
+    } as any);
+
+    vi.mocked(createOAuthProvider).mockReturnValue(mockProvider);
+
+    mockProvider.verifyToken.mockResolvedValue(undefined);
+    mockProvider.getUserInfo.mockResolvedValue({
+      providerId: '123',
+      email: 'updated@example.com',
+      nickname: '홍길동2',
+      profileImage: 'https://example.com/new-image.jpg',
+    });
+
+    const existingUser = {
+      id: 1,
+      appId: 1,
+      provider: 'kakao',
+      providerId: '123',
+      email: 'old@example.com',
+      nickname: '홍길동',
+      profileImage: 'https://example.com/old-image.jpg',
+      lastLoginAt: new Date(),
+    };
+
+    vi.mocked(findUserByProvider).mockResolvedValue(existingUser as any);
+    vi.mocked(updateUserLogin).mockResolvedValue({
+      ...existingUser,
+      email: 'updated@example.com',
+      nickname: '홍길동2',
+      profileImage: 'https://example.com/new-image.jpg',
+    } as any);
+
+    vi.mocked(generateJWT).mockReturnValue('mock-jwt-token');
+    vi.mocked(generateRefreshToken).mockResolvedValue({
+      refreshToken: 'mock-refresh-token',
+      jti: 'refresh-jti-123',
+      tokenFamily: 'family-123',
+    });
+
+    await oauthLogin(req as Request, res as Response);
+
+    expect(updateUserLogin).toHaveBeenCalledWith(1, {
+      email: 'updated@example.com',
+      nickname: '홍길동2',
+      profileImage: 'https://example.com/new-image.jpg',
+    });
+
+    expect(createUser).not.toHaveBeenCalled();
+
+    expect(res.json).toHaveBeenCalledWith({
+      accessToken: 'mock-jwt-token',
+      refreshToken: 'mock-refresh-token',
+      tokenType: 'Bearer',
+      expiresIn: 1800,
+      user: expect.objectContaining({
+        id: 1,
+        provider: 'kakao',
+      }),
+      token: 'mock-jwt-token',
+    });
+
+    expect(authProbe.loginSuccess).toHaveBeenCalledWith({
+      userId: 1,
+      provider: 'kakao',
+      appCode: 'test-app',
+    });
+  });
+
   it('should handle Naver login successfully', async () => {
     vi.mocked(oauthLoginSchema.parse).mockReturnValue({
       code: 'test-app',
@@ -294,7 +385,8 @@ describe('oauthLogin handler', () => {
       profileImage: 'https://naver.com/image.jpg',
     });
 
-    vi.mocked(upsertUser).mockResolvedValue({
+    vi.mocked(findUserByProvider).mockResolvedValue(null);
+    vi.mocked(createUser).mockResolvedValue({
       id: 1,
       appId: 1,
       provider: 'naver',
@@ -370,7 +462,8 @@ describe('oauthLogin handler', () => {
       profileImage: 'https://google.com/image.jpg',
     });
 
-    vi.mocked(upsertUser).mockResolvedValue({
+    vi.mocked(findUserByProvider).mockResolvedValue(null);
+    vi.mocked(createUser).mockResolvedValue({
       id: 1,
       appId: 1,
       provider: 'google',
@@ -448,7 +541,8 @@ describe('oauthLogin handler', () => {
       profileImage: null,
     });
 
-    vi.mocked(upsertUser).mockResolvedValue({
+    vi.mocked(findUserByProvider).mockResolvedValue(null);
+    vi.mocked(createUser).mockResolvedValue({
       id: 1,
       appId: 1,
       provider: 'apple',
@@ -516,6 +610,14 @@ describe('refreshToken handler', () => {
     };
 
     vi.clearAllMocks();
+
+    // refreshToken 핸들러는 jwt.decode → findAppById → verifyRefreshToken 순서로 호출
+    vi.mocked(findAppById).mockResolvedValue({
+      id: 1,
+      jwtSecret: 'test-secret',
+      accessTokenExpiresIn: '30m',
+      refreshTokenExpiresIn: '14d',
+    } as any);
   });
 
   it('should rotate refresh token successfully', async () => {
@@ -549,8 +651,7 @@ describe('refreshToken handler', () => {
     });
 
     vi.mocked(findRefreshTokenByJti).mockResolvedValue(mockStoredToken);
-    vi.mocked(findAppByCode).mockResolvedValue(mockApp as any);
-    vi.mocked(upsertUser).mockResolvedValue(mockUser as any);
+    vi.mocked(findAppById).mockResolvedValue(mockApp as any);
 
     vi.mocked(rotateRefreshToken).mockResolvedValue({
       newAccessToken: 'new-access-token',
@@ -682,6 +783,12 @@ describe('logout handler', () => {
     };
 
     vi.clearAllMocks();
+
+    // logout 핸들러는 jwt.decode → findAppById → verifyRefreshToken 순서로 호출
+    vi.mocked(findAppById).mockResolvedValue({
+      id: 1,
+      jwtSecret: 'test-secret',
+    } as any);
   });
 
   it('should revoke single refresh token', async () => {

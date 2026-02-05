@@ -1,0 +1,30 @@
+name: push
+description: "재사용 가능한 FCM Push Notification SDK"
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.10.7 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Firebase 관련
+  firebase_core: ^3.8.1
+  firebase_messaging: ^15.1.5
+
+  # 상태 관리 및 의존성 주입
+  get: ^4.6.6
+
+  # 내부 의존성
+  core:
+    path: ../core
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:

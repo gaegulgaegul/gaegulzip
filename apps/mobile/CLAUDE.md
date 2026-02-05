@@ -33,15 +33,24 @@ core (foundation — no internal dependencies)
   ↑
   ├── api          (Dio, Freezed models, JSON serialization)
   ├── design_system (UI components, theme, reactive widgets)
+  ├── *_sdk        (feature SDK packages — reusable across apps)
   └── wowa app     (state management, routing, features)
 ```
 
 - `core` → 기초 유틸, DI, 로깅, extensions, 에러 처리
 - `api` → HTTP (Dio), API 모델 (Freezed/json_serializable)
 - `design_system` → Frame0 스케치 스타일 UI 컴포넌트, 테마
+- `*_sdk` → 기능별 SDK 패키지 (예: `auth_sdk`). 앱 간 재사용 가능한 독립 패키지
 - `wowa` → 메인 앱, GetX 상태관리, 라우팅
 
-**의존성 규칙**: 단방향 (core ← api/design_system ← wowa), 순환 의존 금지
+**의존성 규칙**: 단방향 (core ← api/design_system ← *_sdk ← wowa), 순환 의존 금지
+
+## SDK Packaging Convention
+
+- SDK 패키지 위치: `packages/*_sdk/` (예: `packages/auth_sdk/`)
+- SDK는 `core`, `api`, `design_system` 패키지에 의존 가능, `wowa` 앱에 의존 금지
+- SDK는 앱에 독립적 — 하드코딩된 앱 이름, 라우트, 화면 이동 포함 금지
+- SDK 초기화는 config 객체로 주입 (appCode, apiBaseUrl 등)
 
 ## Quick Reference
 
