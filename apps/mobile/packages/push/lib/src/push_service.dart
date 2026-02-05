@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
@@ -12,6 +13,9 @@ import 'push_handler_callback.dart';
 class PushService extends GetxService {
   /// Firebase Messaging 인스턴스
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+
+  /// 스트림 구독 관리 (메모리 누수 방지)
+  final List<StreamSubscription> _subscriptions = [];
 
   /// 현재 디바이스 토큰 (반응형)
   final Rxn<String> deviceToken = Rxn<String>();
@@ -56,16 +60,16 @@ class PushService extends GetxService {
       await _getDeviceToken();
 
       // 4. 토큰 갱신 리스너
-      _messaging.onTokenRefresh.listen((newToken) {
+      _subscriptions.add(_messaging.onTokenRefresh.listen((newToken) {
         deviceToken.value = newToken;
         Logger.info('FCM token refreshed: $newToken');
-      });
+      }));
 
       // 5. 포그라운드 메시지 리스너
-      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      _subscriptions.add(FirebaseMessaging.onMessage.listen(_handleForegroundMessage));
 
       // 6. 백그라운드 메시지 탭 리스너
-      FirebaseMessaging.onMessageOpenedApp.listen(_handleBackgroundMessageOpened);
+      _subscriptions.add(FirebaseMessaging.onMessageOpenedApp.listen(_handleBackgroundMessageOpened));
 
       // 7. 종료 상태 메시지 확인
       final initialMessage = await _messaging.getInitialMessage();
@@ -167,6 +171,15 @@ class PushService extends GetxService {
     } else {
       Logger.warn('No terminated message handler registered');
     }
+  }
+
+  @override
+  void onClose() {
+    for (final sub in _subscriptions) {
+      sub.cancel();
+    }
+    _subscriptions.clear();
+    super.onClose();
   }
 
   /// 토큰 수동 갱신
