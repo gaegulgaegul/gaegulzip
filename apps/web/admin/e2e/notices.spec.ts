@@ -52,8 +52,8 @@ test.describe('공지사항 작성', () => {
   test('새 공지 작성 폼에서 제목/본문 입력 후 저장하면 목록에 나타난다', async ({ page }) => {
     await loginAsAdmin(page);
 
-    // API 모킹: create 성공
-    await page.route('**/admin/notices', async (route) => {
+    // API 모킹: regex로 쿼리스트링 유무 모두 매칭 (/admin/notices, /admin/notices?...)
+    await page.route(/\/admin\/notices(\?.*)?$/, async (route) => {
       const method = route.request().method();
       if (method === 'POST') {
         await route.fulfill({
@@ -109,6 +109,24 @@ test.describe('공지사항 작성', () => {
 test.describe('공지사항 수정', () => {
   test('목록에서 공지를 클릭하면 수정 페이지로 이동한다', async ({ page }) => {
     await loginAsAdmin(page);
+
+    // 수정 페이지에서 getById 호출을 위한 모킹
+    await page.route('**/admin/notices/1', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          title: '기존 공지',
+          content: '기존 내용',
+          category: 'update',
+          isPinned: false,
+          viewCount: 5,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }),
+      });
+    });
 
     await page.route('**/admin/notices?*', async (route) => {
       await route.fulfill({
