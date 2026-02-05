@@ -7,8 +7,8 @@ description: |
 
   Agent workflow per phase:
   - Plan: PO → CTO (platform routing)
-  - Design: tech-lead + ui-ux-designer (per platform)
-  - Do: CTO (work distribution) → node-developer + flutter-developer
+  - Design: tech-lead + ui-ux-designer (per platform, including web)
+  - Do: CTO (work distribution) → node-developer + flutter-developer + react-developer
   - Analyze: gap-detector + CTO (integration review)
   - Iterate/Report: bkit agents
 
@@ -21,9 +21,12 @@ agents:
   design-server: server/tech-lead
   design-mobile-ui: mobile/ui-ux-designer
   design-mobile-tech: mobile/tech-lead
+  design-web-ui: web/ui-ux-designer
+  design-web-tech: web/tech-lead
   do-distribute: cto
   do-server: server/node-developer
   do-mobile: mobile/flutter-developer
+  do-web: web/react-developer
   analyze: bkit:gap-detector
   review: cto
   iterate: bkit:pdca-iterator
@@ -86,7 +89,8 @@ When calling agents via Task tool, always append to the prompt:
   "features": {
     "{feature}": {
       "phase": "plan | design | do | check | act | completed | archived",
-      "platform": "server | mobile | fullstack",
+      "platform": "server | mobile | web | fullstack",
+      "frontendType": "mobile | web",
       "startedAt": "ISO timestamp",
       "documents": {}
     }
@@ -94,7 +98,9 @@ When calling agents via Task tool, always append to the prompt:
 }
 ```
 
-**IMPORTANT**: `platform` is determined during Plan phase by CTO and reused in all subsequent phases.
+**IMPORTANT**:
+- `platform` is determined during Plan phase by CTO and reused in all subsequent phases.
+- `frontendType` is set when platform is `fullstack` to distinguish Mobile vs Web frontend agents.
 
 ---
 
@@ -189,7 +195,8 @@ Read .pdca-status.json → features.{feature}.platform
 |----------|--------|--------|
 | **Server** | `server/tech-lead` | `docs/{product}/{feature}/server-brief.md` |
 | **Mobile** | `mobile/ui-ux-designer` → `mobile/tech-lead` | `docs/{product}/{feature}/mobile-design-spec.md`, `docs/{product}/{feature}/mobile-brief.md` |
-| **Fullstack** | All above (parallel where possible) | Both server + mobile docs |
+| **Web** | `web/ui-ux-designer` → `web/tech-lead` | `docs/{product}/{feature}/web-design-spec.md`, `docs/{product}/{feature}/web-brief.md` |
+| **Fullstack** | Server + frontend (Mobile or Web based on `frontendType`) | Both server + frontend docs |
 
 **Server** — call `tech-lead` (server):
 ```
@@ -225,7 +232,31 @@ Output: docs/{product}/{feature}/mobile-brief.md
 """)
 ```
 
-**Fullstack** — run Server and Mobile in parallel where possible.
+**Web** — call `ui-ux-designer` first, then `tech-lead` (web):
+```
+Task(subagent_type="ui-ux-designer", prompt="""
+Feature: {feature}
+User Story: docs/{product}/{feature}/user-story.md
+
+Create web UI/UX design specification (shadcn/ui components, Tailwind CSS, responsive layout).
+Output: docs/{product}/{feature}/web-design-spec.md
+""")
+
+# After ui-ux-designer completes:
+Task(subagent_type="tech-lead", prompt="""
+Feature: {feature}
+Platform: Web
+User Story: docs/{product}/{feature}/user-story.md
+Design Spec: docs/{product}/{feature}/web-design-spec.md
+
+Create technical brief (Next.js App Router, Server/Client Components, auth, API integration).
+Output: docs/{product}/{feature}/web-brief.md
+""")
+```
+
+**Fullstack** — run Server + frontend (Mobile or Web based on `frontendType`) in parallel where possible.
+- `frontendType: "mobile"` → Server + Mobile agents
+- `frontendType: "web"` → Server + Web agents
 
 **Step 3: Update status**
 
@@ -269,11 +300,18 @@ IF platform == "server" or "fullstack":
     ❌ STOP — "원인: server-brief.md가 없습니다. Design 단계가 완료되지 않았습니다.
      해결: `/pdca design {feature}`를 먼저 실행하세요."
 
-IF platform == "mobile" or "fullstack":
+IF platform == "mobile" or (platform == "fullstack" and frontendType == "mobile"):
   Glob("docs/{product}/{feature}/mobile-brief.md")
   Glob("docs/{product}/{feature}/mobile-design-spec.md")
   IF either not found:
     ❌ STOP — "원인: mobile-brief.md 또는 mobile-design-spec.md가 없습니다. Design 단계가 완료되지 않았습니다.
+     해결: `/pdca design {feature}`를 먼저 실행하세요."
+
+IF platform == "web" or (platform == "fullstack" and frontendType == "web"):
+  Glob("docs/{product}/{feature}/web-brief.md")
+  Glob("docs/{product}/{feature}/web-design-spec.md")
+  IF either not found:
+    ❌ STOP — "원인: web-brief.md 또는 web-design-spec.md가 없습니다. Design 단계가 완료되지 않았습니다.
      해결: `/pdca design {feature}`를 먼저 실행하세요."
 
 # ✅ 모든 선행조건 충족 → Step 1로 진행
@@ -292,7 +330,8 @@ Define parallel/sequential execution order.
 Define module contracts (Controller ↔ View connections).
 
 Output: docs/{product}/{feature}/{platform}-work-plan.md
-(For fullstack: both docs/{product}/{feature}/server-work-plan.md and docs/{product}/{feature}/mobile-work-plan.md)
+(For fullstack: server-work-plan.md + frontend work-plan based on frontendType:
+  mobile → mobile-work-plan.md, web → web-work-plan.md)
 """)
 ```
 
@@ -309,7 +348,9 @@ CTO가 작성한 work-plan.md에서 **실행 그룹(execution groups)**을 읽�
 ```
 # 1. work-plan.md 읽기
 Read("docs/{product}/{feature}/{platform}-work-plan.md")
-# (Fullstack인 경우 server-work-plan.md와 mobile-work-plan.md 모두 읽기)
+# (Fullstack인 경우 server-work-plan.md + frontend work-plan 모두 읽기:
+#  frontendType == "mobile" → mobile-work-plan.md
+#  frontendType == "web" → web-work-plan.md)
 
 # 2. 실행 그룹별 병렬 Task 호출
 
@@ -384,6 +425,52 @@ Design Spec: docs/{product}/{feature}/mobile-design-spec.md
 
 Implement the feature.
 """)
+
+# Web만
+Task(subagent_type="react-developer", prompt="""
+Feature: {feature}
+Work Plan: docs/{product}/{feature}/web-work-plan.md
+Brief: docs/{product}/{feature}/web-brief.md
+Design Spec: docs/{product}/{feature}/web-design-spec.md
+
+Implement the feature using Next.js App Router + shadcn/ui.
+Run Playwright E2E tests to verify.
+""")
+```
+
+**Fullstack (Web) 병렬 예시** — Server + Web agents 동시 실행:
+```
+# ── Group 1 (병렬): Server + Web 동시 시작 ──
+Task(subagent_type="node-developer", prompt="""
+Feature: {feature}
+Module: {server-module}
+Work Plan: docs/{product}/{feature}/server-work-plan.md
+Brief: docs/{product}/{feature}/server-brief.md
+
+Implement server module following TDD cycle.
+""")
+
+Task(subagent_type="react-developer", prompt="""
+Feature: {feature}
+Module: {web-module} (API 비의존 페이지/컴포넌트)
+Work Plan: docs/{product}/{feature}/web-work-plan.md
+Brief: docs/{product}/{feature}/web-brief.md
+Design Spec: docs/{product}/{feature}/web-design-spec.md
+
+Implement web module using Next.js App Router + shadcn/ui.
+""")
+
+# ── Group 1 완료 후 Group 2 ──
+Task(subagent_type="react-developer", prompt="""
+Feature: {feature}
+Module: {web-api-dependent-module} (Server API 의존 페이지)
+Work Plan: docs/{product}/{feature}/web-work-plan.md
+Brief: docs/{product}/{feature}/web-brief.md
+Design Spec: docs/{product}/{feature}/web-design-spec.md
+
+Implement web module. Server API is now available.
+Run Playwright E2E tests.
+""")
 ```
 
 **Step 3: Update status**
@@ -408,7 +495,13 @@ Feature: {feature}
 Platform: {platform}
 
 Compare design documents vs implementation code.
-Design docs: docs/{product}/{feature}/{platform}-brief.md
+
+Design docs (by platform):
+- Server: docs/{product}/{feature}/server-brief.md
+- Mobile: docs/{product}/{feature}/mobile-brief.md, mobile-design-spec.md
+- Web: docs/{product}/{feature}/web-brief.md, web-design-spec.md
+- Fullstack: server-brief.md + frontend docs (by frontendType)
+
 Source dirs: (from bkit.config.json platforms.{platform}.sourceDirectories)
 
 Calculate Match Rate and list gaps.
@@ -427,9 +520,14 @@ Perform ③ 통합 리뷰.
 Read implementation code and verify:
 - Server: test pass, build success, code quality
 - Mobile: analyze pass, design-spec compliance, GetX patterns
-- Fullstack: API contract consistency between server and mobile
+- Web: build success, E2E pass, Server/Client Component boundaries, shadcn/ui usage
+- Fullstack: API contract consistency between server and frontend (mobile or web)
 
-Output: docs/{product}/{feature}/{platform}-cto-review.md
+Output (by platform):
+- Server: docs/{product}/{feature}/server-cto-review.md
+- Mobile: docs/{product}/{feature}/mobile-cto-review.md
+- Web: docs/{product}/{feature}/web-cto-review.md
+- Fullstack: both server + frontend cto-review files
 """)
 ```
 
@@ -479,6 +577,7 @@ Output: docs/{product}/{feature}/{platform}-cto-review.md
 - Plan: `docs/{product}/{feature}/user-story.md`
 - Server: `docs/{product}/{feature}/` (server-brief, server-work-plan, server-cto-review)
 - Mobile: `docs/{product}/{feature}/` (mobile-design-spec, mobile-brief, mobile-work-plan, mobile-cto-review)
+- Web: `docs/{product}/{feature}/` (web-design-spec, web-brief, web-work-plan, web-cto-review)
 - Analysis: `docs/{product}/{feature}/analysis.md`
 - Report: `docs/{product}/{feature}/report.md`
 
@@ -520,14 +619,16 @@ Match Rate: {matchRate}%
 ## Agent Integration Summary
 
 ```
-Plan:    PO (user-story.md) ──→ CTO (platform routing)
+Plan:    PO (user-story.md) ──→ CTO (platform routing + frontendType)
               │                        │
-              │                        ↓ platform stored
-Design:  tech-lead ←── platform ──→ ui-ux-designer → tech-lead(mobile)
-         (server-brief)               (design-spec)    (mobile-brief)
-              │                              │
-Do:      CTO (work-plan) ──→ node-developer + flutter-developer
-              │                    │                │
+              │                        ↓ platform & frontendType stored
+Design:  ┌── Server: tech-lead (server-brief)
+         ├── Mobile: ui-ux-designer → tech-lead (mobile-design-spec, mobile-brief)
+         └── Web:    ui-ux-designer → tech-lead (web-design-spec, web-brief)
+              │      Fullstack = Server + frontend (by frontendType)
+              │
+Do:      CTO (work-plan) ──→ node-developer + flutter-developer + react-developer
+              │                    │                │                │
 Analyze: gap-detector ────→ CTO (review)
               │
 Iterate: pdca-iterator (if < 90%)
@@ -542,5 +643,5 @@ Verify:  independent-reviewer (optional)
 | Phase | CTO Role | Output |
 |-------|---------|--------|
 | **Plan** (after PO) | ⓪ 플랫폼 라우팅 | `platform` in status |
-| **Do** (before devs) | ② 작업 분배 | `{platform}-work-plan.md` |
-| **Analyze** (after gap) | ③ 통합 리뷰 | `{platform}-cto-review.md` |
+| **Do** (before devs) | ② 작업 분배 | `server-work-plan.md`, `mobile-work-plan.md`, `web-work-plan.md` (플랫폼별) |
+| **Analyze** (after gap) | ③ 통합 리뷰 | `server-cto-review.md`, `mobile-cto-review.md`, `web-cto-review.md` (플랫폼별) |
