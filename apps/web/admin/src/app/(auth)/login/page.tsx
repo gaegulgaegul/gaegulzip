@@ -48,11 +48,18 @@ export default function LoginPage() {
         body: JSON.stringify({ password }),
       });
 
-      if (tokenRes.ok) {
-        const { token } = await tokenRes.json();
-        localStorage.setItem("admin-token", token);
+      if (!tokenRes.ok) {
+        setError("API 토큰 발급에 실패했습니다.");
+        return;
       }
 
+      const { token } = await tokenRes.json();
+      if (!token) {
+        setError("API 토큰이 없습니다.");
+        return;
+      }
+
+      localStorage.setItem("admin-token", token);
       router.push("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
