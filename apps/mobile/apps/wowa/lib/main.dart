@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:admob/admob.dart';
 import 'package:api/api.dart';
 import 'package:core/core.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
@@ -36,21 +37,28 @@ Future<void> main() async {
     },
   );
 
-  // 4. AdMob 초기화
+  // 4. Firebase 초기화 (AdMob, Push 등 Firebase 의존 서비스보다 먼저)
+  await Firebase.initializeApp();
+
+  // 5. AdMob 초기화
   final adMobService = Get.put(AdMobService());
   await adMobService.initialize();
 
-  // 5. PushApiClient 전역 등록 (디바이스 토큰 자동 등록에 필요)
+  // 6. PushApiClient 전역 등록 (디바이스 토큰 자동 등록에 필요)
   Get.put(PushApiClient());
 
-  // 6. NoticeApiService 전역 등록
+  // 7. NoticeApiService 전역 등록
   Get.put<NoticeApiService>(NoticeApiService(), permanent: true);
 
-  // 7. PushService 초기화
+  // 8. PushService 초기화 (실패해도 앱 계속 실행)
   final pushService = Get.put(PushService(), permanent: true);
-  await pushService.initialize();
+  try {
+    await pushService.initialize();
+  } catch (e) {
+    Logger.error('PushService 초기화 실패, 푸시 알림 없이 계속 진행', error: e);
+  }
 
-  // 8. 딥링크 허용 화면 목록
+  // 9. 딥링크 허용 화면 목록
   const allowedScreens = {'notifications', 'home', 'qna'};
 
   // 9. 포그라운드 알림 핸들러 (인앱 스낵바 표시)
