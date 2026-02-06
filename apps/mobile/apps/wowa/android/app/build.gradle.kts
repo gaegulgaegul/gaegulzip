@@ -8,15 +8,16 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// 환경변수 로드 (.env 파일)
+// 환경변수 로드 (.env 파일) — Kotlin 네이티브 문자열 처리
 val envFile = project.rootProject.file("../.env")
-val envProperties = java.util.Properties()
-if (envFile.exists()) {
-    envFile.inputStream().use { envProperties.load(it) }
-}
+val envMap = if (envFile.exists()) {
+    envFile.readLines()
+        .filter { it.isNotBlank() && !it.startsWith("#") }
+        .associate { val (k, v) = it.split("=", limit = 2); k.trim() to v.trim() }
+} else emptyMap()
 
 fun getEnvProperty(key: String): String {
-    return envProperties.getProperty(key) ?: System.getenv(key) ?: ""
+    return envMap[key] ?: System.getenv(key) ?: ""
 }
 
 android {
@@ -30,7 +31,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
