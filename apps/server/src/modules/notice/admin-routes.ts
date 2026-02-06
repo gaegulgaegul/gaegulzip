@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import * as handlers from './admin-handlers';
+import { requireAdmin } from '../../middleware/admin-auth';
 
 const router = Router();
+
+// 모든 어드민 공지사항 라우트에 JWT 인증 적용
+router.use(requireAdmin);
 
 /**
  * 어드민 공지사항 목록 조회

@@ -3,6 +3,7 @@ import { z } from 'zod';
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   JWT_SECRET_FALLBACK: z.string().min(32),
+  ADMIN_SECRET: z.string().min(32),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3001'),
   QNA_GITHUB_APP_ID: z.string().optional(),
