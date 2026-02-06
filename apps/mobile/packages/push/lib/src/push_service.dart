@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 import 'package:core/core.dart';
@@ -114,6 +115,19 @@ class PushService extends GetxService {
   /// 이 토큰은 서버에서 특정 디바이스로 푸시 알림을 보낼 때 사용됩니다.
   Future<void> _getDeviceToken() async {
     try {
+      // iOS: APNS 토큰 준비 대기 (FCM 토큰 발급에 필요)
+      if (Platform.isIOS) {
+        var apnsToken = await _messaging.getAPNSToken();
+        for (var i = 0; i < 5 && apnsToken == null; i++) {
+          await Future.delayed(const Duration(seconds: 1));
+          apnsToken = await _messaging.getAPNSToken();
+        }
+        if (apnsToken == null) {
+          Logger.warn('APNS token not available after retries');
+          return;
+        }
+      }
+
       final token = await _messaging.getToken();
       if (token != null) {
         deviceToken.value = token;
