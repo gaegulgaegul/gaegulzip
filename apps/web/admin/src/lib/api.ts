@@ -46,8 +46,9 @@ export interface UpdateNoticeData {
 /**
  * 인증 헤더를 포함한 fetch 래퍼
  * localStorage에서 admin-token을 읽어 Authorization 헤더에 추가합니다.
+ * 401 응답 시 토큰 삭제 및 로그인 페이지로 리다이렉트합니다.
  */
-function authFetch(url: string, init?: RequestInit): Promise<Response> {
+async function authFetch(url: string, init?: RequestInit): Promise<Response> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('admin-token') : null;
   const headers: Record<string, string> = {
     ...(init?.headers as Record<string, string>),
@@ -55,7 +56,15 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  return fetch(url, { ...init, headers });
+
+  const response = await fetch(url, { ...init, headers });
+
+  if (response.status === 401 && typeof window !== 'undefined') {
+    localStorage.removeItem('admin-token');
+    window.location.href = '/login';
+  }
+
+  return response;
 }
 
 /**
