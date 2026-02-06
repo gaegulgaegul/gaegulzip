@@ -70,6 +70,18 @@ export interface NaverUserInfo {
 }
 
 /**
+ * 구글 Authorization Code → Token 교환 응답 타입
+ */
+export interface GoogleTokenResponse {
+  access_token: string;
+  expires_in: number;
+  token_type: string;
+  scope: string;
+  id_token?: string;
+  refresh_token?: string;
+}
+
+/**
  * 구글 토큰 정보 응답 타입
  */
 export interface GoogleTokenInfo {

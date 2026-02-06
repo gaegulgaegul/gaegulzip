@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:auth_sdk/auth_sdk.dart';
 import '../controllers/login_controller.dart';
@@ -13,7 +14,12 @@ class LoginBinding extends Bindings {
     Get.lazyPut<SocialLoginProvider>(() => KakaoLoginProvider(), tag: 'kakao');
     Get.lazyPut<SocialLoginProvider>(() => NaverLoginProvider(), tag: 'naver');
     Get.lazyPut<SocialLoginProvider>(() => AppleLoginProvider(), tag: 'apple');
-    Get.lazyPut<SocialLoginProvider>(() => GoogleLoginProvider(), tag: 'google');
+    Get.lazyPut<SocialLoginProvider>(
+      () => GoogleLoginProvider(
+        serverClientId: dotenv.env['GOOGLE_SERVER_CLIENT_ID'],
+      ),
+      tag: 'google',
+    );
 
     // LoginController (lazyPut)
     Get.lazyPut<LoginController>(() => LoginController());
