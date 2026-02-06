@@ -40,4 +40,7 @@ abstract class Routes {
 
   /// QnA 질문 작성 화면
   static const QNA = '/qna';
+
+  /// 푸시 알림 딥링크로 이동 가능한 화면 목록
+  static const deepLinkAllowedScreens = {'notifications', 'home', 'qna'};
 }
