@@ -8,8 +8,8 @@ description: |
   Agent workflow per phase:
   - Plan: PO → CTO (platform routing)
   - Design: tech-lead + ui-ux-designer (per platform, including web)
-  - Do: CTO (work distribution) → node-developer + flutter-developer + react-developer
-  - Analyze: gap-detector + CTO (integration review)
+  - Do: CTO (work distribution) → node-developer + flutter-developer + react-developer → test-scenario-generator (mobile only)
+  - Analyze: gap-detector + independent-reviewer (mobile) + CTO (integration review)
   - Iterate/Report: bkit agents
 
   Triggers: pdca, plan, design, analyze, report, status, next, iterate
@@ -27,6 +27,7 @@ agents:
   do-server: server/node-developer
   do-mobile: mobile/flutter-developer
   do-web: web/react-developer
+  test-scenario: test-scenario-generator
   analyze: bkit:gap-detector
   review: cto
   iterate: bkit:pdca-iterator
@@ -479,7 +480,20 @@ Run Playwright E2E tests.
 { "phase": "do" }
 ```
 
-**Step 4: Create Task**
+**Step 4: Generate test scenarios (Mobile/Fullstack only)**
+
+> 모바일 플랫폼(mobile, fullstack)인 경우에만 실행합니다.
+
+```
+if platform in ["mobile", "fullstack"]:
+    Skill("test-scenario-generator", args="{feature}")
+```
+
+Output: `docs/{product}/{feature}/mobile-test-scenarios.md`
+
+이 문서는 이후 Analyze 단계에서 `independent-reviewer`가 검증에 사용합니다.
+
+**Step 5: Create Task**
 
 `TaskCreate: [Do] {feature}` (blockedBy: Design task)
 
