@@ -12,7 +12,7 @@ export function middleware(request: NextRequest) {
   const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
   // 보호된 경로 목록
-  const protectedPaths = ['/dashboard', '/users', '/push'];
+  const protectedPaths = ['/dashboard', '/users', '/push', '/notices'];
   const isProtectedPath = protectedPaths.some((path) =>
     pathname.startsWith(path)
   );
