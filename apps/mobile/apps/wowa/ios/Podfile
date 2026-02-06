@@ -27,6 +27,20 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 
 flutter_ios_podfile_setup
 
+# .env → Env.xcconfig 변환 (Android build.gradle.kts의 getEnvProperty와 동일 역할)
+pre_install do |installer|
+  env_file = File.join(__dir__, '..', '.env')
+  xcconfig_file = File.join(__dir__, 'Flutter', 'Env.xcconfig')
+
+  if File.exist?(env_file)
+    lines = File.readlines(env_file)
+      .map(&:strip)
+      .reject { |l| l.empty? || l.start_with?('#') }
+      .map { |l| l.sub('=', ' = ') }
+    File.write(xcconfig_file, lines.join("\n") + "\n")
+  end
+end
+
 target 'Runner' do
   use_frameworks!
 
