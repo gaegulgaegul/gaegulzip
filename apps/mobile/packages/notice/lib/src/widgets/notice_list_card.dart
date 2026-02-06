@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../models/notice_model.dart';
 
@@ -91,9 +92,8 @@ class NoticeListCard extends StatelessWidget {
                     if (notice.category != null) ...[
                       SketchChip(
                         label: notice.category!,
-                        backgroundColor: SketchDesignTokens.base100,
-                        textColor: SketchDesignTokens.base700,
-                        fontSize: 11,
+                        fillColor: SketchDesignTokens.base100,
+                        labelColor: SketchDesignTokens.base700,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 2,

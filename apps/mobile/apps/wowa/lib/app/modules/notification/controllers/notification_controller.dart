@@ -3,6 +3,8 @@ import 'package:core/core.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 
+import '../../../routes/app_routes.dart';
+
 /// 알림 목록 컨트롤러
 ///
 /// 알림 조회, 읽음 처리, 무한 스크롤, 딥링크를 관리합니다.
@@ -139,16 +141,13 @@ class NotificationController extends GetxController {
     _handleDeepLink(notification.data);
   }
 
-  /// 딥링크로 허용되는 화면 목록
-  static const _allowedScreens = {'notifications', 'home', 'qna'};
-
   /// 딥링크 데이터에서 화면 이동
   ///
   /// [data] 알림의 data 필드에서 'screen' 키로 이동할 화면을 결정합니다.
   /// 허용된 화면 목록에 포함된 경우에만 이동합니다.
   void _handleDeepLink(Map<String, dynamic> data) {
     final screen = data['screen'] as String?;
-    if (screen != null && _allowedScreens.contains(screen)) {
+    if (screen != null && Routes.deepLinkAllowedScreens.contains(screen)) {
       Get.toNamed('/$screen', arguments: data);
     }
   }

@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { AuthenticatedRequest } from '../auth/types';
 
 /**
  * 공지사항 요약 (목록 응답)
@@ -45,19 +46,5 @@ export interface UnreadCountResponse {
   unreadCount: number;
 }
 
-/**
- * 인증 미들웨어가 설정하는 req.user 형태
- * @see apps/server/src/middleware/auth.ts
- */
-export interface AuthUser {
-  userId: number;
-  appId: number;
-}
-
-/**
- * 인증 미들웨어 통과 후의 Request 타입
- * (req as any).user 대신 타입 안전하게 접근할 수 있습니다.
- */
-export interface AuthenticatedRequest extends Request {
-  user: AuthUser;
-}
+// AuthenticatedRequest는 ../auth/types에서 import하여 사용
+export type { AuthenticatedRequest };

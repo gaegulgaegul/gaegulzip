@@ -7,6 +7,7 @@ export 'sketch_color_palettes.dart';
 // Exceptions
 export 'src/exceptions/auth_exception.dart';
 export 'src/exceptions/network_exception.dart';
+export 'src/exceptions/business_exception.dart';
 
 // Services
 export 'src/services/secure_storage_service.dart';

@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "731106654907",
+    "project_id": "wowa-ba8eb",
+    "storage_bucket": "wowa-ba8eb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:731106654907:android:74313d00ad4dc56aab879e",
+        "android_client_info": {
+          "package_name": "xyz.gaegulzip.wowa"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "731106654907-25bfj090qg4medn7489lag9j683qcmv3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOKwDI7nspzfb5knxIk1gNNclCgI0wlaY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "731106654907-25bfj090qg4medn7489lag9j683qcmv3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "731106654907-2lu0cvrqa328djdenk5m1idh03v2kiph.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.wowa"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

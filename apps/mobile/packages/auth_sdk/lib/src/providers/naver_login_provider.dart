@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_naver_login/flutter_naver_login.dart';
+import 'package:flutter_naver_login/interface/types/naver_login_result.dart';
+import 'package:flutter_naver_login/interface/types/naver_login_status.dart';
 import 'package:core/core.dart';
 import 'social_login_provider.dart';
 
@@ -21,15 +23,14 @@ class NaverLoginProvider implements SocialLoginProvider {
 
       // 2. 로그인 상태 확인
       if (result.status != NaverLoginStatus.loggedIn) {
-        // 사용자 취소
-        if (result.status == NaverLoginStatus.cancelledByUser) {
-          throw AuthException(code: 'user_cancelled', message: '로그인을 취소했습니다');
-        }
-        throw AuthException(code: 'naver_login_failed', message: '네이버 로그인 실패');
+        throw AuthException(
+          code: 'naver_login_failed',
+          message: result.errorMessage ?? '네이버 로그인 실패',
+        );
       }
 
       // 3. accessToken 반환 (백엔드에서 검증)
-      final token = result.accessToken.accessToken;
+      final token = result.accessToken?.accessToken ?? '';
       if (token.isEmpty) {
         throw AuthException(code: 'naver_token_null', message: '네이버 토큰 획득 실패');
       }

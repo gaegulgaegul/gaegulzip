@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { IOAuthProvider } from './base';
-import { OAuthUserInfo, GoogleTokenInfo, GoogleUserInfo } from '../types';
+import { OAuthUserInfo, GoogleTokenResponse, GoogleUserInfo } from '../types';
 import {
   UnauthorizedException,
   ExternalApiException,
@@ -8,10 +8,15 @@ import {
 } from '../../../utils/errors';
 
 /**
- * 구글 OAuth Provider 구현체
+ * 구글 OAuth Provider 구현체 (Server-side Authorization Code 플로우)
+ *
+ * 모바일에서 전달받은 authorization code를 서버에서 토큰으로 교환하여 처리합니다.
  */
 export class GoogleProvider implements IOAuthProvider {
   readonly name = 'google';
+
+  /** 교환된 access token (verifyToken 이후 사용) */
+  private exchangedAccessToken: string | null = null;
 
   constructor(
     private readonly clientId: string,
@@ -19,18 +24,25 @@ export class GoogleProvider implements IOAuthProvider {
   ) {}
 
   /**
-   * 구글 토큰 유효성 검증
-   * @param accessToken - 검증할 구글 액세스 토큰
-   * @throws UnauthorizedException 토큰이 유효하지 않은 경우
-   * @throws ExternalApiException 구글 API 호출 실패 시
+   * Authorization code를 Google 토큰으로 교환 및 검증
+   * @param authCode - 모바일 SDK에서 획득한 serverAuthCode
+   * @throws UnauthorizedException 코드 교환 실패 시
+   * @throws ExternalApiException Google API 호출 실패 시
    */
-  async verifyToken(accessToken: string): Promise<void> {
+  async verifyToken(authCode: string): Promise<void> {
     try {
-      await axios.get<GoogleTokenInfo>(
-        `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`
+      const response = await axios.post<GoogleTokenResponse>(
+        'https://oauth2.googleapis.com/token',
+        {
+          code: authCode,
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          redirect_uri: '',
+          grant_type: 'authorization_code',
+        }
       );
 
-      // 200 응답이면 토큰이 유효함
+      this.exchangedAccessToken = response.data.access_token;
     } catch (error: any) {
       if (error.response?.status === 400 || error.response?.status === 401) {
         throw new UnauthorizedException(ErrorCode.INVALID_ACCESS_TOKEN);
@@ -40,17 +52,21 @@ export class GoogleProvider implements IOAuthProvider {
   }
 
   /**
-   * 구글 사용자 정보 조회 및 정규화
-   * @param accessToken - 구글 액세스 토큰
+   * 교환된 access token으로 구글 사용자 정보 조회
+   * @param _authCode - 사용하지 않음 (인터페이스 호환용)
    * @returns 정규화된 사용자 정보
    * @throws ExternalApiException 구글 API 호출 실패 시
    */
-  async getUserInfo(accessToken: string): Promise<OAuthUserInfo> {
+  async getUserInfo(_authCode: string): Promise<OAuthUserInfo> {
+    if (!this.exchangedAccessToken) {
+      throw new ExternalApiException('google', new Error('verifyToken을 먼저 호출해야 합니다'));
+    }
+
     try {
       const response = await axios.get<GoogleUserInfo>(
         'https://www.googleapis.com/oauth2/v2/userinfo',
         {
-          headers: { Authorization: `Bearer ${accessToken}` }
+          headers: { Authorization: `Bearer ${this.exchangedAccessToken}` }
         }
       );
 

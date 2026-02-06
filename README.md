@@ -168,5 +168,5 @@ pnpm --filter gaegulzip-admin build   # 프로덕션 빌드
 
 ## 현재 제품
 
-- **[WOWA (오와)](docs/wowa/prd.md)** — 크로스핏 WOD 알리미. 박스 구성원 누구나 WOD를 등록·수정하고, 합의된 WOD를 기준으로 기록과 선택을 돕는 앱
+- **[WOWA (오와)](docs/wowa/mvp/prd.md)** — 크로스핏 WOD 알리미. 박스 구성원 누구나 WOD를 등록·수정하고, 합의된 WOD를 기준으로 기록과 선택을 돕는 앱
 - **Admin** — WOWA 관리자 대시보드 (Next.js). 공지사항 관리, 사용자 관리 등

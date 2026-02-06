@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:core/core.dart';
 import 'package:get/get.dart';
 import 'package:design_system/design_system.dart';
 import '../controllers/notice_list_controller.dart';

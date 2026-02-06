@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:core/core.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -99,8 +100,8 @@ class NoticeDetailView extends GetView<NoticeDetailController> {
         if (notice.category != null)
           SketchChip(
             label: notice.category!,
-            backgroundColor: SketchDesignTokens.base100,
-            textColor: SketchDesignTokens.base700,
+            fillColor: SketchDesignTokens.base100,
+            labelColor: SketchDesignTokens.base700,
           ),
       ],
     );

@@ -3,12 +3,14 @@ import 'dart:io';
 import 'package:admob/admob.dart';
 import 'package:api/api.dart';
 import 'package:core/core.dart';
-import 'package:dio/dio.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:push/push.dart';
 import 'package:auth_sdk/auth_sdk.dart';
+import 'package:notice/notice.dart';
 import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 
@@ -36,21 +38,30 @@ Future<void> main() async {
     },
   );
 
-  // 4. AdMob 초기화
+  // 4. Firebase 초기화 (AdMob, Push 등 Firebase 의존 서비스보다 먼저)
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // 5. AdMob 초기화
   final adMobService = Get.put(AdMobService());
   await adMobService.initialize();
 
-  // 5. PushApiClient 전역 등록 (디바이스 토큰 자동 등록에 필요)
+  // 6. PushApiClient 전역 등록 (디바이스 토큰 자동 등록에 필요)
   Get.put(PushApiClient());
 
-  // 6. PushService 초기화
+  // 7. NoticeApiService 전역 등록
+  Get.put<NoticeApiService>(NoticeApiService(), permanent: true);
+
+  // 8. PushService 초기화 (실패해도 앱 계속 실행)
   final pushService = Get.put(PushService(), permanent: true);
-  await pushService.initialize();
+  try {
+    await pushService.initialize();
+  } catch (e) {
+    Logger.error('PushService 초기화 실패, 푸시 알림 없이 계속 진행', error: e);
+  }
 
-  // 7. 딥링크 허용 화면 목록
-  const allowedScreens = {'notifications', 'home', 'qna'};
-
-  // 8. 포그라운드 알림 핸들러 (인앱 스낵바 표시)
+  // 9. 포그라운드 알림 핸들러 (인앱 스낵바 표시)
   pushService.onForegroundMessage = (notification) {
     Get.snackbar(
       notification.title.isNotEmpty ? notification.title : '새 알림',
@@ -59,17 +70,17 @@ Future<void> main() async {
       duration: const Duration(seconds: 5),
       onTap: (_) {
         final screen = notification.data['screen'] as String?;
-        if (screen != null && allowedScreens.contains(screen)) {
+        if (screen != null && Routes.deepLinkAllowedScreens.contains(screen)) {
           Get.toNamed('/$screen', arguments: notification.data);
         }
       },
     );
   };
 
-  // 9. 백그라운드/종료 상태 알림 탭 핸들러 (딥링크 이동)
+  // 11. 백그라운드/종료 상태 알림 탭 핸들러 (딥링크 이동)
   void handleDeepLink(PushNotification notification) {
     final screen = notification.data['screen'] as String?;
-    if (screen != null && allowedScreens.contains(screen)) {
+    if (screen != null && Routes.deepLinkAllowedScreens.contains(screen)) {
       Get.toNamed('/$screen', arguments: notification.data);
     }
   }
@@ -77,7 +88,7 @@ Future<void> main() async {
   pushService.onBackgroundMessageOpened = handleDeepLink;
   pushService.onTerminatedMessageOpened = handleDeepLink;
 
-  // 10. 디바이스 토큰 변경 시 서버에 자동 등록
+  // 12. 디바이스 토큰 변경 시 서버에 자동 등록
   final pushApiClient = Get.find<PushApiClient>();
   ever(pushService.deviceToken, (String? token) async {
     if (token != null && token.isNotEmpty) {

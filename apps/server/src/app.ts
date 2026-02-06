@@ -5,6 +5,8 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import authRouter from './modules/auth';
 import pushAlertRouter from './modules/push-alert';
+import boxRouter from './modules/box';
+import wodRouter from './modules/wod';
 import qnaRouter from './modules/qna';
 import noticeRouter from './modules/notice';
 import noticeAdminRouter from './modules/notice/admin-routes';
@@ -36,6 +38,8 @@ app.get('/health', (req, res) => {
 
 app.use('/auth', authRouter);
 app.use('/push', pushAlertRouter);
+app.use('/boxes', boxRouter);
+app.use('/wods', wodRouter);
 app.use('/qna', qnaRouter);
 app.use('/notices', authenticate, noticeRouter);
 app.post('/admin/auth/login', adminLogin);
