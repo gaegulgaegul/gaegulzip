@@ -9,7 +9,7 @@ export const movementSchema = z.object({
   weight: z.number().positive().optional(),
   unit: z.enum(['kg', 'lb', 'bw']).optional(),
   distance: z.number().positive().optional(),
-  distanceUnit: z.string().optional(),
+  distanceUnit: z.enum(['m', 'km', 'ft', 'mi', 'cal']).optional(),
   duration: z.number().positive().optional(),
   notes: z.string().optional(),
 });
@@ -30,7 +30,9 @@ export const programDataSchema = z.object({
  */
 export const registerWodSchema = z.object({
   boxId: z.number().int().positive(),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
+  date: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format')
+    .refine((val) => !isNaN(Date.parse(val)), 'Invalid date'),
   rawText: z.string().min(1, 'Raw text is required'),
   programData: programDataSchema,
 });
@@ -48,5 +50,7 @@ export const createProposalSchema = z.object({
  */
 export const selectWodSchema = z.object({
   boxId: z.number().int().positive(),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
+  date: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format')
+    .refine((val) => !isNaN(Date.parse(val)), 'Invalid date'),
 });

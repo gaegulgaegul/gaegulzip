@@ -8,11 +8,13 @@ export interface Box {
   updatedAt: Date;
 }
 
+export type BoxMemberRole = 'owner' | 'member';
+
 export interface BoxMember {
   id: number;
   boxId: number;
   userId: number;
-  role: string;
+  role: BoxMemberRole;
   joinedAt: Date;
 }
 

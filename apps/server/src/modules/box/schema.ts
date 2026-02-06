@@ -37,7 +37,7 @@ export const boxMembers = pgTable('box_members', {
   /** 멤버 역할 (MVP: 'member'만, 향후 확장 가능) */
   role: varchar('role', { length: 20 }).notNull().default('member'),
   /** 가입 시간 */
-  joinedAt: timestamp('joined_at').defaultNow(),
+  joinedAt: timestamp('joined_at').defaultNow().notNull(),
 }, (table) => ({
   uniqueBoxUser: unique().on(table.boxId, table.userId),
   boxIdIdx: index('idx_box_members_box_id').on(table.boxId),

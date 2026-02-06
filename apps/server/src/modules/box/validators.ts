@@ -6,15 +6,15 @@ import { z } from 'zod';
 export const createBoxSchema = z.object({
   name: z.string().min(1, 'Box name is required').max(255),
   region: z.string().min(1, 'Region is required').max(255),
-  description: z.string().optional(),
+  description: z.string().max(1000).optional(),
 });
 
 /**
  * 박스 검색 쿼리 검증
  */
 export const searchBoxQuerySchema = z.object({
-  name: z.string().optional(),
-  region: z.string().optional(),
+  name: z.string().max(255).optional(),
+  region: z.string().max(255).optional(),
 });
 
 /**

@@ -1,5 +1,6 @@
 export type WodType = 'AMRAP' | 'ForTime' | 'EMOM' | 'Strength' | 'Custom';
 export type WeightUnit = 'kg' | 'lb' | 'bw';
+export type DistanceUnit = 'm' | 'km' | 'ft' | 'mi' | 'cal';
 export type ComparisonResult = 'identical' | 'similar' | 'different';
 export type ProposalStatus = 'pending' | 'approved' | 'rejected';
 
@@ -21,7 +22,7 @@ export interface Movement {
   weight?: number;
   unit?: WeightUnit;
   distance?: number;
-  distanceUnit?: string;
+  distanceUnit?: DistanceUnit;
   duration?: number;
   notes?: string;
 }
