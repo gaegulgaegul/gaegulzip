@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-02-05T03:17:11.295Z",
+  "timestamp": "2026-02-05T06:16:40.744Z",
   "reason": "compaction",
   "status": {
     "version": "2.0",
-    "lastUpdated": "2026-02-05T03:11:24.771Z",
+    "lastUpdated": "2026-02-05T05:59:26.263Z",
     "activeFeatures": [
       "notice",
       "server"
@@ -28,7 +28,7 @@
         "matchRate": 95,
         "lastFile": "/Users/lms/dev/repository/feature-notice/apps/server/src/modules/notice/handlers.ts",
         "timestamps": {
-          "lastUpdated": "2026-02-05T03:09:40.065Z",
+          "lastUpdated": "2026-02-05T05:56:47.651Z",
           "completedAt": "2026-02-05T01:25:00.000Z"
         }
       },
@@ -41,7 +41,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T14:00:16.479Z",
-          "lastUpdated": "2026-02-05T03:11:24.771Z"
+          "lastUpdated": "2026-02-05T05:59:26.262Z"
         },
         "lastFile": "/Users/lms/dev/repository/feature-notice/apps/server/tests/unit/notice/handlers.test.ts"
       }
@@ -54,7 +54,7 @@
     "session": {
       "startedAt": "2026-02-04T12:42:30.616Z",
       "onboardingCompleted": false,
-      "lastActivity": "2026-02-05T03:11:24.771Z"
+      "lastActivity": "2026-02-05T05:59:26.263Z"
     },
     "history": [
       {
@@ -293,6 +293,54 @@
       },
       {
         "timestamp": "2026-02-05T03:11:24.771Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T05:55:39.490Z",
+        "feature": "notice",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T05:55:52.593Z",
+        "feature": "notice",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T05:55:59.395Z",
+        "feature": "notice",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T05:56:05.243Z",
+        "feature": "notice",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T05:56:10.816Z",
+        "feature": "notice",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T05:56:47.651Z",
+        "feature": "notice",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T05:59:14.587Z",
+        "feature": "server",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-05T05:59:26.262Z",
         "feature": "server",
         "phase": "do",
         "action": "updated"

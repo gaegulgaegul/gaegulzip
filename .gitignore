@@ -170,6 +170,7 @@ doc/api/
 
 # bkit
 .pdca-status.json
+.pdca-snapshots/
 docs/archive/
 .bkit-memory.json
 .claude-plugin/node_modules/

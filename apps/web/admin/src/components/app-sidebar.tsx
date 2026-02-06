@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Bell, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, Bell, Megaphone, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -11,6 +11,7 @@ const navItems = [
   { href: "/dashboard", label: "대시보드", icon: LayoutDashboard },
   { href: "/users", label: "사용자 관리", icon: Users },
   { href: "/push", label: "푸시 알림", icon: Bell },
+  { href: "/notices", label: "공지사항", icon: Megaphone },
 ];
 
 export function AppSidebar() {

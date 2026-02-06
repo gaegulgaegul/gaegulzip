@@ -4,7 +4,7 @@
   "scripts": {
     "dev:server": "turbo run dev --filter=gaegulzip-server",
     "dev:admin": "turbo run dev --filter=gaegulzip-admin",
-    "dev:mobile": "cd apps/mobile && flutter run",
+    "dev:wowa": "cd apps/mobile/apps/wowa && flutter run",
     "build:server": "turbo run build --filter=gaegulzip-server",
     "build:admin": "turbo run build --filter=gaegulzip-admin",
     "test:server": "turbo run test --filter=gaegulzip-server",

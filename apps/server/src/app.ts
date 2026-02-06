@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import authRouter from './modules/auth';
@@ -8,12 +9,15 @@ import boxRouter from './modules/box';
 import wodRouter from './modules/wod';
 import qnaRouter from './modules/qna';
 import noticeRouter from './modules/notice';
+import noticeAdminRouter from './modules/notice/admin-routes';
 import { authenticate } from './middleware/auth';
+import { adminLogin } from './middleware/admin-auth';
 import { errorHandler } from './middleware/error-handler';
 
 export const app = express();
 
 // Middleware
+app.use(cors());
 app.use(express.json());
 
 // Swagger UI (OpenAPI Documentation)
@@ -38,6 +42,8 @@ app.use('/boxes', boxRouter);
 app.use('/wods', wodRouter);
 app.use('/qna', qnaRouter);
 app.use('/notices', authenticate, noticeRouter);
+app.post('/admin/auth/login', adminLogin);
+app.use('/admin/notices', noticeAdminRouter);
 
 // Error handling (must be last)
 app.use(errorHandler);
