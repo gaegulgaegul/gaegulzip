@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 import 'package:core/core.dart';
@@ -11,8 +10,8 @@ import 'push_handler_callback.dart';
 /// Firebase Cloud Messaging을 초기화하고 알림을 처리하는 서비스입니다.
 /// GetxService를 상속하여 앱 생명주기 동안 단일 인스턴스를 유지합니다.
 class PushService extends GetxService {
-  /// Firebase Messaging 인스턴스
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  /// Firebase Messaging 인스턴스 (initialize() 에서 할당)
+  late final FirebaseMessaging _messaging;
 
   /// 스트림 구독 관리 (메모리 누수 방지)
   final List<StreamSubscription> _subscriptions = [];
@@ -49,9 +48,8 @@ class PushService extends GetxService {
     }
 
     try {
-      // 1. Firebase 초기화
-      await Firebase.initializeApp();
-      Logger.info('Firebase initialized successfully');
+      // 1. Firebase Messaging 인스턴스 획득 (Firebase는 앱에서 초기화됨)
+      _messaging = FirebaseMessaging.instance;
 
       // 2. 권한 요청
       await _requestPermission();
