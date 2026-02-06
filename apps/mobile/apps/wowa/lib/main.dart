@@ -5,6 +5,7 @@ import 'package:api/api.dart';
 import 'package:core/core.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:push/push.dart';
@@ -38,7 +39,9 @@ Future<void> main() async {
   );
 
   // 4. Firebase 초기화 (AdMob, Push 등 Firebase 의존 서비스보다 먼저)
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // 5. AdMob 초기화
   final adMobService = Get.put(AdMobService());
@@ -61,7 +64,7 @@ Future<void> main() async {
   // 9. 딥링크 허용 화면 목록
   const allowedScreens = {'notifications', 'home', 'qna'};
 
-  // 9. 포그라운드 알림 핸들러 (인앱 스낵바 표시)
+  // 10. 포그라운드 알림 핸들러 (인앱 스낵바 표시)
   pushService.onForegroundMessage = (notification) {
     Get.snackbar(
       notification.title.isNotEmpty ? notification.title : '새 알림',
@@ -77,7 +80,7 @@ Future<void> main() async {
     );
   };
 
-  // 10. 백그라운드/종료 상태 알림 탭 핸들러 (딥링크 이동)
+  // 11. 백그라운드/종료 상태 알림 탭 핸들러 (딥링크 이동)
   void handleDeepLink(PushNotification notification) {
     final screen = notification.data['screen'] as String?;
     if (screen != null && allowedScreens.contains(screen)) {
@@ -88,7 +91,7 @@ Future<void> main() async {
   pushService.onBackgroundMessageOpened = handleDeepLink;
   pushService.onTerminatedMessageOpened = handleDeepLink;
 
-  // 11. 디바이스 토큰 변경 시 서버에 자동 등록
+  // 12. 디바이스 토큰 변경 시 서버에 자동 등록
   final pushApiClient = Get.find<PushApiClient>();
   ever(pushService.deviceToken, (String? token) async {
     if (token != null && token.isNotEmpty) {

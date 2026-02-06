@@ -11,8 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Firebase 관련
-  firebase_core: ^3.8.1
+  # Firebase 관련 (firebase_core는 앱에서 초기화)
   firebase_messaging: ^15.1.5
 
   # 상태 관리 및 의존성 주입
