@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+**모든 대화는 한국어로 진행**
+
 gaegulzip — TypeScript/Express 백엔드 + Flutter 모바일 + Next.js 웹의 하이브리드 모노레포
 
 ## Monorepo Structure
