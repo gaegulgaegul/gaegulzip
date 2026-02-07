@@ -30,8 +30,8 @@ mixin _$UserModel {
   /// 이메일 주소 (nullable: 애플은 이메일 제공 거부 가능)
   String? get email => throw _privateConstructorUsedError;
 
-  /// 사용자 닉네임
-  String get nickname => throw _privateConstructorUsedError;
+  /// 사용자 닉네임 (nullable: 애플은 이름을 제공하지 않음)
+  String? get nickname => throw _privateConstructorUsedError;
 
   /// 프로필 이미지 URL (nullable)
   String? get profileImage => throw _privateConstructorUsedError;
@@ -61,7 +61,7 @@ abstract class $UserModelCopyWith<$Res> {
     int id,
     String provider,
     String? email,
-    String nickname,
+    String? nickname,
     String? profileImage,
     String appCode,
     String lastLoginAt,
@@ -86,7 +86,7 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? id = null,
     Object? provider = null,
     Object? email = freezed,
-    Object? nickname = null,
+    Object? nickname = freezed,
     Object? profileImage = freezed,
     Object? appCode = null,
     Object? lastLoginAt = null,
@@ -105,10 +105,10 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
                 ? _value.email
                 : email // ignore: cast_nullable_to_non_nullable
                       as String?,
-            nickname: null == nickname
+            nickname: freezed == nickname
                 ? _value.nickname
                 : nickname // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
             profileImage: freezed == profileImage
                 ? _value.profileImage
                 : profileImage // ignore: cast_nullable_to_non_nullable
@@ -140,7 +140,7 @@ abstract class _$$UserModelImplCopyWith<$Res>
     int id,
     String provider,
     String? email,
-    String nickname,
+    String? nickname,
     String? profileImage,
     String appCode,
     String lastLoginAt,
@@ -164,7 +164,7 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? provider = null,
     Object? email = freezed,
-    Object? nickname = null,
+    Object? nickname = freezed,
     Object? profileImage = freezed,
     Object? appCode = null,
     Object? lastLoginAt = null,
@@ -183,10 +183,10 @@ class __$$UserModelImplCopyWithImpl<$Res>
             ? _value.email
             : email // ignore: cast_nullable_to_non_nullable
                   as String?,
-        nickname: null == nickname
+        nickname: freezed == nickname
             ? _value.nickname
             : nickname // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
         profileImage: freezed == profileImage
             ? _value.profileImage
             : profileImage // ignore: cast_nullable_to_non_nullable
@@ -211,7 +211,7 @@ class _$UserModelImpl implements _UserModel {
     required this.id,
     required this.provider,
     this.email,
-    required this.nickname,
+    this.nickname,
     this.profileImage,
     required this.appCode,
     required this.lastLoginAt,
@@ -232,9 +232,9 @@ class _$UserModelImpl implements _UserModel {
   @override
   final String? email;
 
-  /// 사용자 닉네임
+  /// 사용자 닉네임 (nullable: 애플은 이름을 제공하지 않음)
   @override
-  final String nickname;
+  final String? nickname;
 
   /// 프로필 이미지 URL (nullable)
   @override
@@ -303,7 +303,7 @@ abstract class _UserModel implements UserModel {
     required final int id,
     required final String provider,
     final String? email,
-    required final String nickname,
+    final String? nickname,
     final String? profileImage,
     required final String appCode,
     required final String lastLoginAt,
@@ -324,9 +324,9 @@ abstract class _UserModel implements UserModel {
   @override
   String? get email;
 
-  /// 사용자 닉네임
+  /// 사용자 닉네임 (nullable: 애플은 이름을 제공하지 않음)
   @override
-  String get nickname;
+  String? get nickname;
 
   /// 프로필 이미지 URL (nullable)
   @override

@@ -377,7 +377,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+			shellScript = "# .env → Env.xcconfig 자동 변환\nENV_FILE=\"${SRCROOT}/../.env\"\nXCCONFIG_FILE=\"${SRCROOT}/Flutter/Env.xcconfig\"\nif [ -f \"$ENV_FILE\" ]; then\n  grep -v '^#' \"$ENV_FILE\" | grep -v '^$' | sed 's/=/ = /' > \"$XCCONFIG_FILE\"\nfi\n\n/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
 		};
 		9771801B5003549140472685 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;

@@ -16,8 +16,8 @@ class UserModel with _$UserModel {
     /// 이메일 주소 (nullable: 애플은 이메일 제공 거부 가능)
     String? email,
 
-    /// 사용자 닉네임
-    required String nickname,
+    /// 사용자 닉네임 (nullable: 애플은 이름을 제공하지 않음)
+    String? nickname,
 
     /// 프로필 이미지 URL (nullable)
     String? profileImage,

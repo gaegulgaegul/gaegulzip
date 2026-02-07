@@ -70,35 +70,15 @@ export interface NaverUserInfo {
 }
 
 /**
- * 구글 Authorization Code → Token 교환 응답 타입
+ * 구글 ID Token 검증 응답 타입 (tokeninfo endpoint)
  */
-export interface GoogleTokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-  scope: string;
-  id_token?: string;
-  refresh_token?: string;
-}
-
-/**
- * 구글 토큰 정보 응답 타입
- */
-export interface GoogleTokenInfo {
-  issued_to: string;
-  audience: string;
-  user_id: string;
-  scope: string;
-  expires_in: number;
-}
-
-/**
- * 구글 사용자 정보 응답 타입
- */
-export interface GoogleUserInfo {
-  id: string;
+export interface GoogleIdTokenPayload {
+  iss: string;
+  sub: string;
+  aud: string;
+  exp: string;
   email?: string;
-  verified_email?: boolean;
+  email_verified?: string;
   name?: string;
   picture?: string;
 }

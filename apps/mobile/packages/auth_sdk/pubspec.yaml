@@ -46,3 +46,7 @@ dev_dependencies:
   freezed: ^2.4.7
 
 flutter:
+  plugin:
+    platforms:
+      ios:
+        pluginClass: AuthSdkPlugin

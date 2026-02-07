@@ -33,7 +33,7 @@ class AuthRepository {
         accessToken: accessToken,
       );
 
-      // 2. 토큰 및 사용자 정보 저장 (병렬 처리)
+      // 2. 토큰 및 사용자 정보 저장
       await Future.wait([
         _storageService.saveAccessToken(response.accessToken),
         _storageService.saveRefreshToken(response.refreshToken),

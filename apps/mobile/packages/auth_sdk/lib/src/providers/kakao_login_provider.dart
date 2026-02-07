@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:core/core.dart';
 import 'social_login_provider.dart';
@@ -11,33 +12,36 @@ class KakaoLoginProvider implements SocialLoginProvider {
   String get platformName => 'kakao';
 
   @override
-  bool get isInitialized => true; // kakao_flutter_sdk는 main.dart에서 초기화
+  bool get isInitialized => true; // AuthSdk.initialize()에서 KakaoSdk.init() 호출
 
   @override
   Future<String> signIn() async {
     try {
-      // 1. 카카오톡 앱 설치 여부 확인
+      // 카카오톡 설치 여부에 따라 로그인, 실패 시 카카오계정으로 fallback
       if (await isKakaoTalkInstalled()) {
-        // 카카오톡으로 로그인
-        await UserApi.instance.loginWithKakaoTalk();
+        try {
+          await UserApi.instance.loginWithKakaoTalk();
+        } catch (_) {
+          await UserApi.instance.loginWithKakaoAccount();
+        }
       } else {
-        // 카카오 계정으로 로그인 (웹뷰)
         await UserApi.instance.loginWithKakaoAccount();
       }
 
-      // 2. authorization code 획득 (OAuth code flow)
-      // 주의: kakao_flutter_sdk는 암시적 승인 방식을 사용하므로
-      // 백엔드에서 accessToken을 받아 검증하는 방식으로 변경 필요
-      // 현재는 임시로 accessToken을 code처럼 사용
-      // TODO: 백엔드 토큰 검증 API 연동 후 제거
-      final accessToken = await TokenManagerProvider.instance.manager.getToken();
-      if (accessToken?.accessToken == null) {
+      // 토큰 획득
+      final token = await TokenManagerProvider.instance.manager.getToken();
+      if (token?.accessToken == null) {
         throw AuthException(code: 'kakao_token_null', message: '카카오 토큰 획득 실패');
       }
 
-      return accessToken!.accessToken;
+      return token!.accessToken;
+    } on PlatformException catch (e) {
+      // iOS ASWebAuthenticationSession 취소 시 PlatformException(CANCELED) 발생
+      if (e.code == 'CANCELED') {
+        throw AuthException(code: 'user_cancelled', message: '로그인을 취소했습니다');
+      }
+      throw AuthException(code: 'kakao_error', message: '카카오 로그인 실패: ${e.message}');
     } on KakaoException catch (e) {
-      // 사용자 취소 확인 (toString()으로 확인)
       if (e.toString().contains('CANCELLED')) {
         throw AuthException(code: 'user_cancelled', message: '로그인을 취소했습니다');
       }

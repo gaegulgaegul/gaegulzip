@@ -18,15 +18,17 @@ describe('GoogleProvider', () => {
     it('should verify token successfully when valid', async () => {
       mockedAxios.get.mockResolvedValueOnce({
         data: {
-          issued_to: 'google-client-id',
-          audience: 'google-client-id',
-          user_id: 'google-user-id',
-          scope: 'email profile',
-          expires_in: 3600,
+          iss: 'accounts.google.com',
+          sub: 'google-user-id',
+          aud: 'google-client-id',
+          exp: '9999999999',
+          email: 'test@gmail.com',
+          name: 'Hong Gildong',
+          picture: 'https://example.com/image.jpg',
         },
       });
 
-      await expect(provider.verifyToken('valid-token')).resolves.not.toThrow();
+      await expect(provider.verifyToken('valid-id-token')).resolves.not.toThrow();
     });
 
     it('should throw UnauthorizedException when token is invalid (400)', async () => {
@@ -53,18 +55,21 @@ describe('GoogleProvider', () => {
   });
 
   describe('getUserInfo', () => {
-    it('should return normalized user info when valid token', async () => {
+    it('should return normalized user info from verified payload', async () => {
       mockedAxios.get.mockResolvedValueOnce({
         data: {
-          id: 'google-user-id',
+          iss: 'accounts.google.com',
+          sub: 'google-user-id',
+          aud: 'google-client-id',
+          exp: '9999999999',
           email: 'test@gmail.com',
-          verified_email: true,
           name: 'Hong Gildong',
           picture: 'https://example.com/image.jpg',
         },
       });
+      await provider.verifyToken('valid-id-token');
 
-      const result = await provider.getUserInfo('valid-token');
+      const result = await provider.getUserInfo('valid-id-token');
 
       expect(result).toEqual({
         providerId: 'google-user-id',
@@ -77,11 +82,15 @@ describe('GoogleProvider', () => {
     it('should handle optional fields as null', async () => {
       mockedAxios.get.mockResolvedValueOnce({
         data: {
-          id: 'google-user-id',
+          iss: 'accounts.google.com',
+          sub: 'google-user-id',
+          aud: 'google-client-id',
+          exp: '9999999999',
         },
       });
+      await provider.verifyToken('valid-id-token');
 
-      const result = await provider.getUserInfo('valid-token');
+      const result = await provider.getUserInfo('valid-id-token');
 
       expect(result).toEqual({
         providerId: 'google-user-id',
@@ -91,10 +100,8 @@ describe('GoogleProvider', () => {
       });
     });
 
-    it('should wrap axios error in ExternalApiException', async () => {
-      mockedAxios.get.mockRejectedValueOnce(new Error('Network error'));
-
-      await expect(provider.getUserInfo('invalid-token')).rejects.toThrow(ExternalApiException);
+    it('should throw ExternalApiException when verifyToken not called', async () => {
+      await expect(provider.getUserInfo('some-token')).rejects.toThrow(ExternalApiException);
     });
   });
 });
