@@ -169,8 +169,8 @@ doc/api/
 .claude/settings.local.json
 
 # bkit
-.pdca-status.json
-.pdca-snapshots/
+docs/.pdca-status.json
+docs/.pdca-snapshots/
 docs/archive/
 .bkit-memory.json
 .claude-plugin/node_modules/
