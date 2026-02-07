@@ -53,5 +53,11 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    # Pod 프레임워크는 앱 번들 embed 시 앱 인증서로 재서명되므로
+    # Pod 자체 코드 서명은 불필요 (objective_c.framework 서명 에러 방지)
+    target.build_configurations.each do |config|
+      config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+    end
   end
 end

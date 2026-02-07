@@ -25,14 +25,14 @@ class AppleLoginProvider implements SocialLoginProvider {
         ],
       );
 
-      // 2. authorizationCode 획득
-      final authCode = credential.authorizationCode;
-      if (authCode.isEmpty) {
-        throw AuthException(code: 'apple_code_null', message: '애플 인증 코드 획득 실패');
+      // 2. identityToken 획득 (JWT 형식 — 서버에서 직접 검증 가능)
+      final identityToken = credential.identityToken;
+      if (identityToken == null || identityToken.isEmpty) {
+        throw AuthException(code: 'apple_token_null', message: '애플 ID 토큰 획득 실패');
       }
 
-      // 3. authorizationCode 반환 (백엔드로 전송)
-      return authCode;
+      // 3. identityToken 반환 (백엔드로 전송)
+      return identityToken;
     } on SignInWithAppleAuthorizationException catch (e) {
       // 사용자 취소
       if (e.code == AuthorizationErrorCode.canceled) {

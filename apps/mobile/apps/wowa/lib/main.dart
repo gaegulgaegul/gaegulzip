@@ -31,7 +31,7 @@ Future<void> main() async {
     appCode: 'wowa',
     apiBaseUrl: apiBaseUrl,
     providers: {
-      SocialProvider.kakao: const ProviderConfig(),
+      SocialProvider.kakao: ProviderConfig(clientId: dotenv.env['KAKAO_NATIVE_APP_KEY']),
       SocialProvider.naver: const ProviderConfig(),
       SocialProvider.google: const ProviderConfig(),
       SocialProvider.apple: const ProviderConfig(),

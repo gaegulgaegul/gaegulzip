@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:core/core.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' show KakaoSdk;
 import 'services/auth_api_service.dart';
 import 'services/auth_state_service.dart';
 import 'interceptors/auth_interceptor.dart';
@@ -64,7 +65,7 @@ class AuthSdk {
   ///
   /// [appCode] 앱 코드 (서버에서 앱 식별용)
   /// [apiBaseUrl] API 베이스 URL
-  /// [providers] 프로바이더별 OAuth 설정 (TODO: 향후 프로바이더 SDK 초기화에 사용 예정)
+  /// [providers] 프로바이더별 OAuth 설정
   /// [secureStorage] 토큰 저장소 (기본: flutter_secure_storage)
   static Future<void> initialize({
     required String appCode,
@@ -77,6 +78,12 @@ class AuthSdk {
     }
 
     _appCode = appCode;
+
+    // 카카오 SDK 초기화
+    final kakaoConfig = providers[SocialProvider.kakao];
+    if (kakaoConfig?.clientId != null && kakaoConfig!.clientId!.isNotEmpty) {
+      KakaoSdk.init(nativeAppKey: kakaoConfig.clientId!);
+    }
 
     // SecureStorageService 초기화 (필요 시)
     if (secureStorage != null) {
@@ -155,7 +162,6 @@ class AuthSdk {
     final storedAccessToken = await storage.getAccessToken();
     final storedRefreshToken = await storage.getRefreshToken();
 
-    // 토큰이 null이면 예외 발생 (로그인 직후이므로 반드시 존재해야 함)
     if (storedAccessToken == null || storedRefreshToken == null) {
       throw Exception('로그인 후 토큰 저장 실패');
     }
@@ -165,7 +171,7 @@ class AuthSdk {
       accessToken: storedAccessToken,
       refreshToken: storedRefreshToken,
       tokenType: 'Bearer',
-      expiresIn: 1800, // TODO: 서버에서 expiresIn 반환하도록 개선 필요
+      expiresIn: 1800,
       user: user,
       token: storedAccessToken,
     );

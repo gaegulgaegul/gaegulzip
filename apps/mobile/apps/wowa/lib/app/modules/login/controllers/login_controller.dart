@@ -76,9 +76,11 @@ class LoginController extends GetxController {
       Get.offAllNamed(Routes.HOME);
 
       // 4. 성공 메시지
-      _showSuccessSnackbar('로그인 성공', '${loginResponse.user.nickname}님 환영합니다!');
+      final displayName = loginResponse.user.nickname ?? '사용자';
+      _showSuccessSnackbar('로그인 성공', '$displayName님 환영합니다!');
     } on AuthException catch (e) {
       // 인증 오류
+      Logger.error('AuthException [${e.code}]: ${e.message}', error: e);
       if (e.code == 'user_cancelled') {
         // 사용자 취소 - 조용히 실패
         return;
@@ -99,9 +101,11 @@ class LoginController extends GetxController {
       _showErrorSnackbar('로그인 실패', e.message);
     } on NetworkException catch (e) {
       // 네트워크 오류
+      Logger.error('NetworkException: ${e.message}', error: e);
       _showErrorSnackbar('네트워크 오류', e.message);
     } catch (e) {
       // 기타 오류
+      Logger.error('로그인 중 예기치 않은 오류', error: e);
       _showErrorSnackbar('로그인 오류', '로그인 중 오류가 발생했습니다');
     } finally {
       // 6. 로딩 종료

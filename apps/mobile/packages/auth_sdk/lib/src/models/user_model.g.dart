@@ -11,7 +11,7 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
       id: (json['id'] as num).toInt(),
       provider: json['provider'] as String,
       email: json['email'] as String?,
-      nickname: json['nickname'] as String,
+      nickname: json['nickname'] as String?,
       profileImage: json['profileImage'] as String?,
       appCode: json['appCode'] as String,
       lastLoginAt: json['lastLoginAt'] as String,
