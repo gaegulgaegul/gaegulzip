@@ -52,6 +52,18 @@ core (foundation — no internal dependencies)
 - SDK는 앱에 독립적 — 하드코딩된 앱 이름, 라우트, 화면 이동 포함 금지
 - SDK 초기화는 config 객체로 주입 (appCode, apiBaseUrl 등)
 
+## SDK API Client Policy
+
+**SDK별 API 클라이언트 구현:**
+- `auth_sdk` - 자체 `AuthApiService` (multi-tenant 지원, 동적 appCode 주입)
+- `notice`, `qna` - 자체 `*ApiService` (SDK 독립성 유지)
+- **일반 도메인 로직** - `packages/api` 공유 클라이언트 사용 (Box, WOD, Proposal)
+
+**중복 방지 원칙:**
+- 동일한 엔드포인트에 대한 클라이언트는 한 곳에만 존재
+- 인증 관련 API: `auth_sdk` 우선 (절대 `api` 패키지에 중복 생성 금지)
+- 공통 CRUD API: `api` 패키지 우선
+
 ## SDK Packages
 
 | 패키지 | 사용 상황 | 참조 |

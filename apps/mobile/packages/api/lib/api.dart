@@ -32,7 +32,6 @@ export 'src/models/push/notification_list_response.dart';
 export 'src/models/push/unread_count_response.dart';
 
 // Services
-export 'src/services/auth_api_service.dart';
 export 'src/services/push_api_client.dart';
 
 // Clients
