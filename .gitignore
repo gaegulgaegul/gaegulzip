@@ -181,3 +181,4 @@ docs/archive/
 prompt/
 
 .DS_Store
+*.bak

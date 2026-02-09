@@ -1,4 +1,4 @@
-import 'package:api/api.dart';
+import 'package:push/push.dart';
 import 'package:core/core.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
