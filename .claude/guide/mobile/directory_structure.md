@@ -32,17 +32,16 @@ lib/
 └── main.dart
 ```
 
-## For `packages/api`
+## For SDK packages (e.g., `packages/auth_sdk`, `packages/push`)
 ```
 lib/
 ├── src/
 │   ├── models/               # API response/request models
 │   │   └── *.freezed.dart   # Generated files
-│   ├── clients/              # Dio clients
-│   │   └── api_client.dart
-│   ├── interceptors/         # HTTP interceptors
-│   └── endpoints/            # API endpoint constants
-└── api.dart                  # Public exports
+│   ├── services/             # API clients with Dio
+│   │   └── *_api_service.dart
+│   └── ...                   # SDK-specific features
+└── [sdk_name].dart           # Public exports
 ```
 
 ## For `packages/design_system`

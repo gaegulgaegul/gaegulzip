@@ -14,8 +14,11 @@ gaegulzip/
 │   │   ├── apps/wowa/       # Main Flutter application
 │   │   └── packages/        # Shared Flutter packages
 │   │       ├── core/        # Foundation utilities, DI, logging
-│   │       ├── api/         # HTTP client, data models
-│   │       └── design_system/ # UI components, theme
+│   │       ├── design_system/ # UI components, theme
+│   │       ├── auth_sdk/    # Authentication SDK (social login, token management)
+│   │       ├── push/        # Push notification SDK
+│   │       ├── notice/      # Notice SDK
+│   │       └── qna/         # Q&A SDK
 │   └── web/
 │       └── admin/           # Next.js admin dashboard (shadcn/ui)
 ├── turbo.json              # Turborepo task configuration

@@ -26,8 +26,8 @@ model: sonnet
 
 ## 핵심 역할
 
-1. **API 모델 작성** (packages/api/): Freezed + json_serializable
-2. **API 클라이언트 작성** (packages/api/): Dio
+1. **API 모델 작성** (SDK 패키지 또는 wowa 앱 내부): Freezed + json_serializable
+2. **API 클라이언트 작성** (SDK 패키지 또는 wowa 앱 내부): Dio
 3. **코드 생성**: melos generate 실행
 4. **Controller 작성** (apps/wowa/): GetX 상태 관리
 5. **Binding 작성** (apps/wowa/): 의존성 주입
@@ -78,7 +78,8 @@ Read("brief.md")        # 기술 설계 파악
 
 #### 기존 패턴 확인
 ```
-Glob("packages/api/lib/src/models/*_model.dart")
+Glob("packages/*/lib/src/models/*_model.dart")  # SDK 모델
+Glob("apps/wowa/lib/app/data/models/**/*_model.dart")  # 앱 모델
 Glob("apps/wowa/lib/app/modules/**/*_controller.dart")
 Glob("apps/wowa/lib/app/modules/**/*_view.dart")
 ```
@@ -98,7 +99,9 @@ search(query="API 모델 Freezed", limit=5)
 
 #### 모델 작성 예시
 
-**파일**: `packages/api/lib/src/models/weather_model.dart`
+**파일**: SDK 패키지 또는 wowa 앱 내부
+- SDK: `packages/weather_sdk/lib/src/models/weather_model.dart`
+- 앱 전용: `apps/wowa/lib/app/data/models/weather/weather_model.dart`
 
 ```dart
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -150,7 +153,9 @@ query-docs(libraryId="확인된 ID", query="Dio error handling")
 
 #### 클라이언트 작성 예시
 
-**파일**: `packages/api/lib/src/clients/weather_client.dart`
+**파일**: SDK 패키지 또는 wowa 앱 내부
+- SDK: `packages/weather_sdk/lib/src/weather_api_client.dart`
+- 앱 전용: `apps/wowa/lib/app/data/clients/weather_client.dart`
 
 ```dart
 import 'package:dio/dio.dart';
@@ -206,8 +211,8 @@ melos generate
 
 #### 생성 파일 확인
 ```
-Glob("packages/api/lib/src/models/*.freezed.dart")
-Glob("packages/api/lib/src/models/*.g.dart")
+Glob("packages/*/lib/src/models/*.freezed.dart")  # SDK 패키지
+Glob("apps/wowa/lib/app/data/models/**/*.freezed.dart")  # 앱 모델
 ```
 
 **체크리스트**:
@@ -218,9 +223,12 @@ Glob("packages/api/lib/src/models/*.g.dart")
 
 **문제 발생 시**:
 ```bash
-# 생성 파일 삭제 후 재생성
-rm packages/api/lib/src/models/*.freezed.dart
-rm packages/api/lib/src/models/*.g.dart
+# SDK 패키지 생성 파일 삭제 후 재생성
+rm packages/[sdk_name]/lib/src/models/*.freezed.dart
+rm packages/[sdk_name]/lib/src/models/*.g.dart
+# 또는 앱 모델
+rm apps/wowa/lib/app/data/models/**/*.freezed.dart
+rm apps/wowa/lib/app/data/models/**/*.g.dart
 melos generate
 ```
 
@@ -244,7 +252,10 @@ search(query="상태 관리 패턴", limit=3)
 
 ```dart
 import 'package:get/get.dart';
-import 'package:api/api.dart';
+import 'package:weather_sdk/weather_sdk.dart';  // SDK 사용 시
+// 또는
+import '../../../data/models/weather/weather_model.dart';  // 앱 내부 모델 사용 시
+import '../../../data/clients/weather_client.dart';  // 앱 내부 클라이언트 사용 시
 
 /// 날씨 화면 컨트롤러
 ///
@@ -342,7 +353,9 @@ class WeatherController extends GetxController {
 ```dart
 import 'package:get/get.dart';
 import '../controllers/weather_controller.dart';
-import 'package:api/api.dart';
+import 'package:weather_sdk/weather_sdk.dart';  // SDK 사용 시
+// 또는
+import '../../../data/clients/weather_client.dart';  // 앱 내부 사용 시
 
 /// 날씨 모듈 바인딩
 ///
@@ -746,12 +759,21 @@ get_recent_context(limit=10)
 ## 출력물
 
 ### API 모델 (API 사용 시)
-- `packages/api/lib/src/models/[feature]_model.dart`
-- `packages/api/lib/src/models/[feature]_model.freezed.dart` (생성)
-- `packages/api/lib/src/models/[feature]_model.g.dart` (생성)
+**SDK 패키지:**
+- `packages/[sdk_name]/lib/src/models/[feature]_model.dart`
+- `packages/[sdk_name]/lib/src/models/[feature]_model.freezed.dart` (생성)
+- `packages/[sdk_name]/lib/src/models/[feature]_model.g.dart` (생성)
+
+**또는 wowa 앱:**
+- `apps/wowa/lib/app/data/models/[feature]/[feature]_model.dart`
+- `.freezed.dart`, `.g.dart` (생성)
 
 ### API 클라이언트 (API 사용 시)
-- `packages/api/lib/src/clients/[feature]_client.dart`
+**SDK 패키지:**
+- `packages/[sdk_name]/lib/src/[feature]_api_client.dart`
+
+**또는 wowa 앱:**
+- `apps/wowa/lib/app/data/clients/[feature]_client.dart`
 
 ### Controller
 - `apps/wowa/lib/app/modules/[feature]/controllers/[feature]_controller.dart`

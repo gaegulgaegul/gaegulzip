@@ -31,38 +31,40 @@ cd apps/wowa && flutter run -d ios  # iOS simulator
 ```
 core (foundation — no internal dependencies)
   ↑
-  ├── api          (Dio, Freezed models, JSON serialization)
   ├── design_system (UI components, theme, reactive widgets)
-  ├── *_sdk        (feature SDK packages — reusable across apps)
+  ├── push         (Push notification SDK with Dio)
+  ├── auth_sdk     (Authentication SDK with Dio)
+  ├── notice       (Notice SDK with Dio)
+  ├── qna          (Q&A SDK with Dio)
   └── wowa app     (state management, routing, features)
 ```
 
 - `core` → 기초 유틸, DI, 로깅, extensions, 에러 처리
-- `api` → HTTP (Dio), API 모델 (Freezed/json_serializable)
 - `design_system` → Frame0 스케치 스타일 UI 컴포넌트, 테마
-- `*_sdk` → 기능별 SDK 패키지 (예: `auth_sdk`). 앱 간 재사용 가능한 독립 패키지
-- `wowa` → 메인 앱, GetX 상태관리, 라우팅
+- `*_sdk` → 기능별 SDK 패키지 (예: `auth_sdk`, `push`). 각 SDK는 자체 Dio 클라이언트와 Freezed 모델 포함
+- `wowa` → 메인 앱, GetX 상태관리, 라우팅, 앱 전용 도메인 모델
 
-**의존성 규칙**: 단방향 (core ← api/design_system ← *_sdk ← wowa), 순환 의존 금지
+**의존성 규칙**: 단방향 (core ← design_system/sdk ← wowa), 순환 의존 금지
 
 ## SDK Packaging Convention
 
-- SDK 패키지 위치: `packages/*_sdk/` (예: `packages/auth_sdk/`)
-- SDK는 `core`, `api`, `design_system` 패키지에 의존 가능, `wowa` 앱에 의존 금지
+- SDK 패키지 위치: `packages/*_sdk/` 또는 `packages/[feature]/` (예: `packages/auth_sdk/`, `packages/push/`)
+- SDK는 `core`, `design_system` 패키지에 의존 가능, `wowa` 앱에 의존 금지
 - SDK는 앱에 독립적 — 하드코딩된 앱 이름, 라우트, 화면 이동 포함 금지
 - SDK 초기화는 config 객체로 주입 (appCode, apiBaseUrl 등)
+- 각 SDK는 자체 Dio 클라이언트와 Freezed 모델을 포함 (독립성 유지)
 
 ## SDK API Client Policy
 
 **SDK별 API 클라이언트 구현:**
 - `auth_sdk` - 자체 `AuthApiService` (multi-tenant 지원, 동적 appCode 주입)
-- `notice`, `qna` - 자체 `*ApiService` (SDK 독립성 유지)
-- **일반 도메인 로직** - `packages/api` 공유 클라이언트 사용 (Box, WOD, Proposal)
+- `notice`, `qna`, `push` - 자체 `*ApiService` (SDK 독립성 유지)
+- **앱 전용 도메인 로직** - wowa 앱 내부에서 관리 (Box, WOD, Proposal 등)
 
 **중복 방지 원칙:**
 - 동일한 엔드포인트에 대한 클라이언트는 한 곳에만 존재
-- 인증 관련 API: `auth_sdk` 우선 (절대 `api` 패키지에 중복 생성 금지)
-- 공통 CRUD API: `api` 패키지 우선
+- 재사용 가능한 기능 → SDK로 분리 (인증, 푸시, 공지사항 등)
+- 앱 전용 기능 → 앱 내부에서 관리 (Box, WOD 등)
 
 ## SDK Packages
 
@@ -85,13 +87,15 @@ core (foundation — no internal dependencies)
 
 ### 의존성 추가
 
-1. 의존성 그래프에 맞는 패키지 선택 (Network→api, UI→design_system, 앱→wowa)
+1. 의존성 그래프에 맞는 패키지 선택 (UI→design_system, 재사용 기능→SDK, 앱→wowa)
 2. `pubspec.yaml`에 추가 후 `melos bootstrap`
 3. 코드 생성 도구면 `melos generate` 실행
 
 ### API 모델 작업
 
-1. `packages/api`에 Freezed + json_serializable 모델 생성
+1. SDK 또는 wowa 앱 내부에 Freezed + json_serializable 모델 생성
+   - 재사용 가능 → SDK 패키지 (`packages/*/lib/src/models/`)
+   - 앱 전용 → wowa 앱 (`apps/wowa/lib/app/data/models/`)
 2. `melos generate:watch` 실행 (자동 재생성)
 
 ### 패키지 간 의존성
@@ -100,15 +104,17 @@ core (foundation — no internal dependencies)
 dependencies:
   core:
     path: ../core             # 패키지 간
-  api:
-    path: ../../packages/api  # 앱에서
+  design_system:
+    path: ../design_system    # 패키지 간
+  auth_sdk:
+    path: ../../packages/auth_sdk  # 앱에서
 ```
 
 ## Important Notes
 
 - **`melos bootstrap`** 필수 (`flutter pub get` 금지)
 - **`resolution: workspace`** pubspec.yaml에 추가 금지 (bootstrap 실패 원인)
-- **코드 생성**은 `build_runner` 의존성 있는 패키지만 (`api`, `wowa`)
+- **코드 생성**은 `build_runner` 의존성 있는 패키지만 (SDK 패키지들, `wowa`)
 
 ## Troubleshooting
 

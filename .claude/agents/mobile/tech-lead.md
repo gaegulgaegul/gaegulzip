@@ -289,7 +289,9 @@ class [Feature]View extends GetView<[Feature]Controller> {
 
 ### API 모델 (Senior Developer가 구현)
 
-**패키지**: `packages/api/lib/src/models/weather_model.dart`
+**패키지**: SDK 또는 wowa 앱 내부
+- 재사용 가능 → SDK 패키지 (예: `packages/weather_sdk/lib/src/models/weather_model.dart`)
+- 앱 전용 → wowa 앱 (예: `apps/wowa/lib/app/data/models/weather/weather_model.dart`)
 
 ```dart
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -313,7 +315,9 @@ class WeatherModel with _$WeatherModel {
 
 ### API 클라이언트 (Senior Developer가 구현)
 
-**패키지**: `packages/api/lib/src/clients/weather_client.dart`
+**패키지**: SDK 또는 wowa 앱 내부
+- 재사용 가능 → SDK 패키지 (예: `packages/weather_sdk/lib/src/weather_api_client.dart`)
+- 앱 전용 → wowa 앱 (예: `apps/wowa/lib/app/data/clients/weather_client.dart`)
 
 ```dart
 import 'package:dio/dio.dart';
@@ -448,22 +452,22 @@ try {
 ```
 core (foundation)
   ↑
-  ├── api (HTTP, models)
   ├── design_system (UI)
-  └── wowa (app)
+  ├── *_sdk (각 SDK는 자체 Dio + models 포함)
+  └── wowa (app, 앱 전용 models + clients 포함)
 ```
 
 ### 필요한 패키지
 - **core**: GetX (이미 포함)
-- **api**: Dio, Freezed, json_serializable (필요 시)
+- **SDK 패키지**: Dio, Freezed, json_serializable (SDK 생성 시)
 - **design_system**: (필요 시)
-- **wowa**: core, api, design_system
+- **wowa**: core, design_system, SDK 패키지들 + 자체 Freezed/json_serializable
 
 ## 작업 분배 계획 (CTO가 참조)
 
 ### Senior Developer 작업
-1. API 모델 작성 (packages/api/) - API 필요 시
-2. Dio 클라이언트 구현 (packages/api/)
+1. API 모델 작성 (SDK 패키지 또는 wowa 앱 내부) - API 필요 시
+2. Dio 클라이언트 구현 (SDK 패키지 또는 wowa 앱 내부)
 3. melos generate 실행
 4. Controller + 비즈니스 로직 (apps/wowa/)
 5. Binding 작성 (apps/wowa/)
