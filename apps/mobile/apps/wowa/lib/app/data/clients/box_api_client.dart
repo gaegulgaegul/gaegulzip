@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import '../models/box/box_model.dart';
+import '../models/box/box_search_response.dart';
 import '../models/box/create_box_request.dart';
+import '../models/box/box_create_response.dart';
+import '../models/box/membership_model.dart';
 import '../models/box/box_member_model.dart';
 
 /// 박스 API 클라이언트
@@ -22,56 +25,51 @@ class BoxApiClient {
     return data != null ? BoxModel.fromJson(data) : null;
   }
 
-  /// 박스 검색
+  /// 박스 검색 (통합 키워드)
   ///
-  /// [name] 박스 이름 (선택, 부분 일치)
-  /// [region] 지역 (선택, 부분 일치)
+  /// [keyword] 통합 검색 키워드 (박스 이름 또는 지역)
   ///
   /// Returns: [List<BoxModel>] 검색된 박스 목록
   ///
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
-  Future<List<BoxModel>> searchBoxes({String? name, String? region}) async {
-    final queryParameters = <String, dynamic>{};
-    if (name != null) queryParameters['name'] = name;
-    if (region != null) queryParameters['region'] = region;
-
+  Future<List<BoxModel>> searchBoxes(String keyword) async {
     final response = await _dio.get(
       '/boxes/search',
-      queryParameters: queryParameters,
+      queryParameters: {'keyword': keyword},
     );
-    final data = response.data['boxes'] as List?;
-    if (data == null) return [];
-    return data.map((json) => BoxModel.fromJson(json)).toList();
+
+    final searchResponse = BoxSearchResponse.fromJson(response.data);
+    return searchResponse.boxes;
   }
 
   /// 박스 생성
   ///
   /// [request] 박스 생성 요청 (이름, 지역)
   ///
-  /// Returns: [BoxModel] 생성된 박스
+  /// Returns: [BoxCreateResponse] 생성된 박스 + 멤버십 정보
   ///
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
-  Future<BoxModel> createBox(CreateBoxRequest request) async {
+  Future<BoxCreateResponse> createBox(CreateBoxRequest request) async {
     final response = await _dio.post(
       '/boxes',
       data: request.toJson(),
     );
-    return BoxModel.fromJson(response.data['box']);
+    return BoxCreateResponse.fromJson(response.data);
   }
 
   /// 박스 가입
   ///
   /// [boxId] 가입할 박스 ID
   ///
-  /// Returns: membership + previousBoxId 정보
+  /// Returns: [MembershipModel] 생성된 멤버십
   ///
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
-  Future<Map<String, dynamic>> joinBox(int boxId) async {
+  Future<MembershipModel> joinBox(int boxId) async {
     final response = await _dio.post('/boxes/$boxId/join');
-    return response.data as Map<String, dynamic>;
+    return MembershipModel.fromJson(response.data['membership']);
   }
 
   /// 박스 상세 조회

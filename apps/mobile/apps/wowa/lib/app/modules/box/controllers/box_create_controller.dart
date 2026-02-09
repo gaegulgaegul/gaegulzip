@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:core/core.dart';
+import 'package:design_system/design_system.dart';
 import '../../../data/repositories/box_repository.dart';
 import '../../../routes/app_routes.dart';
 import '../../../data/models/box/create_box_request.dart';
 
 /// 박스 생성 컨트롤러
 ///
-/// 새 박스 생성 폼의 입력 관리 및 유효성 검증을 처리합니다.
+/// 새 박스 생성 폼의 입력 관리 및 유효성 검증 처리
 class BoxCreateController extends GetxController {
+  // ===== Repository 의존성 =====
+  late final BoxRepository _repository;
+
   // ===== 반응형 상태 (.obs) =====
 
   /// 로딩 상태
@@ -25,8 +29,6 @@ class BoxCreateController extends GetxController {
 
   // ===== 비반응형 상태 =====
 
-  late final BoxRepository _boxRepository;
-
   /// 이름 입력
   final nameController = TextEditingController();
 
@@ -41,8 +43,11 @@ class BoxCreateController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _boxRepository = Get.find<BoxRepository>();
 
+    // Repository 의존성 주입
+    _repository = Get.find<BoxRepository>();
+
+    // 입력 리스너 (실시간 유효성 검증)
     nameController.addListener(_validateInputs);
     regionController.addListener(_validateInputs);
   }
@@ -88,29 +93,82 @@ class BoxCreateController extends GetxController {
   // ===== 박스 생성 =====
 
   /// 박스 생성 요청
-  Future<void> create() async {
+  Future<void> createBox() async {
+    // 1. 유효성 재검증
+    _validateInputs();
+
     if (!canSubmit.value) return;
 
+    // 2. 로딩 시작
+    isLoading.value = true;
+
     try {
-      isLoading.value = true;
-      final request = CreateBoxRequest(
+      // 3. API 호출 (Repository)
+      await _repository.createBox(
         name: nameController.text.trim(),
         region: regionController.text.trim(),
-        description: descriptionController.text.trim().isNotEmpty
-            ? descriptionController.text.trim()
-            : null,
+        description: descriptionController.text.trim().isEmpty
+            ? null
+            : descriptionController.text.trim(),
       );
-      await _boxRepository.createBox(request);
-      Get.snackbar('생성 완료', '박스가 생성되었습니다');
+
+      // 4. 성공: 스낵바 + 홈 이동
+      Get.snackbar(
+        '박스 생성 완료',
+        '박스가 생성되었습니다',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: SketchDesignTokens.success.withValues(alpha: 0.1),
+        colorText: SketchDesignTokens.success,
+        duration: const Duration(seconds: 2),
+      );
+
+      // 5. 홈으로 이동 (스택 초기화)
       Get.offAllNamed(Routes.HOME);
     } on NetworkException catch (e) {
-      Get.snackbar('오류', e.message);
-    } on AuthException catch (e) {
-      Get.snackbar('인증 오류', e.message);
-      Get.offAllNamed(Routes.LOGIN);
+      // 6. 네트워크 에러: 모달 표시
+      SketchModal.show(
+        context: Get.context!,
+        title: '오류',
+        child: Text(
+          e.message,
+          style: const TextStyle(
+            fontSize: SketchDesignTokens.fontSizeBase,
+            color: SketchDesignTokens.base900,
+          ),
+        ),
+        actions: [
+          SketchButton(
+            text: '닫기',
+            onPressed: () => Navigator.of(Get.context!).pop(),
+            style: SketchButtonStyle.outline,
+          ),
+          SketchButton(
+            text: '재시도',
+            onPressed: () {
+              Navigator.of(Get.context!).pop();
+              createBox();
+            },
+            style: SketchButtonStyle.primary,
+          ),
+        ],
+        barrierDismissible: false,
+      );
     } catch (e) {
-      Get.snackbar('오류', e.toString());
+      // 7. 기타 에러
+      SketchModal.show(
+        context: Get.context!,
+        title: '오류',
+        child: const Text('박스 생성에 실패했습니다'),
+        actions: [
+          SketchButton(
+            text: '확인',
+            onPressed: () => Navigator.of(Get.context!).pop(),
+            style: SketchButtonStyle.primary,
+          ),
+        ],
+      );
     } finally {
+      // 8. 로딩 종료
       isLoading.value = false;
     }
   }

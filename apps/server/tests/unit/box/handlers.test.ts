@@ -21,85 +21,80 @@ describe('Box Handlers', () => {
   });
 
   describe('create', () => {
-    it('should set createdBy to authenticated user', async () => {
-      const { createBox, joinBox } = await import('../../../src/modules/box/services');
+    it('should create box with transaction and set createdBy to authenticated user', async () => {
+      const { createBoxWithMembership } = await import('../../../src/modules/box/services');
 
-      const mockBox = {
-        id: 1,
-        name: 'CrossFit Seoul',
-        region: '서울 강남구',
-        description: null,
-        createdBy: 42,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+      const mockResult = {
+        box: {
+          id: 1,
+          name: 'CrossFit Seoul',
+          region: '서울 강남구',
+          description: null,
+          createdBy: 42,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        membership: {
+          id: 1,
+          boxId: 1,
+          userId: 42,
+          role: 'member' as const,
+          joinedAt: new Date(),
+        },
+        previousBoxId: null,
       };
 
-      const mockMembership = {
-        id: 1,
-        boxId: 1,
-        userId: 42,
-        role: 'member',
-        joinedAt: new Date(),
-      };
-
-      vi.mocked(createBox).mockResolvedValue(mockBox);
-      vi.mocked(joinBox).mockResolvedValue(mockMembership);
+      vi.mocked(createBoxWithMembership).mockResolvedValue(mockResult);
 
       req.body = { name: 'CrossFit Seoul', region: '서울 강남구' };
       (req as any).user = { userId: 42, appId: 1 };
 
       await create(req as Request, res as Response);
 
-      expect(createBox).toHaveBeenCalledWith(
+      expect(createBoxWithMembership).toHaveBeenCalledWith(
         expect.objectContaining({ createdBy: 42, region: '서울 강남구' })
       );
       expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({
-        box: mockBox,
-        membership: mockMembership,
-      });
+      expect(res.json).toHaveBeenCalledWith(mockResult);
     });
 
-    it('should auto-join creator after box creation', async () => {
-      const { createBox, joinBox } = await import('../../../src/modules/box/services');
+    it('should create box with membership in transaction', async () => {
+      const { createBoxWithMembership } = await import('../../../src/modules/box/services');
 
-      const mockBox = {
-        id: 3,
-        name: 'CrossFit Pangyo',
-        region: '경기 성남시 분당구',
-        description: 'Pangyo station exit 2',
-        createdBy: 123,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+      const mockResult = {
+        box: {
+          id: 3,
+          name: 'CrossFit Pangyo',
+          region: '경기 성남시 분당구',
+          description: 'Pangyo station exit 2',
+          createdBy: 123,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        membership: {
+          id: 10,
+          boxId: 3,
+          userId: 123,
+          role: 'member' as const,
+          joinedAt: new Date(),
+        },
+        previousBoxId: null,
       };
 
-      const mockMembership = {
-        id: 10,
-        boxId: 3,
-        userId: 123,
-        role: 'member',
-        joinedAt: new Date(),
-      };
-
-      vi.mocked(createBox).mockResolvedValue(mockBox);
-      vi.mocked(joinBox).mockResolvedValue(mockMembership);
+      vi.mocked(createBoxWithMembership).mockResolvedValue(mockResult);
 
       req.body = { name: 'CrossFit Pangyo', region: '경기 성남시 분당구', description: 'Pangyo station exit 2' };
       (req as any).user = { userId: 123, appId: 1 };
 
       await create(req as Request, res as Response);
 
-      expect(createBox).toHaveBeenCalledWith(expect.objectContaining({
+      expect(createBoxWithMembership).toHaveBeenCalledWith(expect.objectContaining({
         name: 'CrossFit Pangyo',
         region: '경기 성남시 분당구',
         createdBy: 123,
       }));
-      expect(joinBox).toHaveBeenCalledWith({ boxId: 3, userId: 123 });
       expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({
-        box: mockBox,
-        membership: mockMembership,
-      });
+      expect(res.json).toHaveBeenCalledWith(mockResult);
     });
   });
 
@@ -140,7 +135,24 @@ describe('Box Handlers', () => {
   });
 
   describe('search', () => {
-    it('should search boxes by name query param', async () => {
+    it('should search boxes by keyword query param', async () => {
+      const { searchBoxes } = await import('../../../src/modules/box/services');
+
+      const mockBoxes = [
+        { id: 1, name: 'CrossFit Seoul', region: '서울 강남구', description: null, memberCount: 10 },
+      ];
+
+      vi.mocked(searchBoxes).mockResolvedValue(mockBoxes);
+
+      req.query = { keyword: '강남' };
+
+      await search(req as Request, res as Response);
+
+      expect(searchBoxes).toHaveBeenCalledWith({ keyword: '강남' });
+      expect(res.json).toHaveBeenCalledWith({ boxes: mockBoxes });
+    });
+
+    it('should search boxes by name query param (backward compatibility)', async () => {
       const { searchBoxes } = await import('../../../src/modules/box/services');
 
       const mockBoxes = [
@@ -157,7 +169,7 @@ describe('Box Handlers', () => {
       expect(res.json).toHaveBeenCalledWith({ boxes: mockBoxes });
     });
 
-    it('should search boxes by region query param', async () => {
+    it('should search boxes by region query param (backward compatibility)', async () => {
       const { searchBoxes } = await import('../../../src/modules/box/services');
 
       const mockBoxes = [

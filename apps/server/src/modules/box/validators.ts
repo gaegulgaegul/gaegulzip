@@ -4,9 +4,9 @@ import { z } from 'zod';
  * 박스 생성 요청 검증
  */
 export const createBoxSchema = z.object({
-  name: z.string().min(1, 'Box name is required').max(255),
-  region: z.string().min(1, 'Region is required').max(255),
-  description: z.string().max(1000).optional(),
+  name: z.string().min(2, '박스 이름은 2자 이상이어야 합니다').max(255).trim(),
+  region: z.string().min(2, '지역은 2자 이상이어야 합니다').max(255).trim(),
+  description: z.string().max(1000).trim().optional(),
 });
 
 /**
@@ -15,6 +15,7 @@ export const createBoxSchema = z.object({
 export const searchBoxQuerySchema = z.object({
   name: z.string().max(255).optional(),
   region: z.string().max(255).optional(),
+  keyword: z.string().max(255).optional(),
 });
 
 /**

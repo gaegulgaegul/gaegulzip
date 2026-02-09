@@ -33,6 +33,7 @@ export interface JoinBoxInput {
 export interface SearchBoxInput {
   name?: string;
   region?: string;
+  keyword?: string;
 }
 
 export interface BoxWithMemberCount {
@@ -48,6 +49,12 @@ export interface MyBoxResult {
 }
 
 export interface JoinBoxResult {
+  membership: BoxMember;
+  previousBoxId: number | null;
+}
+
+export interface CreateBoxResponse {
+  box: Box;
   membership: BoxMember;
   previousBoxId: number | null;
 }

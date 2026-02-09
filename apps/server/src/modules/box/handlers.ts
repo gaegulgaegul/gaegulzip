@@ -1,27 +1,27 @@
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from '../auth/types';
-import { createBox, getCurrentBox, searchBoxes, joinBox as joinBoxService, getBoxById, getBoxMembers } from './services';
+import { createBoxWithMembership, getCurrentBox, searchBoxes, joinBox as joinBoxService, getBoxById, getBoxMembers } from './services';
 import { createBoxSchema, searchBoxQuerySchema, boxIdParamsSchema } from './validators';
+import { logger } from '../../utils/logger';
 
 /**
- * 박스 생성 핸들러
+ * 박스 생성 핸들러 (트랜잭션: 박스 생성 + 멤버 등록)
  * @route POST /boxes
  */
 export const create: RequestHandler = async (req, res) => {
   const { userId } = (req as AuthenticatedRequest).user;
   const { name, region, description } = createBoxSchema.parse(req.body);
 
-  const box = await createBox({
+  logger.debug({ userId, name, region }, 'Creating box with transaction');
+
+  const result = await createBoxWithMembership({
     name,
     region,
     description,
     createdBy: userId,
   });
 
-  // 생성자를 자동으로 멤버로 등록 (단일 박스 정책: 기존 박스 자동 탈퇴)
-  const membership = await joinBoxService({ boxId: box.id, userId });
-
-  res.status(201).json({ box, membership });
+  res.status(201).json(result);
 };
 
 /**
@@ -37,13 +37,17 @@ export const getMyBox: RequestHandler = async (req, res) => {
 };
 
 /**
- * 박스 검색 핸들러
- * @route GET /boxes/search
+ * 박스 검색 핸들러 (통합 키워드 또는 개별 name/region 검색)
+ * @route GET /boxes/search?keyword=... 또는 ?name=...&region=...
  */
 export const search: RequestHandler = async (req, res) => {
-  const { name, region } = searchBoxQuerySchema.parse(req.query);
+  const { name, region, keyword } = searchBoxQuerySchema.parse(req.query);
 
-  const boxes = await searchBoxes({ name, region });
+  logger.debug({ keyword, name, region }, 'Searching boxes');
+
+  const boxes = await searchBoxes({ name, region, keyword });
+
+  logger.debug({ resultCount: boxes.length }, 'Search completed');
 
   res.json({ boxes });
 };

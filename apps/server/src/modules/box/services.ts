@@ -1,7 +1,7 @@
 import { db } from '../../config/database';
 import { boxes, boxMembers } from './schema';
 import { eq, and, ilike, or, sql } from 'drizzle-orm';
-import { CreateBoxInput, JoinBoxInput, SearchBoxInput, BoxWithMemberCount } from './types';
+import { CreateBoxInput, JoinBoxInput, SearchBoxInput, BoxWithMemberCount, CreateBoxResponse, BoxMember, BoxMemberRole } from './types';
 import { NotFoundException, BusinessException } from '../../utils/errors';
 import * as boxProbe from './box.probe';
 
@@ -107,12 +107,50 @@ export async function getBoxById(boxId: number) {
 }
 
 /**
- * 박스 검색 (name/region ILIKE 검색)
- * @param input - 검색 조건 (name, region)
+ * 박스 검색 (통합 키워드 검색 또는 개별 name/region 검색)
+ *
+ * keyword가 제공되면 name OR region ILIKE 검색을 수행합니다.
+ * keyword가 없으면 기존 name/region AND 검색을 수행합니다 (하위 호환성).
+ *
+ * @param input - 검색 조건 (keyword 또는 name/region)
+ * @param input.keyword - 통합 검색 키워드 (name, region에서 OR 검색)
+ * @param input.name - 박스 이름 검색어 (keyword 없을 때 사용)
+ * @param input.region - 지역 검색어 (keyword 없을 때 사용)
  * @returns 박스 목록 (memberCount 포함)
  */
 export async function searchBoxes(input: SearchBoxInput): Promise<BoxWithMemberCount[]> {
-  // 둘 다 없으면 빈 배열 반환 (전체 목록 제공 안 함)
+  // keyword 우선 처리 (통합 검색)
+  if (input.keyword !== undefined) {
+    const trimmedKeyword = input.keyword.trim();
+
+    // 빈 키워드는 빈 배열 반환
+    if (!trimmedKeyword) {
+      return [];
+    }
+
+    // name OR region ILIKE 검색
+    const results = await db
+      .select({
+        id: boxes.id,
+        name: boxes.name,
+        region: boxes.region,
+        description: boxes.description,
+        memberCount: sql<number>`COALESCE(COUNT(${boxMembers.id}), 0)`,
+      })
+      .from(boxes)
+      .leftJoin(boxMembers, eq(boxes.id, boxMembers.boxId))
+      .where(
+        or(
+          ilike(boxes.name, `%${trimmedKeyword}%`),
+          ilike(boxes.region, `%${trimmedKeyword}%`)
+        )
+      )
+      .groupBy(boxes.id);
+
+    return results as BoxWithMemberCount[];
+  }
+
+  // 기존 name/region 개별 검색 (하위 호환성)
   if (!input.name && !input.region) {
     return [];
   }
@@ -183,4 +221,76 @@ export async function getBoxMembers(boxId: number) {
     .where(eq(boxMembers.boxId, boxId));
 
   return members;
+}
+
+/**
+ * 박스 생성 + 생성자 자동 멤버 등록 (트랜잭션)
+ *
+ * 박스 생성과 멤버 등록을 단일 트랜잭션으로 처리하여 데이터 정합성을 보장합니다.
+ * 단일 박스 정책: 사용자가 이미 다른 박스에 가입되어 있으면 자동으로 탈퇴합니다.
+ *
+ * @param data - 박스 생성 데이터
+ * @param data.name - 박스 이름 (2-255자)
+ * @param data.region - 박스 지역 (2-255자)
+ * @param data.description - 박스 설명 (선택, 최대 1000자)
+ * @param data.createdBy - 생성자 사용자 ID
+ * @returns 생성된 박스, 멤버십, 이전 박스 ID (없으면 null)
+ * @throws 트랜잭션 실패 시 전체 롤백
+ */
+export async function createBoxWithMembership(data: CreateBoxInput): Promise<CreateBoxResponse> {
+  return await db.transaction(async (tx) => {
+    // 1. 박스 생성
+    const [box] = await tx.insert(boxes).values({
+      name: data.name,
+      region: data.region,
+      description: data.description ?? null,
+      createdBy: data.createdBy,
+    }).returning();
+
+    // 2. 기존 박스 멤버십 확인 및 삭제 (단일 박스 정책)
+    const [existingMembership] = await tx.select()
+      .from(boxMembers)
+      .where(eq(boxMembers.userId, data.createdBy))
+      .limit(1);
+
+    let previousBoxId: number | null = null;
+    if (existingMembership) {
+      previousBoxId = existingMembership.boxId;
+      await tx.delete(boxMembers).where(eq(boxMembers.id, existingMembership.id));
+    }
+
+    // 3. 생성자를 새 박스의 멤버로 등록
+    const [rawMembership] = await tx.insert(boxMembers).values({
+      boxId: box.id,
+      userId: data.createdBy,
+      role: 'member',
+    }).returning();
+
+    const membership: BoxMember = {
+      ...rawMembership,
+      role: rawMembership.role as BoxMemberRole,
+    };
+
+    // 4. 로깅
+    if (previousBoxId) {
+      boxProbe.boxSwitched({
+        userId: data.createdBy,
+        previousBoxId,
+        newBoxId: box.id,
+      });
+    } else {
+      boxProbe.created({
+        boxId: box.id,
+        name: box.name,
+        region: box.region,
+        createdBy: box.createdBy,
+      });
+      boxProbe.memberJoined({
+        boxId: box.id,
+        userId: data.createdBy,
+      });
+    }
+
+    return { box, membership, previousBoxId };
+  });
 }

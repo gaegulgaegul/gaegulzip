@@ -1,0 +1,23 @@
+{
+  "features": {
+    "wowa-box": {
+      "phase": "act",
+      "platform": "fullstack",
+      "frontendType": "mobile",
+      "startedAt": "2026-02-09T00:00:00.000Z",
+      "matchRate": 97,
+      "iterationCount": 1,
+      "documents": {
+        "plan": "docs/wowa/wowa-box/user-story.md",
+        "design-server": "docs/wowa/wowa-box/server-brief.md",
+        "design-mobile-spec": "docs/wowa/wowa-box/mobile-design-spec.md",
+        "design-mobile": "docs/wowa/wowa-box/mobile-brief.md",
+        "work-plan-server": "docs/wowa/wowa-box/server-work-plan.md",
+        "work-plan-mobile": "docs/wowa/wowa-box/mobile-work-plan.md",
+        "analysis": "docs/wowa/wowa-box/analysis.md",
+        "review-server": "docs/wowa/wowa-box/server-cto-review.md",
+        "review-mobile": "docs/wowa/wowa-box/mobile-cto-review.md"
+      }
+    }
+  }
+}

@@ -47,3 +47,37 @@ export const boxSwitched = (data: {
     newBoxId: data.newBoxId,
   }, 'User switched box');
 };
+
+/**
+ * 박스 검색 실행 (DEBUG)
+ * @param data - 검색 조건 및 결과 수
+ */
+export const searchExecuted = (data: { keyword: string; resultCount: number }) => {
+  logger.debug({
+    keyword: data.keyword,
+    resultCount: data.resultCount,
+  }, 'Box search executed');
+};
+
+/**
+ * 박스 생성 실패 (ERROR)
+ * @param data - 실패 정보 (userId, name, error)
+ */
+export const creationFailed = (data: { userId: number; name: string; error: string }) => {
+  logger.error({
+    userId: data.userId,
+    name: data.name,
+    error: data.error,
+  }, 'Box creation failed');
+};
+
+/**
+ * 트랜잭션 롤백 (WARN)
+ * @param data - 롤백 정보 (userId, reason)
+ */
+export const transactionRolledBack = (data: { userId: number; reason: string }) => {
+  logger.warn({
+    userId: data.userId,
+    reason: data.reason,
+  }, 'Box creation transaction rolled back');
+};
