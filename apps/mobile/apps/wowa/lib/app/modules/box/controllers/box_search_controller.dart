@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
-import 'package:api/api.dart';
 import 'package:core/core.dart';
 import '../../../data/repositories/box_repository.dart';
 import '../../../routes/app_routes.dart';
+import '../../../data/models/box/box_model.dart';
 
 /// 박스 검색 컨트롤러
 ///

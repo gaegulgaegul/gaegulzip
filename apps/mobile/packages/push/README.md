@@ -6,12 +6,10 @@ Firebase 초기화, 권한 요청, 토큰 관리, 알림 수신 처리를 제공
 ## 아키텍처
 
 ```
-packages/push/          ← Firebase SDK 래퍼 (이 패키지)
+packages/push/          ← Firebase SDK + 서버 통신 (독립 패키지)
   PushService           - FCM 초기화, 토큰, 리스너
   PushNotification      - RemoteMessage → DTO 변환
   PushHandlerCallback   - 콜백 타입 정의
-
-packages/api/           ← 서버 통신
   PushApiClient         - 디바이스 등록, 알림 CRUD
   NotificationModel     - 알림 Freezed 모델
   DeviceTokenRequest    - 토큰 등록 요청 모델
@@ -26,12 +24,11 @@ apps/wowa/              ← 앱 레벨 통합
 ### 의존성 방향
 
 ```
-core ← push (Firebase, GetxService)
-core ← api  (Dio, Freezed)
-push + api ← wowa (앱에서 조합)
+core ← push (Firebase, GetxService, Dio, Freezed)
+push ← wowa (앱에서 사용)
 ```
 
-> push 패키지는 api 패키지를 모릅니다. 서버 통신은 앱(wowa)에서 연결합니다.
+> push 패키지는 독립적으로 서버 통신 기능을 포함합니다 (Dio, Freezed 모델).
 
 ## 사전 준비 (Firebase 설정)
 
@@ -66,8 +63,6 @@ apps/wowa/ios/Runner/GoogleService-Info.plist
 dependencies:
   push:
     path: ../../packages/push
-  api:
-    path: ../../packages/api
 ```
 
 ### 2. Bootstrap
@@ -84,7 +79,6 @@ melos bootstrap
 
 ```dart
 import 'dart:io';
-import 'package:api/api.dart';
 import 'package:get/get.dart';
 import 'package:push/push.dart';
 
@@ -241,7 +235,7 @@ class PushNotification {
 }
 ```
 
-### PushApiClient (packages/api)
+### PushApiClient (packages/push)
 
 ```dart
 class PushApiClient {

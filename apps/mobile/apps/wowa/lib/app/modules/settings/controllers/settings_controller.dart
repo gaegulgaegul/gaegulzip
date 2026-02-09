@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:api/api.dart';
 import 'package:core/core.dart';
 import 'package:auth_sdk/auth_sdk.dart';
 import 'package:notice/notice.dart';
 import '../../../data/repositories/box_repository.dart';
 import '../../../routes/app_routes.dart';
+import '../../../data/models/box/box_model.dart';
 
 /// 설정 화면 컨트롤러
 ///

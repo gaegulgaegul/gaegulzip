@@ -20,11 +20,11 @@ gaegulzip/
 │   │   ├── apps/[next-app]/    # 다음 제품은 여기에
 │   │   └── packages/           # 공유 패키지
 │   │       ├── core/           #   DI, 로깅, 유틸리티
-│   │       ├── api/            #   Dio HTTP 클라이언트, Freezed 모델
 │   │       ├── design_system/  #   UI 컴포넌트, 테마
-│   │       ├── auth_sdk/       #   인증 SDK (소셜 로그인, 토큰 관리)
-│   │       ├── notice/         #   공지사항 SDK
-│   │       ├── qna/            #   QnA SDK
+│   │       ├── auth_sdk/       #   인증 SDK (소셜 로그인, 토큰 관리, Dio 포함)
+│   │       ├── push/           #   푸시 알림 SDK (Dio 포함)
+│   │       ├── notice/         #   공지사항 SDK (Dio 포함)
+│   │       ├── qna/            #   QnA SDK (Dio 포함)
 │   │       └── admob/          #   Google 광고 SDK
 │   └── web/
 │       └── admin/              # 관리자 대시보드 (Next.js 16 + shadcn/ui)
@@ -40,7 +40,7 @@ gaegulzip/
 | pnpm + Melos 하이브리드 | Node.js와 Flutter 각각 최적의 패키지 매니저 사용 |
 | Express 5 (Controller/Service 패턴 없음) | 미들웨어 함수면 충분. 복잡해지면 그때 분리 (YAGNI) |
 | Drizzle ORM + FK 없음 | 앱 레벨에서 관계 관리. DB 마이그레이션 유연성 확보 |
-| Flutter packages/ 계층 분리 | core → api, design_system → app 단방향 의존. 순환 의존 원천 차단 |
+| Flutter packages/ 계층 분리 | core → design_system, SDK → app 단방향 의존. 각 SDK는 독립적 |
 | GetX 통일 | 상태 관리 + DI + 라우팅을 하나로. 패키지 간 일관성 |
 | Turborepo | 서버 빌드/테스트 캐싱과 병렬 실행 |
 
@@ -49,9 +49,9 @@ gaegulzip/
 ```
 core (기반 - 의존성 없음)
   ↑
-  ├── api (HTTP, 데이터 모델)
   ├── design_system (UI 컴포넌트)
-  └── wowa app (제품 로직)
+  ├── *_sdk (각 SDK는 자체 Dio + 모델 포함)
+  └── wowa app (제품 로직, 앱 전용 모델 + 클라이언트 포함)
 ```
 
 ## 빠른 시작
@@ -115,10 +115,10 @@ pnpm --filter gaegulzip-admin build   # 프로덕션 빌드
    dependencies:
      core:
        path: ../../packages/core
-     api:
-       path: ../../packages/api
      design_system:
        path: ../../packages/design_system
+     auth_sdk:
+       path: ../../packages/auth_sdk
    ```
 3. `melos.yaml`의 packages 경로에 이미 `apps/**`가 포함되어 있으므로 `melos bootstrap`만 실행
 
@@ -158,7 +158,7 @@ pnpm --filter gaegulzip-admin build   # 프로덕션 빌드
 | ORM / DB | Drizzle ORM + PostgreSQL (Supabase) |
 | 모바일 | Flutter (SDK >=3.10.7) |
 | 상태 관리 | GetX |
-| HTTP 클라이언트 | Dio (api 패키지 격리) |
+| HTTP 클라이언트 | Dio (각 SDK 독립적으로 포함) |
 | 코드 생성 | Freezed + json_serializable |
 | 웹 프레임워크 | Next.js 16 (App Router) |
 | 웹 UI | shadcn/ui + Tailwind CSS v4 |

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:admob/admob.dart';
-import 'package:api/api.dart';
 import 'package:core/core.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';

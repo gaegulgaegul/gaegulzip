@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:api/api.dart';
+
 import 'package:design_system/design_system.dart';
+import '../../../data/models/wod/wod_model.dart';
+import '../../../data/models/wod/movement.dart';
 import '../controllers/home_controller.dart';
 
 /// WOD 홈 화면

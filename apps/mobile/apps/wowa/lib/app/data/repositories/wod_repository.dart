@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-import 'package:api/api.dart';
 import 'package:core/core.dart';
+import '../clients/wod_api_client.dart';
+import '../models/wod/wod_list_response.dart';
+import '../models/wod/register_wod_request.dart';
+import '../models/selection/selection_model.dart';
 
 /// WOD Repository
 ///

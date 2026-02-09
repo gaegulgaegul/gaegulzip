@@ -5,11 +5,13 @@
 In wowa app:
 ```dart
 import 'package:core/core.dart';
-import 'package:api/api.dart';
 import 'package:design_system/design_system.dart';
+import 'package:auth_sdk/auth_sdk.dart';
+import 'package:push/push.dart';
+import 'package:notice/notice.dart';
 ```
 
-In api or design_system packages:
+In SDK or design_system packages:
 ```dart
 import 'package:core/core.dart';
 ```
@@ -147,7 +149,7 @@ void main() {
 
 ## API Integration Pattern
 
-In `packages/api`:
+In SDK package (e.g., `packages/weather_sdk`):
 ```dart
 // Model with Freezed
 @freezed
@@ -174,17 +176,19 @@ class WeatherApiClient {
 }
 ```
 
-In `apps/wowa` (Repository pattern):
+In `apps/wowa` (using SDK):
 ```dart
-class WeatherRepository {
+import 'package:weather_sdk/weather_sdk.dart';
+
+class WeatherController extends GetxController {
   final WeatherApiClient _apiClient = Get.find();
 
-  Future<WeatherModel> getWeather(String city) async {
+  Future<void> loadWeather(String city) async {
     try {
-      return await _apiClient.getWeather(city);
+      final weather = await _apiClient.getWeather(city);
+      // Use weather data
     } catch (e) {
-      // Handle errors, caching, etc.
-      rethrow;
+      // Handle errors
     }
   }
 }

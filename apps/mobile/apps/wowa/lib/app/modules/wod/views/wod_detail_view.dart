@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:api/api.dart';
+
 import 'package:design_system/design_system.dart';
+import '../../../data/models/wod/wod_model.dart';
+import '../../../data/models/wod/movement.dart';
 import '../controllers/wod_detail_controller.dart';
 
 /// WOD 상세/비교 화면

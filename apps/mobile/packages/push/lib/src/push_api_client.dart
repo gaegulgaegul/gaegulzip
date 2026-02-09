@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-import '../models/push/device_token_request.dart';
-import '../models/push/notification_list_response.dart';
-import '../models/push/unread_count_response.dart';
+import 'models/device_token_request.dart';
+import 'models/notification_list_response.dart';
+import 'models/unread_count_response.dart';
 
 /// 푸시 알림 API 클라이언트
 ///

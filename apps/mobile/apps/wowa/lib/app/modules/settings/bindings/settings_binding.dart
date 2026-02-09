@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
-import 'package:api/api.dart';
 import '../../../data/repositories/box_repository.dart';
 import '../controllers/settings_controller.dart';
+import '../../../data/clients/box_api_client.dart';
 
 /// 설정 화면 바인딩
 ///
