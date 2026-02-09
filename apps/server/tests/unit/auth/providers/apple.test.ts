@@ -125,14 +125,9 @@ describe('AppleProvider', () => {
       expect(result).toEqual({
         providerId: 'apple-user-id',
         email: 'test@icloud.com',
-        nickname: expect.any(String), // Auto-generated nickname (형용사+명사+숫자)
+        nickname: null, // Apple does not provide nickname in ID token
         profileImage: null, // Apple does not provide profile image
       });
-
-      // 닉네임 패턴 검증 (한글 + 숫자)
-      expect(result.nickname).toMatch(/^[가-힣0-9]+$/);
-      expect(result.nickname!.length).toBeGreaterThanOrEqual(5);
-      expect(result.nickname!.length).toBeLessThanOrEqual(15);
     });
 
     it('should handle optional email as null', async () => {
@@ -154,13 +149,9 @@ describe('AppleProvider', () => {
       expect(result).toEqual({
         providerId: 'apple-user-id',
         email: null,
-        nickname: expect.any(String), // Auto-generated nickname
+        nickname: null,
         profileImage: null,
       });
-
-      // 닉네임 패턴 검증
-      expect(result.nickname).toMatch(/^[가-힣0-9]+$/);
-      expect(result.nickname!.length).toBeGreaterThanOrEqual(5);
     });
 
     it('should throw ExternalApiException when token cannot be decoded', async () => {

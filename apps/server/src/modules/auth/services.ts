@@ -101,11 +101,26 @@ export async function updateUserLogin(
   }
 ): Promise<typeof users.$inferSelect> {
   const now = new Date();
+
+  // nickname이 null이면 기존 값 유지를 위해 먼저 조회
+  let nicknameToUpdate = data.nickname;
+  if (data.nickname === null) {
+    const existing = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (existing[0]) {
+      nicknameToUpdate = existing[0].nickname;
+    }
+  }
+
   const updated = await db
     .update(users)
     .set({
       email: data.email,
-      nickname: data.nickname,
+      nickname: nicknameToUpdate,
       profileImage: data.profileImage,
       lastLoginAt: now,
       updatedAt: now,

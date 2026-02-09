@@ -201,6 +201,56 @@ describe('services', () => {
         })
       ).rejects.toThrow('User not found: 999');
     });
+
+    it('should preserve existing nickname when update data has null nickname', async () => {
+      const existingUser = {
+        id: 1,
+        appId: 1,
+        provider: 'apple',
+        providerId: 'apple-123',
+        email: 'existing@example.com',
+        nickname: '기존닉네임123', // 기존 닉네임
+        profileImage: null,
+        lastLoginAt: new Date('2024-01-01'),
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01'),
+      };
+
+      const updatedUser = {
+        ...existingUser,
+        email: 'updated@example.com',
+        nickname: '기존닉네임123', // 기존 닉네임 유지
+        lastLoginAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // SELECT 쿼리 mock (기존 사용자 조회)
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([existingUser]),
+          }),
+        }),
+      } as any);
+
+      // UPDATE 쿼리 mock
+      vi.mocked(db.update).mockReturnValue({
+        set: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn().mockResolvedValue([updatedUser]),
+          }),
+        }),
+      } as any);
+
+      const result = await updateUserLogin(1, {
+        email: 'updated@example.com',
+        nickname: null, // null 전달
+        profileImage: null,
+      });
+
+      // 기존 닉네임이 유지되어야 함
+      expect(result.nickname).toBe('기존닉네임123');
+    });
   });
 
   describe('Refresh Token Services', () => {

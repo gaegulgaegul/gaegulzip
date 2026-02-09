@@ -23,6 +23,7 @@ import { NotFoundException, ValidationException, ExternalApiException, Unauthori
 import { logger } from '../../utils/logger';
 import * as authProbe from './auth.probe';
 import { hashRefreshToken, parseExpiresIn, calculateExpiresAt } from './refresh-token.utils';
+import { generateRandomUsername } from '../../utils/username-generator';
 
 /**
  * OAuth 로그인 통합 핸들러 (카카오/네이버/구글/애플)
@@ -108,11 +109,14 @@ export const oauthLogin = async (req: Request, res: Response) => {
     if (existing) {
       user = await updateUserLogin(existing.id, profileData);
     } else {
+      // 신규 사용자 - nickname이 null이면 자동 생성
+      const nickname = profileData.nickname ?? generateRandomUsername();
       user = await createUser({
         appId: app.id,
         provider,
         providerId: userInfo.providerId,
         ...profileData,
+        nickname,
       });
       authProbe.userRegistered({
         userId: user.id,
@@ -254,11 +258,14 @@ export const oauthCallback = async (req: Request, res: Response) => {
     if (existingUser) {
       user = await updateUserLogin(existingUser.id, callbackProfileData);
     } else {
+      // 신규 사용자 - nickname이 null이면 자동 생성
+      const nickname = callbackProfileData.nickname ?? generateRandomUsername();
       user = await createUser({
         appId: app.id,
         provider: 'kakao',
         providerId: userInfo.providerId,
         ...callbackProfileData,
+        nickname,
       });
       authProbe.userRegistered({
         userId: user.id,
