@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
-import 'package:api/api.dart';
+
 import 'package:core/core.dart';
+import '../../../data/models/wod/wod_model.dart';
 import '../../../data/repositories/wod_repository.dart';
 import '../../../data/repositories/proposal_repository.dart';
 import '../../../routes/app_routes.dart';

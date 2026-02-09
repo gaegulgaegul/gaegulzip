@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:api/api.dart';
+
 import 'package:core/core.dart';
+import '../../../data/models/wod/register_wod_request.dart';
+import '../../../data/models/wod/movement.dart';
+import '../../../data/models/wod/program_data.dart';
 import '../../../data/repositories/wod_repository.dart';
 
 /// 운동 동작 입력 모델

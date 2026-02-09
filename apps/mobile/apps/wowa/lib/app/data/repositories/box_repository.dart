@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-import 'package:api/api.dart';
 import 'package:core/core.dart';
+import '../clients/box_api_client.dart';
+import '../models/box/box_model.dart';
+import '../models/box/create_box_request.dart';
+import '../models/box/box_member_model.dart';
 
 /// 박스 Repository
 ///

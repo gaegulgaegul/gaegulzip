@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:api/api.dart';
 import 'package:core/core.dart';
 import '../../../data/repositories/box_repository.dart';
 import '../../../routes/app_routes.dart';
+import '../../../data/models/box/create_box_request.dart';
 
 /// 박스 생성 컨트롤러
 ///

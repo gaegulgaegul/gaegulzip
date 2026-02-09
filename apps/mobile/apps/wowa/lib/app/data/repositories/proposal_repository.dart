@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-import 'package:api/api.dart';
 import 'package:core/core.dart';
+import '../clients/proposal_api_client.dart';
+import '../models/proposal/proposal_model.dart';
 
 /// 변경 제안 Repository
 ///
