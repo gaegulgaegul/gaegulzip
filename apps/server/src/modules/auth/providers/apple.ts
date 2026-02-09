@@ -6,6 +6,7 @@ import {
   ExternalApiException,
   ErrorCode
 } from '../../../utils/errors';
+import { generateRandomUsername } from '../../../utils/username-generator';
 
 /**
  * 애플 OAuth Provider 구현체
@@ -81,7 +82,8 @@ export class AppleProvider implements IOAuthProvider {
         providerId: payload.sub,
         email: payload.email ?? null,
         // 애플은 이름을 최초 로그인 시에만 제공하며, ID Token에는 포함되지 않음
-        nickname: null,
+        // nickname이 없으면 자동 생성 (형용사+명사+숫자 패턴)
+        nickname: generateRandomUsername(),
         // 애플은 프로필 이미지를 제공하지 않음
         profileImage: null,
       };
