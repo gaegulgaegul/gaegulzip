@@ -72,12 +72,8 @@ class LoginController extends GetxController {
       // 2. AuthSdk를 통한 소셜 로그인
       final loginResponse = await AuthSdk.login(provider);
 
-      // 3. 성공 - 메인 화면으로 이동
+      // 3. 성공 - 메인 화면으로 이동 (스낵바 없이 즉시 이동)
       Get.offAllNamed(Routes.HOME);
-
-      // 4. 성공 메시지
-      final displayName = loginResponse.user.nickname ?? '사용자';
-      _showSuccessSnackbar('로그인 성공', '$displayName님 환영합니다!');
     } on AuthException catch (e) {
       // 인증 오류
       Logger.error('AuthException [${e.code}]: ${e.message}', error: e);
