@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import '../../../routes/app_routes.dart';
+
 /// 페인터 카탈로그 컨트롤러
 ///
 /// 페인터 목록 관리 및 데모 화면 네비게이션 담당
@@ -26,14 +28,14 @@ class PainterCatalogController extends GetxController {
       name: 'AnimatedSketchPainter',
       description: '애니메이션 스케치\n손으로 그리는 듯한 애니메이션 효과',
     ),
-  ].obs;
+  ];
 
   /// 페인터 데모 화면으로 이동
   ///
   /// [painterName] 페인터 이름
   void navigateToPainterDemo(String painterName) {
     Get.toNamed(
-      '/painters/demo',
+      Routes.PAINTER_DEMO,
       arguments: painterName,
     );
   }

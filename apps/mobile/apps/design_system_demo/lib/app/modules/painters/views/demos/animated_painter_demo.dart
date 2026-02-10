@@ -110,30 +110,35 @@ class _AnimatedPainterDemoState extends State<AnimatedPainterDemo>
 
           // 수동 진행률 슬라이더
           _buildSectionTitle('Manual Progress'),
-          Row(
-            children: [
-              Expanded(
-                child: SketchSlider(
-                  value: _controller.value,
-                  min: 0.0,
-                  max: 1.0,
-                  label: '${(_controller.value * 100).toStringAsFixed(0)}%',
-                  onChanged: _isAutoPlaying
-                      ? null
-                      : (value) {
-                          _controller.value = value;
-                        },
-                ),
-              ),
-              SizedBox(
-                width: 60,
-                child: Text(
-                  '${(_controller.value * 100).toStringAsFixed(0)}%',
-                  style: const TextStyle(fontSize: SketchDesignTokens.fontSizeSm),
-                  textAlign: TextAlign.right,
-                ),
-              ),
-            ],
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: SketchSlider(
+                      value: _controller.value,
+                      min: 0.0,
+                      max: 1.0,
+                      label: '${(_controller.value * 100).toStringAsFixed(0)}%',
+                      onChanged: _isAutoPlaying
+                          ? null
+                          : (value) {
+                              _controller.value = value;
+                            },
+                    ),
+                  ),
+                  SizedBox(
+                    width: 60,
+                    child: Text(
+                      '${(_controller.value * 100).toStringAsFixed(0)}%',
+                      style: const TextStyle(fontSize: SketchDesignTokens.fontSizeSm),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: SketchDesignTokens.spacingLg),
 

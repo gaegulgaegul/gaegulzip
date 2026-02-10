@@ -195,12 +195,15 @@ class _SketchCheckboxState extends State<SketchCheckbox> with SingleTickerProvid
           child: AnimatedBuilder(
             animation: _checkAnimation,
             builder: (context, child) {
-              // 배경 색상 보간
+              // 배경 색상: 체크/tristate일 때 활성 색상 적용
               final backgroundColor = widget.value == true
                   ? effectiveActiveColor
-                  : Colors.transparent;
+                  : widget.value == null && widget.tristate
+                      ? effectiveActiveColor
+                      : Colors.transparent;
 
-              final borderColor = widget.value == true
+              final borderColor = widget.value == true ||
+                      (widget.value == null && widget.tristate)
                   ? effectiveActiveColor
                   : effectiveInactiveColor;
 

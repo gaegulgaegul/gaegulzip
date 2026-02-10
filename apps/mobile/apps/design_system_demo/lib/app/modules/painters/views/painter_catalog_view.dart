@@ -28,23 +28,21 @@ class PainterCatalogView extends GetView<PainterCatalogController> {
 
   /// Body 빌드
   Widget _buildBody() {
-    return Obx(() {
-      return ListView.separated(
-        padding: const EdgeInsets.symmetric(
-          horizontal: SketchDesignTokens.spacingLg,
-          vertical: SketchDesignTokens.spacingSm,
-        ),
-        itemCount: controller.painters.length,
-        separatorBuilder: (context, index) => Divider(
-          height: 1,
-          color: SketchDesignTokens.base200,
-        ),
-        itemBuilder: (context, index) {
-          final painter = controller.painters[index];
-          return _buildPainterItem(painter);
-        },
-      );
-    });
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(
+        horizontal: SketchDesignTokens.spacingLg,
+        vertical: SketchDesignTokens.spacingSm,
+      ),
+      itemCount: controller.painters.length,
+      separatorBuilder: (context, index) => Divider(
+        height: 1,
+        color: SketchDesignTokens.base200,
+      ),
+      itemBuilder: (context, index) {
+        final painter = controller.painters[index];
+        return _buildPainterItem(painter);
+      },
+    );
   }
 
   /// 페인터 리스트 항목 빌드
