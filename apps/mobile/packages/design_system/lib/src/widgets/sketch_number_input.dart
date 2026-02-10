@@ -115,8 +115,18 @@ class _SketchNumberInputState extends State<SketchNumberInput> {
   @override
   void didUpdateWidget(covariant SketchNumberInput oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value) {
-      _controller.text = _formatValue(widget.value);
+    // 값이 변경되었거나 min/max 경계가 변경되어 clamp가 필요한 경우
+    if (oldWidget.value != widget.value ||
+        oldWidget.min != widget.min ||
+        oldWidget.max != widget.max) {
+      final clamped = _clampValue(widget.value);
+      _controller.text = _formatValue(clamped);
+      if (clamped != widget.value) {
+        // clamp된 값이 다르면 부모에게 알림
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          widget.onChanged(clamped);
+        });
+      }
     }
   }
 

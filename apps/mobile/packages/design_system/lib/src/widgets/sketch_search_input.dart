@@ -86,7 +86,7 @@ class SketchSearchInput extends StatefulWidget {
 }
 
 class _SketchSearchInputState extends State<SketchSearchInput> {
-  late final TextEditingController _effectiveController;
+  late TextEditingController _effectiveController;
   bool _isControllerInternallyCreated = false;
 
   @override

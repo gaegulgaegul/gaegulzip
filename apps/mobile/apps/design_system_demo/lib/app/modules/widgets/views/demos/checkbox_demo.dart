@@ -17,6 +17,11 @@ class _CheckboxDemoState extends State<CheckboxDemo> {
   bool? _value = false;
   bool _tristate = false;
 
+  // 갤러리 상태
+  bool _galleryValue1 = false;
+  bool _galleryValue2 = true;
+  bool? _galleryValue3;
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -101,10 +106,6 @@ class _CheckboxDemoState extends State<CheckboxDemo> {
 
   /// 변형 갤러리 섹션
   Widget _buildGallerySection() {
-    bool value1 = false;
-    bool value2 = true;
-    bool? value3;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -123,8 +124,8 @@ class _CheckboxDemoState extends State<CheckboxDemo> {
         Row(
           children: [
             SketchCheckbox(
-              value: value1,
-              onChanged: (value) => setState(() => value1 = value ?? false),
+              value: _galleryValue1,
+              onChanged: (value) => setState(() => _galleryValue1 = value ?? false),
             ),
             const SizedBox(width: SketchDesignTokens.spacingSm),
             const Text('Unchecked'),
@@ -134,8 +135,8 @@ class _CheckboxDemoState extends State<CheckboxDemo> {
         Row(
           children: [
             SketchCheckbox(
-              value: value2,
-              onChanged: (value) => setState(() => value2 = value ?? false),
+              value: _galleryValue2,
+              onChanged: (value) => setState(() => _galleryValue2 = value ?? false),
             ),
             const SizedBox(width: SketchDesignTokens.spacingSm),
             const Text('Checked'),
@@ -149,9 +150,9 @@ class _CheckboxDemoState extends State<CheckboxDemo> {
         Row(
           children: [
             SketchCheckbox(
-              value: value3,
+              value: _galleryValue3,
               tristate: true,
-              onChanged: (value) => setState(() => value3 = value),
+              onChanged: (value) => setState(() => _galleryValue3 = value),
             ),
             const SizedBox(width: SketchDesignTokens.spacingSm),
             const Text('Indeterminate (탭하여 순환)'),

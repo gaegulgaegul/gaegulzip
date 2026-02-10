@@ -90,6 +90,10 @@ class SketchTabBar extends StatelessWidget {
   }) : assert(
           tabs.length >= 2 && tabs.length <= 5,
           'TabBar는 2~5개 탭만 지원합니다',
+        ),
+        assert(
+          currentIndex >= 0 && currentIndex < tabs.length,
+          'currentIndex($currentIndex)가 tabs 범위(0~${tabs.length - 1})를 벗어남',
         );
 
   @override

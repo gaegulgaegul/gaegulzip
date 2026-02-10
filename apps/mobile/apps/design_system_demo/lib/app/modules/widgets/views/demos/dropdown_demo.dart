@@ -16,6 +16,10 @@ class _DropdownDemoState extends State<DropdownDemo> {
   // 조절 가능한 속성들
   String? _selectedValue;
 
+  // 갤러리 상태
+  String? _galleryValue1;
+  String? _galleryValue2 = 'B';
+
   final List<String> _items = [
     '옵션 1',
     '옵션 2',
@@ -97,9 +101,6 @@ class _DropdownDemoState extends State<DropdownDemo> {
 
   /// 변형 갤러리 섹션
   Widget _buildGallerySection() {
-    String? value1;
-    String? value2 = 'B';
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -116,10 +117,10 @@ class _DropdownDemoState extends State<DropdownDemo> {
         const Text('기본 (힌트 표시)', style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: SketchDesignTokens.spacingSm),
         SketchDropdown<String>(
-          value: value1,
+          value: _galleryValue1,
           items: const ['A', 'B', 'C', 'D'],
           hint: '선택하세요',
-          onChanged: (value) => setState(() => value1 = value),
+          onChanged: (value) => setState(() => _galleryValue1 = value),
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
 
@@ -127,9 +128,9 @@ class _DropdownDemoState extends State<DropdownDemo> {
         const Text('값이 선택된 상태', style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: SketchDesignTokens.spacingSm),
         SketchDropdown<String>(
-          value: value2,
+          value: _galleryValue2,
           items: const ['A', 'B', 'C', 'D'],
-          onChanged: (value) => setState(() => value2 = value),
+          onChanged: (value) => setState(() => _galleryValue2 = value),
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
 

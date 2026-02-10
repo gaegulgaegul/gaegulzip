@@ -20,6 +20,11 @@ class _SliderDemoState extends State<SliderDemo> {
   int? _divisions;
   bool _showLabel = false;
 
+  // 갤러리 상태
+  double _galleryValue1 = 30.0;
+  double _galleryValue2 = 3.0;
+  double _galleryValue3 = 75.0;
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -162,10 +167,6 @@ class _SliderDemoState extends State<SliderDemo> {
 
   /// 변형 갤러리 섹션
   Widget _buildGallerySection() {
-    double value1 = 30.0;
-    double value2 = 3.0;
-    double value3 = 75.0;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -182,10 +183,10 @@ class _SliderDemoState extends State<SliderDemo> {
         const Text('기본 (연속)', style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: SketchDesignTokens.spacingSm),
         SketchSlider(
-          value: value1,
+          value: _galleryValue1,
           min: 0,
           max: 100,
-          onChanged: (value) => setState(() => value1 = value),
+          onChanged: (value) => setState(() => _galleryValue1 = value),
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
 
@@ -193,11 +194,11 @@ class _SliderDemoState extends State<SliderDemo> {
         const Text('Divisions (5단계)', style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: SketchDesignTokens.spacingSm),
         SketchSlider(
-          value: value2,
+          value: _galleryValue2,
           min: 0,
           max: 5,
           divisions: 5,
-          onChanged: (value) => setState(() => value2 = value),
+          onChanged: (value) => setState(() => _galleryValue2 = value),
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
 
@@ -205,11 +206,11 @@ class _SliderDemoState extends State<SliderDemo> {
         const Text('Label 표시', style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: SketchDesignTokens.spacingSm),
         SketchSlider(
-          value: value3,
+          value: _galleryValue3,
           min: 0,
           max: 100,
-          label: '${value3.round()}%',
-          onChanged: (value) => setState(() => value3 = value),
+          label: '${_galleryValue3.round()}%',
+          onChanged: (value) => setState(() => _galleryValue3 = value),
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
 

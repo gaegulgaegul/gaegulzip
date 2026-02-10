@@ -134,11 +134,13 @@ class SketchDivider extends StatelessWidget {
           final Offset end;
 
           if (direction == Axis.horizontal) {
-            final lineLength = length ?? constraints.maxWidth;
+            final maxW = constraints.maxWidth;
+            final lineLength = length ?? (maxW.isFinite ? maxW : 0);
             start = Offset(0, thickness / 2);
             end = Offset(lineLength, thickness / 2);
           } else {
-            final lineLength = length ?? constraints.maxHeight;
+            final maxH = constraints.maxHeight;
+            final lineLength = length ?? (maxH.isFinite ? maxH : 0);
             start = Offset(thickness / 2, 0);
             end = Offset(thickness / 2, lineLength);
           }

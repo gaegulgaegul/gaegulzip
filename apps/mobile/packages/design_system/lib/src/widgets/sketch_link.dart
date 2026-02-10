@@ -27,8 +27,8 @@ enum SketchLinkIconPosition {
 /// ```dart
 /// SketchLink(
 ///   text: 'Frame0 홈페이지',
-///   url: 'https://frame0.app',
 ///   icon: Icons.open_in_new,
+///   onTap: () => launchUrl('https://frame0.app'),
 /// )
 /// ```
 ///
@@ -36,8 +36,8 @@ enum SketchLinkIconPosition {
 /// ```dart
 /// SketchLink(
 ///   text: '이미 본 문서',
-///   url: 'https://example.com',
 ///   isVisited: true,
+///   onTap: () => navigateToDoc(),
 /// )
 /// ```
 ///
@@ -62,10 +62,7 @@ class SketchLink extends StatefulWidget {
   /// 링크 텍스트.
   final String text;
 
-  /// URL (외부 링크).
-  final String? url;
-
-  /// 탭 시 콜백 (내부 라우팅).
+  /// 탭 시 콜백 (내부 라우팅 또는 URL 열기).
   final VoidCallback? onTap;
 
   /// 방문 여부.
@@ -86,7 +83,6 @@ class SketchLink extends StatefulWidget {
   const SketchLink({
     super.key,
     required this.text,
-    this.url,
     this.onTap,
     this.isVisited = false,
     this.color,

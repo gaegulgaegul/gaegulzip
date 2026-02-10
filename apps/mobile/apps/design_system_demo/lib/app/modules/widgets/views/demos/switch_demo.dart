@@ -17,6 +17,10 @@ class _SwitchDemoState extends State<SwitchDemo> {
   bool _value = true;
   bool _disabled = false;
 
+  // 갤러리 상태
+  bool _galleryValue1 = false;
+  bool _galleryValue2 = true;
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -98,9 +102,6 @@ class _SwitchDemoState extends State<SwitchDemo> {
 
   /// 변형 갤러리 섹션
   Widget _buildGallerySection() {
-    bool value1 = false;
-    bool value2 = true;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -119,8 +120,8 @@ class _SwitchDemoState extends State<SwitchDemo> {
         Row(
           children: [
             SketchSwitch(
-              value: value1,
-              onChanged: (value) => setState(() => value1 = value),
+              value: _galleryValue1,
+              onChanged: (value) => setState(() => _galleryValue1 = value),
             ),
             const SizedBox(width: SketchDesignTokens.spacingLg),
             const Text('OFF'),
@@ -130,8 +131,8 @@ class _SwitchDemoState extends State<SwitchDemo> {
         Row(
           children: [
             SketchSwitch(
-              value: value2,
-              onChanged: (value) => setState(() => value2 = value),
+              value: _galleryValue2,
+              onChanged: (value) => setState(() => _galleryValue2 = value),
             ),
             const SizedBox(width: SketchDesignTokens.spacingLg),
             const Text('ON'),

@@ -155,7 +155,11 @@ class _SketchTextAreaState extends State<SketchTextArea> {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
       _effectiveController.removeListener(_onTextChange);
-      _effectiveController = widget.controller ?? _effectiveController;
+      // 이전 내부 controller dispose
+      if (oldWidget.controller == null) {
+        _effectiveController.dispose();
+      }
+      _effectiveController = widget.controller ?? TextEditingController();
       _effectiveController.addListener(_onTextChange);
     }
   }
@@ -305,6 +309,9 @@ class _SketchTextAreaState extends State<SketchTextArea> {
       return SketchDesignTokens.textTertiary;
     }
 
+    if (widget.maxLength! <= 0) {
+      return SketchDesignTokens.textTertiary;
+    }
     final ratio = currentLength / widget.maxLength!;
     if (ratio >= 1.0) {
       return SketchDesignTokens.error;

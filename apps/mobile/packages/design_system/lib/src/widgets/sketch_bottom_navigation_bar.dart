@@ -184,14 +184,10 @@ class SketchBottomNavigationBar extends StatelessWidget {
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOut,
-                      child: Icon(
-                        icon,
-                        size: isSelected ? 28 : 24,
-                        color: color,
-                      ),
+                    Icon(
+                      icon,
+                      size: isSelected ? 28 : 24,
+                      color: color,
                     ),
                     if (item.badgeCount != null && item.badgeCount! > 0)
                       Positioned(

@@ -185,19 +185,6 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
 
-    // 손그림 테두리 추가 (옵션)
-    // TODO: SketchPainter 사용하여 구현
-    // if (showSketchBorder) {
-    //   appBarContent = CustomPaint(
-    //     painter: SketchPainter(
-    //       fillColor: effectiveBgColor,
-    //       borderColor: theme?.borderColor ?? SketchDesignTokens.base900,
-    //       strokeWidth: theme?.strokeWidth ?? SketchDesignTokens.strokeStandard,
-    //     ),
-    //     child: appBarContent,
-    //   );
-    // }
-
     return appBarContent;
   }
 }

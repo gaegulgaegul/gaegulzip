@@ -184,10 +184,14 @@ class _SketchChipState extends State<SketchChip> {
                 SizedBox(width: widget.deleteSpacing),
                 GestureDetector(
                   onTap: widget.onDeleted,
-                  child: Icon(
-                    Icons.close,
-                    size: 16,
-                    color: colorSpec.labelColor,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      Icons.close,
+                      size: 16,
+                      color: colorSpec.labelColor,
+                    ),
                   ),
                 ),
               ],

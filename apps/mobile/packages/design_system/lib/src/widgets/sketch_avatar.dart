@@ -246,37 +246,31 @@ class SketchAvatar extends StatelessWidget {
       case SketchAvatarSize.xs:
         return const _SizeConfig(
           fontSize: 10,
-          iconSize: 12,
           borderWidth: 1.0,
         );
       case SketchAvatarSize.sm:
         return const _SizeConfig(
           fontSize: 14,
-          iconSize: 16,
           borderWidth: 1.5,
         );
       case SketchAvatarSize.md:
         return const _SizeConfig(
           fontSize: 18,
-          iconSize: 20,
           borderWidth: 2.0,
         );
       case SketchAvatarSize.lg:
         return const _SizeConfig(
           fontSize: 20,
-          iconSize: 28,
           borderWidth: 2.0,
         );
       case SketchAvatarSize.xl:
         return const _SizeConfig(
           fontSize: 28,
-          iconSize: 40,
           borderWidth: 2.5,
         );
       case SketchAvatarSize.xxl:
         return const _SizeConfig(
           fontSize: 36,
-          iconSize: 56,
           borderWidth: 3.0,
         );
     }
@@ -310,12 +304,10 @@ class SketchAvatar extends StatelessWidget {
 /// 크기별 스타일 설정
 class _SizeConfig {
   final double fontSize;
-  final double iconSize;
   final double borderWidth;
 
   const _SizeConfig({
     required this.fontSize,
-    required this.iconSize,
     required this.borderWidth,
   });
 }

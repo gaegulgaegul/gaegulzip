@@ -339,7 +339,7 @@ class SketchDesignTokens {
   /// 다크모드 기본 배경색 - 네이비/차콜 (#1A1D29)
   static const Color backgroundDark = Color(0xFF1A1D29);
 
-  /// 라이트모드 표면색 - 카드/모달 배경 (#FCFBF9)
+  /// 라이트모드 표면색 - 카드/모달 배경, 따뜻한 크림 (#F5F0E8)
   static const Color surface = Color(0xFFF5F0E8);
 
   /// 다크모드 표면색 - 카드/모달 배경 (#232736)
