@@ -1,8 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
-import '../painters/sketch_painter.dart';
-import '../painters/sketch_circle_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 아이콘 버튼의 모양 변형.
@@ -107,12 +105,6 @@ class SketchIconButton extends StatefulWidget {
   /// 테두리의 스트로크 너비.
   final double? strokeWidth;
 
-  /// 손으로 그린 흔들림을 위한 거칠기 계수.
-  final double? roughness;
-
-  /// 재현 가능한 스케치 모양을 위한 무작위 시드.
-  final int seed;
-
   const SketchIconButton({
     super.key,
     required this.icon,
@@ -126,8 +118,6 @@ class SketchIconButton extends StatefulWidget {
     this.fillColor,
     this.borderColor,
     this.strokeWidth,
-    this.roughness,
-    this.seed = 0,
   });
 
   @override
@@ -145,11 +135,7 @@ class _SketchIconButtonState extends State<SketchIconButton> {
     final effectiveFillColor = widget.fillColor ?? sketchTheme?.fillColor ?? Colors.transparent;
     final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
-    final effectiveRoughness = widget.roughness ?? sketchTheme?.roughness ?? SketchDesignTokens.roughness;
     final effectiveIconColor = widget.iconColor ?? SketchDesignTokens.base900;
-
-    final roughness = _isPressed ? effectiveRoughness + 0.3 : effectiveRoughness;
-    final seed = _isPressed ? widget.seed + 1 : widget.seed;
 
     final button = Opacity(
       opacity: isDisabled ? SketchDesignTokens.opacityDisabled : 1.0,
@@ -173,23 +159,20 @@ class _SketchIconButtonState extends State<SketchIconButton> {
               clipBehavior: Clip.none,
               children: [
                 // 버튼
-                CustomPaint(
-                  painter: widget.shape == SketchIconButtonShape.circle
-                      ? SketchCirclePainter(
-                          fillColor: effectiveFillColor,
-                          borderColor: effectiveBorderColor,
-                          strokeWidth: effectiveStrokeWidth,
-                          roughness: roughness,
-                          seed: seed,
-                        )
-                      : SketchPainter(
-                          fillColor: effectiveFillColor,
-                          borderColor: effectiveBorderColor,
-                          strokeWidth: effectiveStrokeWidth,
-                          roughness: roughness,
-                          seed: seed,
-                          enableNoise: false,
-                        ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: effectiveFillColor,
+                    border: Border.all(
+                      color: effectiveBorderColor,
+                      width: effectiveStrokeWidth,
+                    ),
+                    shape: widget.shape == SketchIconButtonShape.circle
+                        ? BoxShape.circle
+                        : BoxShape.rectangle,
+                    borderRadius: widget.shape == SketchIconButtonShape.square
+                        ? BorderRadius.circular(6)
+                        : null,
+                  ),
                   child: Center(
                     child: Icon(
                       widget.icon,
@@ -241,13 +224,10 @@ class _SketchBadge extends StatelessWidget {
         minWidth: 20,
         minHeight: 20,
       ),
-      child: CustomPaint(
-        painter: SketchCirclePainter(
-          fillColor: SketchDesignTokens.error,
-          borderColor: SketchDesignTokens.error,
-          strokeWidth: SketchDesignTokens.strokeStandard,
-          roughness: SketchDesignTokens.roughness,
-          seed: 42,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: SketchDesignTokens.error,
+          shape: BoxShape.circle,
         ),
         child: Center(
           child: Padding(

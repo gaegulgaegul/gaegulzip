@@ -1,7 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
-import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손그림 스타일 드롭다운 위젯
@@ -78,12 +77,6 @@ class SketchDropdown<T> extends StatefulWidget {
   /// 선 두께
   final double? strokeWidth;
 
-  /// 거칠기 계수
-  final double? roughness;
-
-  /// 랜덤 시드
-  final int seed;
-
   const SketchDropdown({
     super.key,
     this.value,
@@ -95,8 +88,6 @@ class SketchDropdown<T> extends StatefulWidget {
     this.fillColor,
     this.borderColor,
     this.strokeWidth,
-    this.roughness,
-    this.seed = 0,
   });
 
   @override
@@ -120,15 +111,23 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
 
   void _openDropdown() {
     _overlayEntry = _createOverlayEntry();
-    Overlay.of(context).insert(_overlayEntry!);
+    final overlay = Overlay.of(context);
+    overlay.insert(_barrierEntry!);
+    overlay.insert(_overlayEntry!);
     setState(() => _isOpen = true);
   }
 
   void _closeDropdown() {
+    _barrierEntry?.remove();
+    _barrierEntry = null;
     _overlayEntry?.remove();
     _overlayEntry = null;
-    setState(() => _isOpen = false);
+    if (mounted) {
+      setState(() => _isOpen = false);
+    }
   }
+
+  OverlayEntry? _barrierEntry;
 
   OverlayEntry _createOverlayEntry() {
     final renderBox = context.findRenderObject() as RenderBox;
@@ -138,7 +137,15 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
     final effectiveFillColor = widget.fillColor ?? sketchTheme?.fillColor ?? Colors.white;
     final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
-    final effectiveRoughness = widget.roughness ?? sketchTheme?.roughness ?? SketchDesignTokens.roughness;
+
+    // 외부 탭 감지용 투명 barrier
+    _barrierEntry = OverlayEntry(
+      builder: (context) => GestureDetector(
+        onTap: _closeDropdown,
+        behavior: HitTestBehavior.opaque,
+        child: const SizedBox.expand(),
+      ),
+    );
 
     return OverlayEntry(
       builder: (context) => Positioned(
@@ -151,14 +158,14 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
             color: Colors.transparent,
             child: Container(
               constraints: const BoxConstraints(maxHeight: 200),
-              child: CustomPaint(
-                painter: SketchPainter(
-                  fillColor: effectiveFillColor,
-                  borderColor: effectiveBorderColor,
-                  strokeWidth: effectiveStrokeWidth,
-                  roughness: effectiveRoughness,
-                  seed: widget.seed + 1,
-                  enableNoise: false,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: effectiveFillColor,
+                  border: Border.all(
+                    color: effectiveBorderColor,
+                    width: effectiveStrokeWidth,
+                  ),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: ListView.builder(
                   padding: EdgeInsets.zero,
@@ -179,7 +186,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                           horizontal: SketchDesignTokens.spacingMd,
                         ),
                         color: isSelected
-                            ? SketchDesignTokens.accentPrimary.withOpacity(0.1)
+                            ? SketchDesignTokens.base900.withValues(alpha: 0.08)
                             : Colors.transparent,
                         child: Align(
                           alignment: Alignment.centerLeft,
@@ -188,10 +195,9 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                               : Text(
                                   item.toString(),
                                   style: TextStyle(
+                                    fontFamily: SketchDesignTokens.fontFamilyHand,
                                     fontSize: SketchDesignTokens.fontSizeBase,
-                                    color: isSelected
-                                        ? SketchDesignTokens.accentPrimary
-                                        : SketchDesignTokens.base900,
+                                    color: SketchDesignTokens.base900,
                                     fontWeight: isSelected
                                         ? FontWeight.w600
                                         : FontWeight.w400,
@@ -224,7 +230,6 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
     final effectiveFillColor = widget.fillColor ?? sketchTheme?.fillColor ?? Colors.white;
     final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
-    final effectiveRoughness = widget.roughness ?? sketchTheme?.roughness ?? SketchDesignTokens.roughness;
 
     return Opacity(
       opacity: isDisabled ? SketchDesignTokens.opacityDisabled : 1.0,
@@ -234,14 +239,14 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
           onTap: isDisabled ? null : _toggleDropdown,
           child: SizedBox(
             height: widget.height,
-            child: CustomPaint(
-              painter: SketchPainter(
-                fillColor: effectiveFillColor,
-                borderColor: effectiveBorderColor,
-                strokeWidth: effectiveStrokeWidth,
-                roughness: effectiveRoughness,
-                seed: widget.seed,
-                enableNoise: false,
+            child: Container(
+              decoration: BoxDecoration(
+                color: effectiveFillColor,
+                border: Border.all(
+                  color: effectiveBorderColor,
+                  width: effectiveStrokeWidth,
+                ),
+                borderRadius: BorderRadius.circular(6),
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -256,6 +261,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                               : Text(
                                   widget.value.toString(),
                                   style: const TextStyle(
+                                    fontFamily: SketchDesignTokens.fontFamilyHand,
                                     fontSize: SketchDesignTokens.fontSizeBase,
                                     color: SketchDesignTokens.base900,
                                   ),
@@ -263,6 +269,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                           : Text(
                               widget.hint ?? '',
                               style: const TextStyle(
+                                fontFamily: SketchDesignTokens.fontFamilyHand,
                                 fontSize: SketchDesignTokens.fontSizeBase,
                                 color: SketchDesignTokens.base500,
                               ),

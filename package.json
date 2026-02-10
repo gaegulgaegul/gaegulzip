@@ -2,6 +2,8 @@
   "name": "gaegulzip",
   "private": true,
   "scripts": {
+    "demo": "cd apps/mobile/apps/design_system_demo && flutter run",
+    "demo:ios": "cd apps/mobile/apps/design_system_demo && flutter run -d 00008030-000538593C7A802E",
     "dev:server": "turbo run dev --filter=gaegulzip-server",
     "dev:admin": "turbo run dev --filter=gaegulzip-admin",
     "dev:wowa": "cd apps/mobile/apps/wowa && flutter run",

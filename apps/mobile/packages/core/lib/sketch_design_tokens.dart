@@ -111,11 +111,17 @@ class SketchDesignTokens {
   // 강조 색상
   // ============================================================================
 
-  /// 강조 메인 - 코랄/오렌지 (#DF7D5F)
-  static const Color accentPrimary = Color(0xFFDF7D5F);
+  /// 강조 메인 - 파란색 (#2196F3)
+  static const Color accentPrimary = Color(0xFF2196F3);
 
-  /// 강조 메인, 80% 불투명도 (#DF7D5FCC)
-  static const Color accentPrimaryAlpha = Color(0xCCDF7D5F);
+  /// 강조 메인 밝은 변형 (#64B5F6)
+  static const Color accentPrimaryLight = Color(0xFF64B5F6);
+
+  /// 강조 메인 어두운 변형 (#1976D2)
+  static const Color accentPrimaryDark = Color(0xFF1976D2);
+
+  /// 강조 메인, 80% 불투명도
+  static const Color accentPrimaryAlpha = Color(0xCC2196F3);
 
   /// 강조 밝은 - 밝은 코랄/피치 (#F19E7E)
   static const Color accentLight = Color(0xFFF19E7E);
@@ -125,6 +131,22 @@ class SketchDesignTokens {
 
   /// 강조 어두운 - 어두운 코랄 (#C86947)
   static const Color accentDark = Color(0xFFC86947);
+
+  // ============================================================================
+  // 보조 액센트 컬러 (CTA 버튼용)
+  // ============================================================================
+
+  /// 보조 액센트 - 코랄/오렌지 (CTA 버튼 전용) (#DF7D5F)
+  static const Color accentSecondary = Color(0xFFDF7D5F);
+
+  /// 보조 액센트 밝은 변형 (#F19E7E)
+  static const Color accentSecondaryLight = Color(0xFFF19E7E);
+
+  /// 보조 액센트 어두운 변형 (#C86947)
+  static const Color accentSecondaryDark = Color(0xFFC86947);
+
+  /// 다크모드 보조 액센트 (#F19E7E)
+  static const Color accentSecondaryDarkMode = Color(0xFFF19E7E);
 
   // ============================================================================
   // 의미론적 색상
@@ -141,6 +163,18 @@ class SketchDesignTokens {
 
   /// 정보 색상 (#2196F3)
   static const Color info = Color(0xFF2196F3);
+
+  /// 성공 색상 다크모드 (#66BB6A)
+  static const Color successDark = Color(0xFF66BB6A);
+
+  /// 경고 색상 다크모드 (#FFCA28)
+  static const Color warningDark = Color(0xFFFFCA28);
+
+  /// 에러 색상 다크모드 (#EF5350)
+  static const Color errorDark = Color(0xFFEF5350);
+
+  /// 정보 색상 다크모드 (#64B5F6)
+  static const Color infoDark = Color(0xFF64B5F6);
 
   // ============================================================================
   // 간격 (8px 그리드)
@@ -257,6 +291,22 @@ class SketchDesignTokens {
   static const double fontSize6Xl = 60.0;
 
   // ============================================================================
+  // 폰트 패밀리 (Frame0 Default Fonts)
+  // ============================================================================
+
+  /// Hand 폰트 — Sketch 테마의 기본 손글씨 폰트
+  static const String fontFamilyHand = 'PatrickHand';
+
+  /// Sans 폰트 — Solid 테마의 기본 산세리프 폰트
+  static const String fontFamilySans = 'Roboto';
+
+  /// Mono 폰트 — 코드, 숫자, 기술적 텍스트
+  static const String fontFamilyMono = 'JetBrainsMono';
+
+  /// Serif 폰트 — 본문, 장문 텍스트
+  static const String fontFamilySerif = 'Georgia';
+
+  // ============================================================================
   // 불투명도
   // ============================================================================
 
@@ -278,4 +328,119 @@ class SketchDesignTokens {
 
   /// 밝은 에러 색상 - 에러 배경용
   static const Color errorLight = Color(0xFFFFEBEE);
+
+  // ============================================================================
+  // 배경 색상 (라이트모드/다크모드)
+  // ============================================================================
+
+  /// 라이트모드 기본 배경색 - 크림/오프화이트 (#FAF8F5)
+  static const Color background = Color(0xFFFAF8F5);
+
+  /// 다크모드 기본 배경색 - 네이비/차콜 (#1A1D29)
+  static const Color backgroundDark = Color(0xFF1A1D29);
+
+  /// 라이트모드 표면색 - 카드/모달 배경, 따뜻한 크림 (#F5F0E8)
+  static const Color surface = Color(0xFFF5F0E8);
+
+  /// 다크모드 표면색 - 카드/모달 배경 (#23273A)
+  static const Color surfaceDark = Color(0xFF23273A);
+
+  /// 라이트모드 Surface Variant - 호버, 선택 상태 (#EBE6DC)
+  static const Color surfaceVariant = Color(0xFFEBE6DC);
+
+  /// 다크모드 Surface Variant - 더 밝은 네이비 (#2C3048)
+  static const Color surfaceVariantDark = Color(0xFF2C3048);
+
+  // ============================================================================
+  // 링크/선택 색상 (블루 계열)
+  // ============================================================================
+
+  /// 링크 블루 - 링크, 선택 상태 (#2196F3)
+  static const Color linkBlue = Color(0xFF2196F3);
+
+  /// 링크 블루 밝은 변형 - 호버/밝은 상태 (#64B5F6)
+  static const Color linkBlueLight = Color(0xFF64B5F6);
+
+  /// 링크 블루 어두운 변형 - 다크모드 링크 (#1976D2)
+  static const Color linkBlueDark = Color(0xFF1976D2);
+
+  // ============================================================================
+  // 다크모드 텍스트 색상
+  // ============================================================================
+
+  /// 다크모드 본문 텍스트 색상 (#F5F5F5)
+  static const Color textOnDark = Color(0xFFF5F5F5);
+
+  /// 다크모드 보조 텍스트 색상 (#B0B0B0)
+  static const Color textSecondaryOnDark = Color(0xFFB0B0B0);
+
+  // ============================================================================
+  // 텍스트 컬러
+  // ============================================================================
+
+  // --- Light Mode ---
+  /// 라이트모드 주요 텍스트 (최고 대비) (#000000)
+  static const Color textPrimary = Color(0xFF000000);
+
+  /// 라이트모드 보조 텍스트 (#2C2C2C)
+  static const Color textSecondary = Color(0xFF2C2C2C);
+
+  /// 라이트모드 3차 텍스트 - base700 (#5E5E5E)
+  static const Color textTertiary = Color(0xFF5E5E5E);
+
+  /// 라이트모드 비활성화 텍스트 - base500 (#8E8E8E)
+  static const Color textDisabled = Color(0xFF8E8E8E);
+
+  /// 액센트 배경 위의 텍스트 (버튼 라벨) (#FFFFFF)
+  static const Color textOnAccent = Color(0xFFFFFFFF);
+
+  // --- Dark Mode ---
+  /// 다크모드 주요 텍스트 (#FFFFFF)
+  static const Color textPrimaryDark = Color(0xFFFFFFFF);
+
+  /// 다크모드 보조 텍스트 (#E5E5E5)
+  static const Color textSecondaryDark = Color(0xFFE5E5E5);
+
+  /// 다크모드 3차 텍스트 (#AAAAAA)
+  static const Color textTertiaryDark = Color(0xFFAAAAAA);
+
+  /// 다크모드 비활성화 텍스트 (#6E6E6E)
+  static const Color textDisabledDark = Color(0xFF6E6E6E);
+
+  /// 다크모드 액센트 위의 텍스트 (#000000)
+  static const Color textOnAccentDark = Color(0xFF000000);
+
+  // ============================================================================
+  // Outline 색상 (구분선)
+  // ============================================================================
+
+  /// 라이트모드 구분선 - 미세한 경계선 (#E0DCD7)
+  static const Color outlineLight = Color(0xFFE0DCD7);
+
+  /// 다크모드 구분선 (#3A3E4C)
+  static const Color outlineDark = Color(0xFF3A3E4C);
+
+  // ============================================================================
+  // Border 및 Outline 컬러
+  // ============================================================================
+
+  // --- Light Mode ---
+  /// 라이트모드 주요 테두리 - base900 (#343434)
+  static const Color outlinePrimary = Color(0xFF343434);
+
+  /// 라이트모드 보조 테두리 - base700 (#5E5E5E)
+  static const Color outlineSecondary = Color(0xFF5E5E5E);
+
+  /// 라이트모드 미묘한 구분선 - base300 (#DCDCDC)
+  static const Color outlineSubtle = Color(0xFFDCDCDC);
+
+  // --- Dark Mode ---
+  /// 다크모드 주요 테두리 - base700 (#5E5E5E)
+  static const Color outlinePrimaryDark = Color(0xFF5E5E5E);
+
+  /// 다크모드 보조 테두리 - base500 (#8E8E8E)
+  static const Color outlineSecondaryDark = Color(0xFF8E8E8E);
+
+  /// 다크모드 미묘한 구분선 (#3A3A3A)
+  static const Color outlineSubtleDark = Color(0xFF3A3A3A);
 }

@@ -1,7 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
-import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손으로 그린 스케치 스타일 모양의 모달 다이얼로그.
@@ -194,7 +193,6 @@ class _SketchModalDialogState extends State<_SketchModalDialog> with SingleTicke
     final effectiveFillColor = widget.fillColor ?? sketchTheme?.fillColor ?? Colors.white;
     final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
-    final effectiveRoughness = widget.roughness ?? sketchTheme?.roughness ?? SketchDesignTokens.roughness;
 
     return FadeTransition(
       opacity: _opacityAnimation,
@@ -210,14 +208,14 @@ class _SketchModalDialogState extends State<_SketchModalDialog> with SingleTicke
               maxWidth: MediaQuery.of(context).size.width * 0.9,
               maxHeight: MediaQuery.of(context).size.height * 0.9,
             ),
-            child: CustomPaint(
-              painter: SketchPainter(
-                fillColor: effectiveFillColor,
-                borderColor: effectiveBorderColor,
-                strokeWidth: effectiveStrokeWidth,
-                roughness: effectiveRoughness,
-                seed: widget.seed,
-                enableNoise: true,
+            child: Container(
+              decoration: BoxDecoration(
+                color: effectiveFillColor,
+                border: Border.all(
+                  color: effectiveBorderColor,
+                  width: effectiveStrokeWidth,
+                ),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(SketchDesignTokens.spacingLg),
@@ -320,14 +318,14 @@ class _SketchCloseButtonState extends State<_SketchCloseButton> {
         child: SizedBox(
           width: 32,
           height: 32,
-          child: CustomPaint(
-            painter: SketchPainter(
-              fillColor: _isPressed ? SketchDesignTokens.base200 : Colors.transparent,
-              borderColor: SketchDesignTokens.base400,
-              strokeWidth: SketchDesignTokens.strokeStandard,
-              roughness: SketchDesignTokens.roughness,
-              seed: _isPressed ? 1 : 0,
-              enableNoise: false,
+          child: Container(
+            decoration: BoxDecoration(
+              color: _isPressed ? SketchDesignTokens.base200 : Colors.transparent,
+              border: Border.all(
+                color: SketchDesignTokens.base400,
+                width: SketchDesignTokens.strokeStandard,
+              ),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: const Center(
               child: Icon(

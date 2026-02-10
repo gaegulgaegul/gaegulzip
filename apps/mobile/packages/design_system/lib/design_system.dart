@@ -1,35 +1,47 @@
 library design_system;
 
-// Sketch Design System exports
+// Painters
 export 'src/painters/sketch_painter.dart';
 export 'src/painters/sketch_circle_painter.dart';
 export 'src/painters/sketch_line_painter.dart';
 export 'src/painters/sketch_polygon_painter.dart';
 export 'src/painters/animated_sketch_painter.dart';
+export 'src/painters/x_cross_painter.dart';
+
+// Theme
 export 'src/theme/sketch_theme_extension.dart';
 export 'src/theme/sketch_theme_controller.dart';
+
+// Enums
+export 'src/enums/social_login_platform.dart';
+export 'src/enums/apple_sign_in_style.dart';
+export 'src/enums/sketch_avatar_size.dart';
+export 'src/enums/sketch_avatar_shape.dart';
+export 'src/enums/sketch_tab_indicator_style.dart';
+export 'src/enums/sketch_nav_label_behavior.dart';
+
+// Widgets
 export 'src/widgets/sketch_container.dart';
 export 'src/widgets/sketch_button.dart';
 export 'src/widgets/sketch_card.dart';
 export 'src/widgets/sketch_input.dart';
+export 'src/widgets/sketch_search_input.dart';
+export 'src/widgets/sketch_text_area.dart';
+export 'src/widgets/sketch_number_input.dart';
 export 'src/widgets/sketch_modal.dart';
 export 'src/widgets/sketch_icon_button.dart';
 export 'src/widgets/sketch_chip.dart';
 export 'src/widgets/sketch_progress_bar.dart';
 export 'src/widgets/sketch_switch.dart';
 export 'src/widgets/sketch_checkbox.dart';
+export 'src/widgets/sketch_radio.dart';
 export 'src/widgets/sketch_slider.dart';
 export 'src/widgets/sketch_dropdown.dart';
-
-// Enums
-export 'src/enums/social_login_platform.dart';
-export 'src/enums/apple_sign_in_style.dart';
-
-// Widgets
+export 'src/widgets/sketch_image_placeholder.dart';
+export 'src/widgets/sketch_avatar.dart';
+export 'src/widgets/sketch_divider.dart';
+export 'src/widgets/sketch_link.dart';
+export 'src/widgets/sketch_app_bar.dart';
+export 'src/widgets/sketch_tab_bar.dart';
+export 'src/widgets/sketch_bottom_navigation_bar.dart';
 export 'src/widgets/social_login_button.dart';
-
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}

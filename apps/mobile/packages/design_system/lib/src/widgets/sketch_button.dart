@@ -1,9 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
-import '../painters/sketch_painter.dart';
-import '../theme/sketch_theme_extension.dart';
-
 /// 스케치 버튼의 스타일 변형.
 enum SketchButtonStyle {
   /// 액센트 색상 배경의 채워진 버튼.
@@ -21,10 +18,10 @@ enum SketchButtonSize {
   /// 작은 버튼: 32px 높이, 8px/16px 패딩.
   small,
 
-  /// 중간 버튼: 40px 높이, 12px/24px 패딩 (기본값).
+  /// 중간 버튼: 44px 높이, 12px/24px 패딩 (기본값).
   medium,
 
-  /// 큰 버튼: 48px 높이, 16px/32px 패딩.
+  /// 큰 버튼: 56px 높이, 16px/32px 패딩.
   large,
 }
 
@@ -76,8 +73,8 @@ enum SketchButtonSize {
 ///
 /// **크기:**
 /// - [SketchButtonSize.small]: 32px 높이
-/// - [SketchButtonSize.medium]: 40px 높이 (기본값)
-/// - [SketchButtonSize.large]: 48px 높이
+/// - [SketchButtonSize.medium]: 44px 높이 (기본값)
+/// - [SketchButtonSize.large]: 56px 높이
 class SketchButton extends StatefulWidget {
   /// 버튼 텍스트 (아이콘만 사용할 경우 null 가능).
   final String? text;
@@ -128,19 +125,8 @@ class _SketchButtonState extends State<SketchButton> {
   Widget build(BuildContext context) {
     final isDisabled = widget.onPressed == null && !widget.isLoading;
 
-    // 크기 사양 가져오기
     final sizeSpec = _getSizeSpec(widget.size);
-
-    // 스타일에 따른 색상 사양 가져오기
     final colorSpec = _getColorSpec(widget.style, isDisabled);
-
-    // 상태에 따른 거칠기 계산
-    final roughness = _isPressed
-        ? SketchDesignTokens.roughness + 0.3
-        : SketchDesignTokens.roughness;
-
-    // 눌린 상태에 따라 시드를 변경하여 다른 모양을 만듦
-    final seed = _isPressed ? 1 : 0;
 
     return Opacity(
       opacity: isDisabled ? SketchDesignTokens.opacityDisabled : 1.0,
@@ -155,23 +141,19 @@ class _SketchButtonState extends State<SketchButton> {
           scale: _isPressed ? 0.98 : 1.0,
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeOut,
-          child: SizedBox(
+          child: Container(
             width: widget.width,
             height: sizeSpec.height,
-            child: CustomPaint(
-              painter: SketchPainter(
-                fillColor: colorSpec.fillColor,
-                borderColor: colorSpec.borderColor,
-                strokeWidth: colorSpec.strokeWidth,
-                roughness: roughness,
-                seed: seed,
-                enableNoise: widget.style != SketchButtonStyle.outline,
+            decoration: BoxDecoration(
+              color: colorSpec.fillColor,
+              border: Border.all(
+                color: colorSpec.borderColor,
+                width: colorSpec.strokeWidth,
               ),
-              child: Padding(
-                padding: sizeSpec.padding,
-                child: _buildContent(sizeSpec, colorSpec),
-              ),
+              borderRadius: BorderRadius.circular(9999),
             ),
+            padding: sizeSpec.padding,
+            child: _buildContent(sizeSpec, colorSpec),
           ),
         ),
       ),
@@ -211,6 +193,7 @@ class _SketchButtonState extends State<SketchButton> {
           Text(
             widget.text!,
             style: TextStyle(
+              fontFamily: SketchDesignTokens.fontFamilyHand,
               color: colorSpec.textColor,
               fontSize: sizeSpec.fontSize,
               fontWeight: FontWeight.w400,
@@ -236,6 +219,7 @@ class _SketchButtonState extends State<SketchButton> {
       child: Text(
         widget.text!,
         style: TextStyle(
+          fontFamily: SketchDesignTokens.fontFamilyHand,
           color: colorSpec.textColor,
           fontSize: sizeSpec.fontSize,
           fontWeight: FontWeight.w400,
@@ -249,19 +233,19 @@ class _SketchButtonState extends State<SketchButton> {
       case SketchButtonSize.small:
         return _SizeSpec(
           height: 32.0,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           fontSize: SketchDesignTokens.fontSizeSm,
         );
       case SketchButtonSize.medium:
         return _SizeSpec(
-          height: 40.0,
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+          height: 44.0,
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           fontSize: SketchDesignTokens.fontSizeBase,
         );
       case SketchButtonSize.large:
         return _SizeSpec(
-          height: 48.0,
-          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+          height: 56.0,
+          padding: const EdgeInsets.symmetric(horizontal: 32.0),
           fontSize: SketchDesignTokens.fontSizeLg,
         );
     }
@@ -280,25 +264,28 @@ class _SketchButtonState extends State<SketchButton> {
 
     switch (style) {
       case SketchButtonStyle.primary:
+        // Frame0 스타일: 검정 fill + 흰 텍스트
         return _ColorSpec(
-          fillColor: SketchDesignTokens.accentPrimary,
-          borderColor: SketchDesignTokens.accentPrimary,
+          fillColor: SketchDesignTokens.base900,
+          borderColor: SketchDesignTokens.base900,
           textColor: SketchDesignTokens.white,
           strokeWidth: SketchDesignTokens.strokeStandard,
         );
       case SketchButtonStyle.secondary:
+        // Frame0 스타일: 흰 fill + 어두운 테두리
         return _ColorSpec(
-          fillColor: SketchDesignTokens.base200,
-          borderColor: SketchDesignTokens.base300,
+          fillColor: SketchDesignTokens.white,
+          borderColor: SketchDesignTokens.base900,
           textColor: SketchDesignTokens.base900,
           strokeWidth: SketchDesignTokens.strokeStandard,
         );
       case SketchButtonStyle.outline:
+        // Frame0 스타일: 투명 fill + 어두운 테두리
         return _ColorSpec(
           fillColor: Colors.transparent,
-          borderColor: SketchDesignTokens.accentPrimary,
-          textColor: SketchDesignTokens.accentPrimary,
-          strokeWidth: SketchDesignTokens.strokeBold,
+          borderColor: SketchDesignTokens.base900,
+          textColor: SketchDesignTokens.base900,
+          strokeWidth: SketchDesignTokens.strokeStandard,
         );
     }
   }

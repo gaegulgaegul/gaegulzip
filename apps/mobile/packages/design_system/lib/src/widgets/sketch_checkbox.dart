@@ -1,8 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
-import '../painters/sketch_painter.dart';
-import '../painters/sketch_line_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손그림 스타일 체크박스 위젯
@@ -181,7 +179,7 @@ class _SketchCheckboxState extends State<SketchCheckbox> with SingleTickerProvid
     final sketchTheme = SketchThemeExtension.maybeOf(context);
     final isDisabled = widget.onChanged == null;
 
-    final effectiveActiveColor = widget.activeColor ?? SketchDesignTokens.accentPrimary;
+    final effectiveActiveColor = widget.activeColor ?? SketchDesignTokens.base900;
     final effectiveInactiveColor = widget.inactiveColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveCheckColor = widget.checkColor ?? Colors.white;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
@@ -197,28 +195,30 @@ class _SketchCheckboxState extends State<SketchCheckbox> with SingleTickerProvid
           child: AnimatedBuilder(
             animation: _checkAnimation,
             builder: (context, child) {
-              // 배경 색상 보간
+              // 배경 색상: 체크/tristate일 때 활성 색상 적용
               final backgroundColor = widget.value == true
                   ? effectiveActiveColor
-                  : Colors.transparent;
+                  : widget.value == null && widget.tristate
+                      ? effectiveActiveColor
+                      : Colors.transparent;
 
-              final borderColor = widget.value == true
+              final borderColor = widget.value == true ||
+                      (widget.value == null && widget.tristate)
                   ? effectiveActiveColor
                   : effectiveInactiveColor;
 
               return Stack(
                 children: [
                   // 배경
-                  CustomPaint(
-                    painter: SketchPainter(
-                      fillColor: backgroundColor,
-                      borderColor: borderColor,
-                      strokeWidth: effectiveStrokeWidth,
-                      roughness: effectiveRoughness,
-                      seed: widget.seed,
-                      enableNoise: false,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      border: Border.all(
+                        color: borderColor,
+                        width: effectiveStrokeWidth,
+                      ),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const SizedBox.expand(),
                   ),
 
                   // 체크 마크 또는 대시
@@ -239,18 +239,11 @@ class _SketchCheckboxState extends State<SketchCheckbox> with SingleTickerProvid
                     )
                   else if (widget.value == null && widget.tristate)
                     // 대시 (-)
-                    Padding(
-                      padding: EdgeInsets.all(widget.size * 0.3),
-                      child: CustomPaint(
-                        painter: SketchLinePainter(
-                          start: Offset(0, widget.size * 0.2),
-                          end: Offset(widget.size * 0.4, widget.size * 0.2),
-                          color: effectiveCheckColor,
-                          strokeWidth: effectiveStrokeWidth,
-                          roughness: effectiveRoughness,
-                          seed: widget.seed + 2,
-                        ),
-                        child: const SizedBox.expand(),
+                    Center(
+                      child: Container(
+                        width: widget.size * 0.4,
+                        height: effectiveStrokeWidth,
+                        color: effectiveCheckColor,
                       ),
                     ),
                 ],

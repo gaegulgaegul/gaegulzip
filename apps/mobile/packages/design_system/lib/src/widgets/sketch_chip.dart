@@ -1,7 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
-import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손으로 그린 스케치 스타일 모양의 칩/태그 widget.
@@ -100,12 +99,6 @@ class SketchChip extends StatefulWidget {
   /// 테두리의 스트로크 너비.
   final double? strokeWidth;
 
-  /// 손으로 그린 흔들림을 위한 거칠기 계수.
-  final double? roughness;
-
-  /// 재현 가능한 스케치 모양을 위한 무작위 시드.
-  final int seed;
-
   /// 내부 패딩.
   final EdgeInsetsGeometry padding;
 
@@ -127,8 +120,6 @@ class SketchChip extends StatefulWidget {
     this.labelColor,
     this.iconColor,
     this.strokeWidth,
-    this.roughness,
-    this.seed = 0,
     this.padding = const EdgeInsets.symmetric(
       horizontal: 12.0,
       vertical: 6.0,
@@ -152,64 +143,59 @@ class _SketchChipState extends State<SketchChip> {
     // 상태에 따른 색상 결정
     final colorSpec = _getColorSpec(sketchTheme);
 
-    final roughness = _isPressed ? colorSpec.roughness + 0.2 : colorSpec.roughness;
-    final seed = _isPressed ? widget.seed + 1 : widget.seed;
-
     final chip = AnimatedScale(
       scale: _isPressed ? 0.98 : 1.0,
       duration: const Duration(milliseconds: 100),
       curve: Curves.easeOut,
       child: IntrinsicWidth(
-        child: CustomPaint(
-          painter: SketchPainter(
-            fillColor: colorSpec.fillColor,
-            borderColor: colorSpec.borderColor,
-            strokeWidth: colorSpec.strokeWidth,
-            roughness: roughness,
-            seed: seed,
-            enableNoise: false,
+        child: Container(
+          decoration: BoxDecoration(
+            color: colorSpec.fillColor,
+            border: Border.all(
+              color: colorSpec.borderColor,
+              width: colorSpec.strokeWidth,
+            ),
+            borderRadius: BorderRadius.circular(100),
           ),
-          child: Padding(
-            padding: widget.padding,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 아이콘
-                if (widget.icon != null) ...[
-                  IconTheme(
-                    data: IconThemeData(
-                      color: widget.iconColor ?? colorSpec.labelColor,
-                      size: 16,
-                    ),
-                    child: widget.icon!,
+          padding: widget.padding,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.icon != null) ...[
+                IconTheme(
+                  data: IconThemeData(
+                    color: widget.iconColor ?? colorSpec.labelColor,
+                    size: 16,
                   ),
-                  SizedBox(width: widget.iconSpacing),
-                ],
-
-                // 라벨
-                Text(
-                  widget.label,
-                  style: TextStyle(
-                    fontSize: SketchDesignTokens.fontSizeSm,
-                    fontWeight: FontWeight.w500,
-                    color: colorSpec.labelColor,
-                  ),
+                  child: widget.icon!,
                 ),
-
-                // 삭제 버튼
-                if (widget.onDeleted != null) ...[
-                  SizedBox(width: widget.deleteSpacing),
-                  GestureDetector(
-                    onTap: widget.onDeleted,
+                SizedBox(width: widget.iconSpacing),
+              ],
+              Text(
+                widget.label,
+                style: TextStyle(
+                  fontFamily: SketchDesignTokens.fontFamilyHand,
+                  fontSize: SketchDesignTokens.fontSizeSm,
+                  fontWeight: FontWeight.w500,
+                  color: colorSpec.labelColor,
+                ),
+              ),
+              if (widget.onDeleted != null) ...[
+                SizedBox(width: widget.deleteSpacing),
+                GestureDetector(
+                  onTap: widget.onDeleted,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
                       Icons.close,
                       size: 16,
                       color: colorSpec.labelColor,
                     ),
                   ),
-                ],
+                ),
               ],
-            ),
+            ],
           ),
         ),
       ),
@@ -238,28 +224,25 @@ class _SketchChipState extends State<SketchChip> {
         borderColor: widget.borderColor ?? SketchDesignTokens.base300,
         labelColor: widget.labelColor ?? SketchDesignTokens.base900,
         strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
-        roughness: widget.roughness ?? SketchDesignTokens.roughness,
       );
     }
 
-    // 선택된 상태
+    // 선택된 상태 — Frame0 스타일: 검정 fill
     if (widget.selected) {
       return _ColorSpec(
-        fillColor: SketchDesignTokens.accentPrimary,
-        borderColor: SketchDesignTokens.accentPrimary,
+        fillColor: SketchDesignTokens.base900,
+        borderColor: SketchDesignTokens.base900,
         labelColor: Colors.white,
         strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
-        roughness: widget.roughness ?? SketchDesignTokens.roughness,
       );
     }
 
-    // 일반 상태
+    // 일반 상태 — Frame0 스타일: 흰 fill + 어두운 테두리
     return _ColorSpec(
-      fillColor: theme?.fillColor ?? SketchDesignTokens.base100,
-      borderColor: theme?.borderColor ?? SketchDesignTokens.base300,
+      fillColor: theme?.fillColor ?? SketchDesignTokens.white,
+      borderColor: theme?.borderColor ?? SketchDesignTokens.base900,
       labelColor: SketchDesignTokens.base900,
       strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
-      roughness: widget.roughness ?? SketchDesignTokens.roughness,
     );
   }
 }
@@ -270,13 +253,11 @@ class _ColorSpec {
   final Color borderColor;
   final Color labelColor;
   final double strokeWidth;
-  final double roughness;
 
   const _ColorSpec({
     required this.fillColor,
     required this.borderColor,
     required this.labelColor,
     required this.strokeWidth,
-    required this.roughness,
   });
 }

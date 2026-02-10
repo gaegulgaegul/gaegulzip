@@ -2,7 +2,6 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손으로 그린 스케치 스타일 모양의 텍스트 입력 필드.
@@ -148,12 +147,6 @@ class SketchInput extends StatefulWidget {
   /// 커스텀 스트로크 너비.
   final double? strokeWidth;
 
-  /// 커스텀 거칠기.
-  final double? roughness;
-
-  /// 스케치 모양을 위한 무작위 시드.
-  final int seed;
-
   const SketchInput({
     super.key,
     this.label,
@@ -181,8 +174,6 @@ class SketchInput extends StatefulWidget {
     this.fillColor,
     this.borderColor,
     this.strokeWidth,
-    this.roughness,
-    this.seed = 0,
   });
 
   @override
@@ -218,7 +209,7 @@ class _SketchInputState extends State<SketchInput> {
     final hasError = widget.errorText != null;
 
     // 상태에 따라 색상 결정
-    final ColorSpec colorSpec = _getColorSpec(
+    final _ColorSpec colorSpec = _getColorSpec(
       sketchTheme,
       isFocused: _isFocused,
       hasError: hasError,
@@ -234,6 +225,7 @@ class _SketchInputState extends State<SketchInput> {
           Text(
             widget.label!,
             style: TextStyle(
+              fontFamily: SketchDesignTokens.fontFamilyHand,
               fontSize: SketchDesignTokens.fontSizeSm,
               fontWeight: FontWeight.w500,
               color: hasError ? SketchDesignTokens.error : SketchDesignTokens.base900,
@@ -243,88 +235,86 @@ class _SketchInputState extends State<SketchInput> {
         ],
 
         // 입력 필드
-        SizedBox(
+        Container(
           height: _calculateHeight(),
-          child: CustomPaint(
-            painter: SketchPainter(
-              fillColor: colorSpec.fillColor,
-              borderColor: colorSpec.borderColor,
-              strokeWidth: colorSpec.strokeWidth,
-              roughness: colorSpec.roughness,
-              seed: _isFocused ? widget.seed + 1 : widget.seed,
-              enableNoise: false, // 입력 필드에는 노이즈 없음
+          decoration: BoxDecoration(
+            color: colorSpec.fillColor,
+            border: Border.all(
+              color: colorSpec.borderColor,
+              width: colorSpec.strokeWidth,
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: SketchDesignTokens.spacingMd,
-                vertical: SketchDesignTokens.spacingSm,
-              ),
-              child: Row(
-                children: [
-                  // 접두사 아이콘
-                  if (widget.prefixIcon != null) ...[
-                    IconTheme(
-                      data: IconThemeData(
-                        color: colorSpec.iconColor,
-                        size: 20,
-                      ),
-                      child: widget.prefixIcon!,
-                    ),
-                    const SizedBox(width: SketchDesignTokens.spacingSm),
-                  ],
-
-                  // 텍스트 필드
-                  Expanded(
-                    child: TextField(
-                      controller: widget.controller,
-                      focusNode: _focusNode,
-                      obscureText: widget.obscureText,
-                      keyboardType: widget.keyboardType,
-                      textCapitalization: widget.textCapitalization,
-                      maxLines: widget.maxLines,
-                      minLines: widget.minLines,
-                      maxLength: widget.maxLength,
-                      inputFormatters: widget.inputFormatters,
-                      onChanged: widget.onChanged,
-                      onEditingComplete: widget.onEditingComplete,
-                      onSubmitted: widget.onSubmitted,
-                      enabled: widget.enabled,
-                      readOnly: widget.readOnly,
-                      autofocus: widget.autofocus,
-                      textAlign: widget.textAlign,
-                      style: widget.style ??
-                          TextStyle(
-                            fontSize: SketchDesignTokens.fontSizeBase,
-                            color: colorSpec.textColor,
-                          ),
-                      decoration: InputDecoration(
-                        hintText: widget.hint,
-                        hintStyle: TextStyle(
-                          color: colorSpec.hintColor,
-                          fontSize: SketchDesignTokens.fontSizeBase,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                        isDense: true,
-                        counterText: '', // 문자 카운터 숨김
-                      ),
-                    ),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: SketchDesignTokens.spacingMd,
+            vertical: SketchDesignTokens.spacingSm,
+          ),
+          child: Row(
+            children: [
+              // 접두사 아이콘
+              if (widget.prefixIcon != null) ...[
+                IconTheme(
+                  data: IconThemeData(
+                    color: colorSpec.iconColor,
+                    size: 20,
                   ),
+                  child: widget.prefixIcon!,
+                ),
+                const SizedBox(width: SketchDesignTokens.spacingSm),
+              ],
 
-                  // 접미사 아이콘
-                  if (widget.suffixIcon != null) ...[
-                    const SizedBox(width: SketchDesignTokens.spacingSm),
-                    IconTheme(
-                      data: IconThemeData(
-                        color: colorSpec.iconColor,
-                        size: 20,
+              // 텍스트 필드
+              Expanded(
+                child: TextField(
+                  controller: widget.controller,
+                  focusNode: _focusNode,
+                  obscureText: widget.obscureText,
+                  keyboardType: widget.keyboardType,
+                  textCapitalization: widget.textCapitalization,
+                  maxLines: widget.maxLines,
+                  minLines: widget.minLines,
+                  maxLength: widget.maxLength,
+                  inputFormatters: widget.inputFormatters,
+                  onChanged: widget.onChanged,
+                  onEditingComplete: widget.onEditingComplete,
+                  onSubmitted: widget.onSubmitted,
+                  enabled: widget.enabled,
+                  readOnly: widget.readOnly,
+                  autofocus: widget.autofocus,
+                  textAlign: widget.textAlign,
+                  style: widget.style ??
+                      TextStyle(
+                        fontFamily: SketchDesignTokens.fontFamilyHand,
+                        fontSize: SketchDesignTokens.fontSizeBase,
+                        color: colorSpec.textColor,
                       ),
-                      child: widget.suffixIcon!,
+                  decoration: InputDecoration(
+                    hintText: widget.hint,
+                    hintStyle: TextStyle(
+                      fontFamily: SketchDesignTokens.fontFamilyHand,
+                      color: colorSpec.hintColor,
+                      fontSize: SketchDesignTokens.fontSizeBase,
                     ),
-                  ],
-                ],
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                    isDense: true,
+                    counterText: '', // 문자 카운터 숨김
+                  ),
+                ),
               ),
-            ),
+
+              // 접미사 아이콘
+              if (widget.suffixIcon != null) ...[
+                const SizedBox(width: SketchDesignTokens.spacingSm),
+                IconTheme(
+                  data: IconThemeData(
+                    color: colorSpec.iconColor,
+                    size: 20,
+                  ),
+                  child: widget.suffixIcon!,
+                ),
+              ],
+            ],
           ),
         ),
 
@@ -334,6 +324,7 @@ class _SketchInputState extends State<SketchInput> {
           Text(
             widget.errorText ?? widget.helperText!,
             style: TextStyle(
+              fontFamily: SketchDesignTokens.fontFamilyHand,
               fontSize: SketchDesignTokens.fontSizeXs,
               color: hasError ? SketchDesignTokens.error : SketchDesignTokens.base600,
             ),
@@ -355,78 +346,73 @@ class _SketchInputState extends State<SketchInput> {
     }
   }
 
-  ColorSpec _getColorSpec(
+  _ColorSpec _getColorSpec(
     SketchThemeExtension? theme, {
     required bool isFocused,
     required bool hasError,
     required bool isDisabled,
   }) {
     if (isDisabled) {
-      return ColorSpec(
+      return _ColorSpec(
         fillColor: SketchDesignTokens.base100,
         borderColor: SketchDesignTokens.base300,
         textColor: SketchDesignTokens.base500,
         hintColor: SketchDesignTokens.base400,
         iconColor: SketchDesignTokens.base400,
         strokeWidth: SketchDesignTokens.strokeStandard,
-        roughness: SketchDesignTokens.roughness,
       );
     }
 
     if (hasError) {
-      return ColorSpec(
+      return _ColorSpec(
         fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
         borderColor: SketchDesignTokens.error,
         textColor: SketchDesignTokens.base900,
         hintColor: SketchDesignTokens.base500,
         iconColor: SketchDesignTokens.error,
         strokeWidth: SketchDesignTokens.strokeBold,
-        roughness: SketchDesignTokens.roughness + 0.1,
       );
     }
 
     if (isFocused) {
-      return ColorSpec(
+      // Frame0 스타일: 포커스 시 굵은 검정 테두리
+      return _ColorSpec(
         fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
-        borderColor: widget.borderColor ?? SketchDesignTokens.accentPrimary,
+        borderColor: widget.borderColor ?? SketchDesignTokens.black,
         textColor: SketchDesignTokens.base900,
         hintColor: SketchDesignTokens.base500,
-        iconColor: SketchDesignTokens.accentPrimary,
+        iconColor: SketchDesignTokens.base900,
         strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeBold,
-        roughness: widget.roughness ?? SketchDesignTokens.roughness + 0.1,
       );
     }
 
-    // 일반 상태
-    return ColorSpec(
+    // 일반 상태 — Frame0 스타일: 어두운 테두리
+    return _ColorSpec(
       fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
-      borderColor: widget.borderColor ?? theme?.borderColor ?? SketchDesignTokens.base300,
+      borderColor: widget.borderColor ?? theme?.borderColor ?? SketchDesignTokens.base900,
       textColor: SketchDesignTokens.base900,
       hintColor: SketchDesignTokens.base500,
       iconColor: SketchDesignTokens.base600,
       strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
-      roughness: widget.roughness ?? SketchDesignTokens.roughness,
     );
   }
 }
 
 /// 내부 색상 사양.
-class ColorSpec {
+class _ColorSpec {
   final Color fillColor;
   final Color borderColor;
   final Color textColor;
   final Color hintColor;
   final Color iconColor;
   final double strokeWidth;
-  final double roughness;
 
-  const ColorSpec({
+  const _ColorSpec({
     required this.fillColor,
     required this.borderColor,
     required this.textColor,
     required this.hintColor,
     required this.iconColor,
     required this.strokeWidth,
-    required this.roughness,
   });
 }

@@ -1,8 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
-import '../painters/sketch_painter.dart';
-import '../painters/sketch_circle_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손그림 스타일 스위치 위젯
@@ -78,12 +76,6 @@ class SketchSwitch extends StatefulWidget {
   /// 선 두께
   final double? strokeWidth;
 
-  /// 거칠기 계수
-  final double? roughness;
-
-  /// 랜덤 시드
-  final int seed;
-
   const SketchSwitch({
     super.key,
     required this.value,
@@ -94,8 +86,6 @@ class SketchSwitch extends StatefulWidget {
     this.width = 50.0,
     this.height = 28.0,
     this.strokeWidth,
-    this.roughness,
-    this.seed = 0,
   });
 
   @override
@@ -155,11 +145,9 @@ class _SketchSwitchState extends State<SketchSwitch> with SingleTickerProviderSt
     final sketchTheme = SketchThemeExtension.maybeOf(context);
     final isDisabled = widget.onChanged == null;
 
-    final effectiveActiveColor = widget.activeColor ?? SketchDesignTokens.accentPrimary;
+    final effectiveActiveColor = widget.activeColor ?? SketchDesignTokens.base900;
     final effectiveInactiveColor = widget.inactiveColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveThumbColor = widget.thumbColor ?? Colors.white;
-    final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
-    final effectiveRoughness = widget.roughness ?? sketchTheme?.roughness ?? SketchDesignTokens.roughness;
 
     // 썸 크기 계산
     final thumbSize = widget.height - 8.0;
@@ -188,33 +176,23 @@ class _SketchSwitchState extends State<SketchSwitch> with SingleTickerProviderSt
               return Stack(
                 children: [
                   // 배경 트랙
-                  CustomPaint(
-                    painter: SketchPainter(
-                      fillColor: backgroundColor,
-                      borderColor: backgroundColor,
-                      strokeWidth: effectiveStrokeWidth,
-                      roughness: effectiveRoughness,
-                      seed: widget.seed,
-                      enableNoise: false,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(widget.height / 2),
                     ),
-                    child: const SizedBox.expand(),
                   ),
 
                   // 썸 (동그란 손잡이)
                   Positioned(
                     left: thumbPosition,
                     top: thumbPadding,
-                    child: CustomPaint(
-                      painter: SketchCirclePainter(
-                        fillColor: effectiveThumbColor,
-                        borderColor: effectiveThumbColor,
-                        strokeWidth: effectiveStrokeWidth,
-                        roughness: effectiveRoughness,
-                        seed: widget.seed + 1,
-                      ),
-                      child: SizedBox(
-                        width: thumbSize,
-                        height: thumbSize,
+                    child: Container(
+                      width: thumbSize,
+                      height: thumbSize,
+                      decoration: BoxDecoration(
+                        color: effectiveThumbColor,
+                        shape: BoxShape.circle,
                       ),
                     ),
                   ),
