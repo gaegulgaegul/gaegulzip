@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:core/core.dart';
 import '../clients/box_api_client.dart';
 import '../models/box/box_model.dart';
+import '../models/box/box_create_response.dart';
+import '../models/box/membership_model.dart';
 import '../models/box/create_box_request.dart';
 import '../models/box/box_member_model.dart';
 
