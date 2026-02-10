@@ -162,7 +162,10 @@ class BoxSearchController extends GetxController {
       await _repository.joinBox(boxId);
 
       // 3. 성공: currentBox 업데이트
-      final joinedBox = searchResults.firstWhere((box) => box.id == boxId);
+      final joinedBox = searchResults.firstWhere(
+        (box) => box.id == boxId,
+        orElse: () => throw Exception('가입한 박스를 찾을 수 없습니다'),
+      );
       currentBox.value = joinedBox;
 
       // 4. 성공 스낵바
@@ -173,6 +176,26 @@ class BoxSearchController extends GetxController {
         backgroundColor: SketchDesignTokens.success.withValues(alpha: 0.1),
         colorText: SketchDesignTokens.success,
         duration: const Duration(seconds: 2),
+      );
+    } on BusinessException catch (e) {
+      // 비즈니스 로직 에러 (409 등)
+      SketchModal.show(
+        context: Get.context!,
+        title: '오류',
+        child: Text(
+          e.message,
+          style: const TextStyle(
+            fontSize: SketchDesignTokens.fontSizeBase,
+            color: SketchDesignTokens.base900,
+          ),
+        ),
+        actions: [
+          SketchButton(
+            text: '확인',
+            onPressed: () => Navigator.of(Get.context!).pop(),
+            style: SketchButtonStyle.primary,
+          ),
+        ],
       );
     } on NetworkException catch (e) {
       Get.snackbar(

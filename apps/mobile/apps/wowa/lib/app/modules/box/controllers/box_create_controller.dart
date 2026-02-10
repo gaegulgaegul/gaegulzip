@@ -124,8 +124,28 @@ class BoxCreateController extends GetxController {
 
       // 5. 홈으로 이동 (스택 초기화)
       Get.offAllNamed(Routes.HOME);
+    } on BusinessException catch (e) {
+      // 6. 비즈니스 로직 에러 (409 등): 모달 표시
+      SketchModal.show(
+        context: Get.context!,
+        title: '오류',
+        child: Text(
+          e.message,
+          style: const TextStyle(
+            fontSize: SketchDesignTokens.fontSizeBase,
+            color: SketchDesignTokens.base900,
+          ),
+        ),
+        actions: [
+          SketchButton(
+            text: '확인',
+            onPressed: () => Navigator.of(Get.context!).pop(),
+            style: SketchButtonStyle.primary,
+          ),
+        ],
+      );
     } on NetworkException catch (e) {
-      // 6. 네트워크 에러: 모달 표시
+      // 7. 네트워크 에러: 모달 표시
       SketchModal.show(
         context: Get.context!,
         title: '오류',
@@ -154,7 +174,7 @@ class BoxCreateController extends GetxController {
         barrierDismissible: false,
       );
     } catch (e) {
-      // 7. 기타 에러
+      // 8. 기타 에러
       SketchModal.show(
         context: Get.context!,
         title: '오류',

@@ -200,7 +200,7 @@ class BoxSearchView extends GetView<BoxSearchController> {
   }
 
   /// 박스 카드
-  Widget _buildBoxCard(dynamic box) {
+  Widget _buildBoxCard(BoxModel box) {
     return SketchCard(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 1,

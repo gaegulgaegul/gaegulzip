@@ -162,7 +162,10 @@ class BoxRepository {
     }
 
     if (e.response?.statusCode != null && e.response!.statusCode! >= 500) {
-      return Exception('일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요');
+      return NetworkException(
+        message: '일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요',
+        statusCode: e.response!.statusCode,
+      );
     }
 
     return NetworkException(

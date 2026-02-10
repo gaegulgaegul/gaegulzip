@@ -1,9 +1,10 @@
-# Server CTO Review: wowa-box
+# Server CTO Review: wowa-box (Updated with CodeRabbit Issues)
 
 **Feature**: wowa-box (박스 관리 기능 개선)
 **Platform**: Server (Node.js/Express)
 **Reviewer**: CTO
-**Date**: 2026-02-09
+**Date**: 2026-02-10 (Updated)
+**PR**: #13
 
 ---
 
@@ -12,7 +13,7 @@
 ### 테스트 결과
 - **전체 테스트**: 277 tests passed (100%)
 - **박스 기능 테스트**: 44 tests (handlers: 13, services: 31)
-- **실행 시간**: 9.24s
+- **실행 시간**: 5.39s
 - **상태**: ✅ ALL PASSED
 
 ### 빌드 결과
@@ -22,11 +23,132 @@
 
 ---
 
-## 코드 품질 평가
+## CodeRabbit PR #13 지적사항 통합 검토
 
-### 1. Express 미들웨어 패턴 준수 ✅
+### 🔴 Critical Issues (2건)
 
-**handlers.ts**:
+#### 1. `validators.ts:7` — trim() 순서 오류로 min validation 우회 가능
+
+**CodeRabbit 지적**:
+```typescript
+export const createBoxSchema = z.object({
+  name: z.string().min(2, '박스 이름은 2자 이상이어야 합니다').max(255).trim(),
+  //                    ^ min(2) 검증이 trim() 전에 실행됨
+});
+```
+
+**문제**:
+- 입력값 `"  "` (공백 2자) → min(2) 통과 → trim() 후 빈 문자열 → **DB에 빈 문자열 저장**
+- 서버 응답 201 Created이지만 박스 이름이 빈 값으로 생성됨
+
+**영향**: ⚠️ **데이터 무결성 위협** — 공백만 입력 시 유효성 검증 우회
+
+**수정 방안**:
+```typescript
+export const createBoxSchema = z.object({
+  name: z.string().trim().min(2, '박스 이름은 2자 이상이어야 합니다').max(255),
+  //                ^ trim() 먼저 실행 → min(2) 검증
+  region: z.string().trim().min(2, '지역은 2자 이상이어야 합니다').max(255),
+  description: z.string().trim().max(1000).optional(),
+});
+```
+
+**우선순위**: 🔴 **HIGH** — 즉시 수정 필요
+
+---
+
+#### 2. `box_search_controller.dart:166` — firstWhere StateError 크래시 가능 (Mobile)
+
+**CodeRabbit 지적**:
+```dart
+final joinedBox = searchResults.firstWhere((box) => box.id == boxId);
+// 만약 searchResults에서 해당 박스를 찾지 못하면 StateError 발생
+```
+
+**시나리오**:
+1. 사용자가 박스 검색 → `searchResults`에 박스 A 포함
+2. 다른 사용자가 박스 A를 삭제 (또는 접근 불가 상태로 변경)
+3. 사용자가 박스 A 가입 시도 → 서버 API는 404/409 에러
+4. API 실패하므로 firstWhere 로직에 도달하지 않음 (try-catch로 이동)
+
+**현재 코드 분석**:
+```dart
+try {
+  await _repository.joinBox(boxId);  // 실패 시 throw → catch로 이동
+  final joinedBox = searchResults.firstWhere((box) => box.id == boxId);  // 도달 안 함
+} on NetworkException catch (e) { ... }
+```
+
+**판정**: ⚠️ **MEDIUM** — API 실패 시 catch로 이동하므로 실제 크래시 확률 낮음, 하지만 방어 코드 추가 권장
+
+**수정 방안** (Mobile Controller):
+```dart
+try {
+  await _repository.joinBox(boxId);
+
+  // firstWhereOrNull 사용 (collection 패키지)
+  final joinedBox = searchResults.firstWhereOrNull((box) => box.id == boxId);
+  if (joinedBox != null) {
+    currentBox.value = joinedBox;
+  }
+
+  Get.snackbar(...);
+} on NetworkException catch (e) { ... }
+```
+
+**우선순위**: 🟠 **MEDIUM** — 방어 코드 추가 권장
+
+---
+
+### 🟠 Major Issues (5건)
+
+#### 3. BusinessException 409 처리 누락
+
+**CodeRabbit 지적**: Server-Mobile 간 409 응답 처리 일관성 확인 필요
+
+**Server 코드**:
+- `handlers.ts` (create, join): try-catch 없음 → 전역 에러 핸들러로 위임
+- 전역 에러 핸들러에서 `BusinessException` → 409 매핑 확인 필요
+
+**Mobile Repository 코드**:
+```dart
+if (e.response?.statusCode == 409) {
+  throw NetworkException('이미 가입된 박스입니다');
+}
+```
+
+**확인 필요**: Server 전역 에러 핸들러에서 `BusinessException` → 409 매핑 동작 확인
+
+**우선순위**: 🟠 **MEDIUM** — 통합 테스트로 검증 필요
+
+---
+
+#### 4. 500+ 에러 Exception 타입 불일치
+
+**CodeRabbit 지적**: Server에서 500 에러 시 정확한 Exception 타입 확인 필요
+
+**Server 코드**:
+- `services.ts`: 500 에러 시 `NotFoundException`, `BusinessException` throw
+- 전역 에러 핸들러: 500 에러 매핑 확인 필요
+
+**Mobile Repository 코드**:
+```dart
+if (e.response?.statusCode == 500) {
+  throw NetworkException('일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요');
+}
+```
+
+**판정**: Mobile에서 500 에러를 일반 메시지로 처리하므로 UX 문제 없음
+
+**우선순위**: 🟠 **MEDIUM** — 모니터링 및 로깅으로 추적
+
+---
+
+#### 5. `handlers.ts` — 트랜잭션 실패 시 Probe 로깅 누락
+
+**CodeRabbit 지적**: 트랜잭션 실패 시 도메인 로그 부재
+
+**현재 코드**:
 ```typescript
 export const create: RequestHandler = async (req, res) => {
   const { userId } = (req as AuthenticatedRequest).user;
@@ -43,577 +165,206 @@ export const create: RequestHandler = async (req, res) => {
 };
 ```
 
-- ✅ Express RequestHandler 타입 사용
-- ✅ Controller/Service 패턴 사용 안 함 (NestJS 스타일 금지)
-- ✅ 비즈니스 로직을 service 레이어로 분리
-- ✅ 전역 에러 핸들러 활용 (try-catch 불필요)
-- ✅ 입력 검증은 Zod validator 사용
+**문제**: 트랜잭션 실패 시 로그 없음 (전역 에러 핸들러에서 처리되지만 Domain Probe 로그 부재)
 
-### 2. Drizzle ORM 올바른 사용 ✅
-
-**schema.ts**:
+**수정 방안**:
 ```typescript
-export const boxes = pgTable('boxes', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  region: varchar('region', { length: 255 }).notNull(),
-  description: text('description'),
-  createdBy: integer('created_by').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
-}, (table) => ({
-  createdByIdx: index('idx_boxes_created_by').on(table.createdBy),
-  nameIdx: index('idx_boxes_name').on(table.name),
-  regionIdx: index('idx_boxes_region').on(table.region),
-}));
+export const create: RequestHandler = async (req, res) => {
+  const { userId } = (req as AuthenticatedRequest).user;
+  const { name, region, description } = createBoxSchema.parse(req.body);
 
-export const boxMembers = pgTable('box_members', {
-  id: serial('id').primaryKey(),
-  boxId: integer('box_id').notNull(),
-  userId: integer('user_id').notNull(),
-  role: varchar('role', { length: 20 }).notNull().default('member'),
-  joinedAt: timestamp('joined_at').defaultNow().notNull(),
-}, (table) => ({
-  uniqueBoxUser: unique().on(table.boxId, table.userId),
-  boxIdIdx: index('idx_box_members_box_id').on(table.boxId),
-  userIdIdx: index('idx_box_members_user_id').on(table.userId),
-}));
+  try {
+    const result = await createBoxWithMembership({
+      name,
+      region,
+      description,
+      createdBy: userId,
+    });
+
+    res.status(201).json(result);
+  } catch (error) {
+    boxProbe.creationFailed({
+      userId,
+      name,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    throw error;  // 전역 에러 핸들러로 전달
+  }
+};
 ```
 
-- ✅ JSDoc 주석 포함 (한국어)
-- ✅ FK 사용 안 함 (애플리케이션 레벨 관계 관리)
-- ✅ Index 적절히 설정 (검색 최적화)
-- ✅ Unique 제약 설정 (boxId + userId)
-- ✅ defaultNow(), $onUpdate() 올바른 사용
+**우선순위**: 🟠 **MEDIUM** — 로깅 베스트 프랙티스 준수
 
-### 3. 트랜잭션 구현 ✅ (핵심 개선 사항)
+---
 
-**services.ts - createBoxWithMembership**:
+#### 6. `services.ts` — 트랜잭션 내부 Probe 로깅
+
+**CodeRabbit 지적**: 트랜잭션 커밋 전 로깅 → 롤백 시 로그와 실제 상태 불일치
+
+**현재 코드**:
 ```typescript
 export async function createBoxWithMembership(data: CreateBoxInput): Promise<CreateBoxResponse> {
   return await db.transaction(async (tx) => {
-    // 1. 박스 생성
-    const [box] = await tx.insert(boxes).values({
-      name: data.name,
-      region: data.region,
-      description: data.description ?? null,
-      createdBy: data.createdBy,
-    }).returning();
+    // ...
 
-    // 2. 기존 박스 멤버십 확인 및 삭제 (단일 박스 정책)
-    const [existingMembership] = await tx.select()
-      .from(boxMembers)
-      .where(eq(boxMembers.userId, data.createdBy))
-      .limit(1);
-
-    let previousBoxId: number | null = null;
-    if (existingMembership) {
-      previousBoxId = existingMembership.boxId;
-      await tx.delete(boxMembers).where(eq(boxMembers.id, existingMembership.id));
+    // 4. 로깅 (트랜잭션 내부)
+    if (previousBoxId) {
+      boxProbe.boxSwitched({ ... });
+    } else {
+      boxProbe.created({ ... });
+      boxProbe.memberJoined({ ... });
     }
-
-    // 3. 생성자를 새 박스의 멤버로 등록
-    const [rawMembership] = await tx.insert(boxMembers).values({
-      boxId: box.id,
-      userId: data.createdBy,
-      role: 'member',
-    }).returning();
-
-    // ... 로깅 ...
 
     return { box, membership, previousBoxId };
   });
 }
 ```
 
+**문제**: 트랜잭션 커밋 전에 로깅 → 롤백 시 로그와 실제 상태 불일치
+
+**수정 방안**:
+```typescript
+export async function createBoxWithMembership(data: CreateBoxInput): Promise<CreateBoxResponse> {
+  const result = await db.transaction(async (tx) => {
+    // ...
+    return { box, membership, previousBoxId };
+  });
+
+  // 트랜잭션 커밋 후 로깅
+  if (result.previousBoxId) {
+    boxProbe.boxSwitched({
+      userId: data.createdBy,
+      previousBoxId: result.previousBoxId,
+      newBoxId: result.box.id,
+    });
+  } else {
+    boxProbe.created({
+      boxId: result.box.id,
+      name: result.box.name,
+      region: result.box.region,
+      createdBy: result.box.createdBy,
+    });
+    boxProbe.memberJoined({
+      boxId: result.box.id,
+      userId: data.createdBy,
+    });
+  }
+
+  return result;
+}
+```
+
+**우선순위**: 🟠 **MEDIUM** — 로그 일관성 개선
+
+---
+
+#### 7. `services.ts` — ILIKE 와일드카드 이스케이프 미처리
+
+**CodeRabbit 지적**: 사용자 입력 `%`, `_` 포함 시 의도하지 않은 패턴 매칭
+
+**현재 코드**:
+```typescript
+.where(
+  or(
+    ilike(boxes.name, `%${trimmedKeyword}%`),
+    ilike(boxes.region, `%${trimmedKeyword}%`)
+  )
+)
+```
+
+**예시**:
+- 입력: `"강남%"` → `ILIKE '%강남%%'` → "강남크로스핏", "강남ABC" 모두 매칭
+- 입력: `"강남_점"` → `ILIKE '%강남_점%'` → "강남1점", "강남a점" 모두 매칭
+
+**수정 방안**:
+```typescript
+// 이스케이프 함수 추가
+function escapeLikePattern(str: string): string {
+  return str.replace(/[%_\\]/g, '\\$&');
+}
+
+// 검색 쿼리 수정
+const escapedKeyword = escapeLikePattern(trimmedKeyword);
+.where(
+  or(
+    ilike(boxes.name, `%${escapedKeyword}%`),
+    ilike(boxes.region, `%${escapedKeyword}%`)
+  )
+)
+```
+
+**우선순위**: 🟡 **LOW** — 실무에서 `%`, `_` 입력 드묾
+
+---
+
+### 🟡 Minor Issues (1건)
+
+#### 8. `types.ts` — JSDoc 누락
+
+**CodeRabbit 지적**: 타입 정의에 JSDoc 주석 부재
+
+**수정 방안**:
+```typescript
+/**
+ * 박스 정보 + 멤버 수
+ */
+export interface BoxWithMemberCount {
+  /** 박스 ID */
+  id: number;
+  /** 박스 이름 */
+  name: string;
+  /** 박스 지역 */
+  region: string;
+  /** 박스 설명 (선택) */
+  description: string | null;
+  /** 멤버 수 (집계) */
+  memberCount: number;
+}
+```
+
+**우선순위**: 🟢 **INFO** — 코드 가독성 향상
+
+---
+
+## 코드 품질 평가
+
+### 1. Express 미들웨어 패턴 준수 ✅
+
+- ✅ Handler 함수 구조: `(req, res) => {}` 패턴
+- ✅ Controller/Service 패턴 사용 안 함
+- ✅ 비즈니스 로직을 service 레이어로 분리
+- ✅ 전역 에러 핸들러 활용
+
+### 2. Drizzle ORM 올바른 사용 ✅
+
+- ✅ 트랜잭션: `db.transaction()` 사용
+- ✅ JSDoc 주석 포함
+- ✅ FK 사용 안 함 (애플리케이션 레벨 관계 관리)
+- ✅ Index 적절히 설정
+- ✅ Unique 제약 설정 (boxId + userId)
+
+### 3. 트랜잭션 구현 ✅ (핵심 개선 사항)
+
 **강점**:
 - ✅ 박스 생성 + 멤버 등록을 단일 트랜잭션으로 처리
 - ✅ 데이터 정합성 보장 (부분 실패 시 전체 롤백)
-- ✅ 단일 박스 정책 구현 (기존 멤버십 자동 탈퇴)
-- ✅ previousBoxId 반환으로 클라이언트에 상태 전달
-- ✅ 멤버십 중복 방지 (uniqueBoxUser 제약 + 애플리케이션 로직)
+- ✅ 단일 박스 정책 구현
+- ✅ previousBoxId 반환
 
-**비교 (이전 구현)**:
-- ❌ 박스 생성과 멤버 등록이 별도 쿼리
-- ❌ 박스 생성 성공 후 멤버 등록 실패 시 고아 박스 생성
-- ❌ 동시성 문제 (race condition)
+**개선 필요**:
+- ⚠️ 트랜잭션 내부 로깅 → 커밋 후 로깅으로 이동 필요
 
 ### 4. 통합 키워드 검색 구현 ✅
 
-**services.ts - searchBoxes**:
-```typescript
-export async function searchBoxes(input: SearchBoxInput): Promise<BoxWithMemberCount[]> {
-  // keyword 우선 처리 (통합 검색)
-  if (input.keyword !== undefined) {
-    const trimmedKeyword = input.keyword.trim();
-
-    // 빈 키워드는 빈 배열 반환
-    if (!trimmedKeyword) {
-      return [];
-    }
-
-    // name OR region ILIKE 검색
-    const results = await db
-      .select({
-        id: boxes.id,
-        name: boxes.name,
-        region: boxes.region,
-        description: boxes.description,
-        memberCount: sql<number>`COALESCE(COUNT(${boxMembers.id}), 0)`,
-      })
-      .from(boxes)
-      .leftJoin(boxMembers, eq(boxes.id, boxMembers.boxId))
-      .where(
-        or(
-          ilike(boxes.name, `%${trimmedKeyword}%`),
-          ilike(boxes.region, `%${trimmedKeyword}%`)
-        )
-      )
-      .groupBy(boxes.id);
-
-    return results as BoxWithMemberCount[];
-  }
-
-  // 기존 name/region 개별 검색 (하위 호환성)
-  if (!input.name && !input.region) {
-    return [];
-  }
-  // ...
-}
-```
-
 **강점**:
 - ✅ 통합 키워드 검색 (name OR region)
-- ✅ 하위 호환성 유지 (name, region 파라미터 지원)
+- ✅ 하위 호환성 유지
 - ✅ ILIKE 사용 (대소문자 무시)
-- ✅ memberCount 집계 (LEFT JOIN + GROUP BY)
-- ✅ 빈 키워드 처리 (빈 배열 반환)
-- ✅ SQL Injection 방지 (Drizzle ORM 파라미터 바인딩)
+- ✅ memberCount 집계
+- ✅ SQL Injection 방지
 
-### 5. JSDoc 주석 품질 ✅
-
-**services.ts - 샘플**:
-```typescript
-/**
- * 박스 생성 + 생성자 자동 멤버 등록 (트랜잭션)
- *
- * 박스 생성과 멤버 등록을 단일 트랜잭션으로 처리하여 데이터 정합성을 보장합니다.
- * 단일 박스 정책: 사용자가 이미 다른 박스에 가입되어 있으면 자동으로 탈퇴합니다.
- *
- * @param data - 박스 생성 데이터
- * @param data.name - 박스 이름 (2-255자)
- * @param data.region - 박스 지역 (2-255자)
- * @param data.description - 박스 설명 (선택, 최대 1000자)
- * @param data.createdBy - 생성자 사용자 ID
- * @returns 생성된 박스, 멤버십, 이전 박스 ID (없으면 null)
- * @throws 트랜잭션 실패 시 전체 롤백
- */
-export async function createBoxWithMembership(data: CreateBoxInput): Promise<CreateBoxResponse> {
-  // ...
-}
-```
-
-- ✅ 한국어 주석 (CLAUDE.md 표준)
-- ✅ @param, @returns, @throws 명시
-- ✅ 비즈니스 로직 설명 (단일 박스 정책)
-- ✅ 트랜잭션 동작 명확히 기술
-
-### 6. 로깅 (Domain Probe 패턴) ✅
-
-**box.probe.ts**:
-```typescript
-import { logger } from '../../utils/logger';
-
-/**
- * 박스 생성 성공 (INFO)
- * @param data - 박스 정보 (boxId, name, region, createdBy)
- */
-export const created = (data: {
-  boxId: number;
-  name: string;
-  region: string;
-  createdBy: number;
-}) => {
-  logger.info({
-    boxId: data.boxId,
-    region: data.region,
-    createdBy: data.createdBy,
-  }, `Box created successfully`, { domain: data.name });
-};
-
-/**
- * 사용자 박스 가입 (INFO)
- * @param data - 가입 정보 (boxId, userId)
- */
-export const memberJoined = (data: { boxId: number; userId: number }) => {
-  logger.info({
-    boxId: data.boxId,
-    userId: data.userId,
-  }, 'User joined box');
-};
-
-/**
- * 사용자 박스 변경 (INFO)
- * @param data - 변경 정보 (userId, previousBoxId, newBoxId)
- */
-export const boxSwitched = (data: {
-  userId: number;
-  previousBoxId: number;
-  newBoxId: number;
-}) => {
-  logger.info({
-    userId: data.userId,
-    previousBoxId: data.previousBoxId,
-    newBoxId: data.newBoxId,
-  }, 'User switched box');
-};
-```
-
-**강점**:
-- ✅ Domain Probe 패턴 준수 (별도 파일 분리)
-- ✅ INFO 레벨 (비즈니스 이벤트)
-- ✅ 구조화된 로그 (JSON)
-- ✅ 민감 정보 제외
-- ✅ 도메인별 추적 가능 (boxId, userId)
-
-**handlers.ts - DEBUG 로그**:
-```typescript
-logger.debug({ userId, name, region }, 'Creating box with transaction');
-logger.debug({ keyword, resultCount: boxes.length }, 'Search completed');
-```
-
-- ✅ 디버그 로그는 handler에 직접 작성 (Domain Probe 아님)
-- ✅ 개발 환경에서만 출력
-
-### 7. 유효성 검증 (Zod) ✅
-
-**validators.ts**:
-```typescript
-export const createBoxSchema = z.object({
-  name: z.string()
-    .min(2, '박스 이름은 2자 이상이어야 합니다')
-    .max(255, '박스 이름은 255자 이하여야 합니다')
-    .trim(),
-  region: z.string()
-    .min(2, '지역은 2자 이상이어야 합니다')
-    .max(255, '지역은 255자 이하여야 합니다')
-    .trim(),
-  description: z.string()
-    .max(1000, '설명은 1000자 이하여야 합니다')
-    .trim()
-    .optional(),
-});
-
-export const searchBoxQuerySchema = z.object({
-  keyword: z.string().optional(),
-  name: z.string().optional(),
-  region: z.string().optional(),
-});
-```
-
-- ✅ 명확한 에러 메시지 (한국어)
-- ✅ .trim() 사용 (공백 제거)
-- ✅ min/max 길이 검증
-- ✅ optional 필드 명시
-
----
-
-## API Contract 검증 (Server ↔ Mobile)
-
-### 1. 박스 검색 API
-
-**Server API**:
-```
-GET /boxes/search?keyword=강남
-```
-
-**Server Response**:
-```json
-{
-  "boxes": [
-    {
-      "id": 1,
-      "name": "CrossFit Seoul",
-      "region": "서울 강남구",
-      "description": "Best gym",
-      "memberCount": 15
-    }
-  ]
-}
-```
-
-**Mobile API Client**:
-```dart
-Future<List<BoxModel>> searchBoxes(String keyword) async {
-  final response = await _dio.get(
-    '/boxes/search',
-    queryParameters: {'keyword': keyword},
-  );
-
-  final searchResponse = BoxSearchResponse.fromJson(response.data);
-  return searchResponse.boxes;
-}
-```
-
-**Mobile Model**:
-```dart
-@freezed
-class BoxModel with _$BoxModel {
-  const factory BoxModel({
-    required int id,
-    required String name,
-    required String region,
-    String? description,
-    int? memberCount,
-    String? joinedAt,
-  }) = _BoxModel;
-}
-```
-
-**검증 결과**: ✅ 일치
-- ✅ 엔드포인트 경로: `/boxes/search` (일치)
-- ✅ 쿼리 파라미터: `keyword` (일치)
-- ✅ 응답 필드: `boxes` (일치)
-- ✅ BoxModel 필드: id, name, region, description, memberCount (일치)
-- ℹ️ `joinedAt` 필드는 검색 응답에 없음 (nullable이므로 문제 없음)
-
-### 2. 박스 생성 API
-
-**Server API**:
-```
-POST /boxes
-```
-
-**Server Request**:
-```json
-{
-  "name": "CrossFit Gangnam",
-  "region": "서울 강남구",
-  "description": "Best gym"
-}
-```
-
-**Server Response**:
-```json
-{
-  "box": {
-    "id": 5,
-    "name": "CrossFit Gangnam",
-    "region": "서울 강남구",
-    "description": "Best gym",
-    "createdBy": 123,
-    "createdAt": "2026-02-09T10:30:00Z",
-    "updatedAt": "2026-02-09T10:30:00Z"
-  },
-  "membership": {
-    "id": 10,
-    "boxId": 5,
-    "userId": 123,
-    "role": "member",
-    "joinedAt": "2026-02-09T10:30:00Z"
-  },
-  "previousBoxId": null
-}
-```
-
-**Mobile API Client**:
-```dart
-Future<BoxCreateResponse> createBox(CreateBoxRequest request) async {
-  final response = await _dio.post(
-    '/boxes',
-    data: request.toJson(),
-  );
-  return BoxCreateResponse.fromJson(response.data);
-}
-```
-
-**Mobile Models**:
-```dart
-@freezed
-class CreateBoxRequest with _$CreateBoxRequest {
-  const factory CreateBoxRequest({
-    required String name,
-    required String region,
-    String? description,
-  }) = _CreateBoxRequest;
-}
-
-@freezed
-class BoxCreateResponse with _$BoxCreateResponse {
-  const factory BoxCreateResponse({
-    required BoxModel box,
-    required MembershipModel membership,
-    int? previousBoxId,
-  }) = _BoxCreateResponse;
-}
-```
-
-**검증 결과**: ✅ 일치
-- ✅ 엔드포인트 경로: `/boxes` (일치)
-- ✅ HTTP Method: POST (일치)
-- ✅ Request 필드: name, region, description (일치)
-- ✅ Response 필드: box, membership, previousBoxId (일치)
-- ⚠️ **주의**: Server는 `box` 객체에 `createdBy`, `createdAt`, `updatedAt` 포함하지만, Mobile `BoxModel`에는 이 필드들이 없음
-  - **영향**: Mobile에서 받을 때 무시됨 (Freezed는 알 수 없는 필드 무시)
-  - **권장**: Mobile `BoxModel`에 선택 필드로 추가 (향후 사용 가능)
-
-### 3. 박스 가입 API
-
-**Server API**:
-```
-POST /boxes/:boxId/join
-```
-
-**Server Response**:
-```json
-{
-  "membership": {
-    "id": 6,
-    "boxId": 2,
-    "userId": 42,
-    "role": "member",
-    "joinedAt": "2026-02-09T10:30:00Z"
-  },
-  "previousBoxId": 1
-}
-```
-
-**Mobile API Client**:
-```dart
-Future<MembershipModel> joinBox(int boxId) async {
-  final response = await _dio.post('/boxes/$boxId/join');
-  return MembershipModel.fromJson(response.data['membership']);
-}
-```
-
-**검증 결과**: ⚠️ 부분 일치
-- ✅ 엔드포인트 경로: `/boxes/:boxId/join` (일치)
-- ✅ HTTP Method: POST (일치)
-- ⚠️ **불일치**: Server는 `{ membership, previousBoxId }` 반환하지만, Mobile은 `membership`만 파싱
-  - **영향**: `previousBoxId` 정보를 Mobile에서 사용하지 못함 (단일 박스 정책 UX 개선 기회 상실)
-  - **권장**: Mobile에서 `previousBoxId` 파싱하여 "이전 박스에서 탈퇴되었습니다" 메시지 표시
-
----
-
-## 테스트 커버리지 분석
-
-### Unit Tests
-
-**handlers.test.ts** (13 tests):
-- ✅ create: 2개 (트랜잭션 처리, createdBy 설정)
-- ✅ getMyBox: 2개 (멤버십 있음/없음)
-- ✅ search: 4개 (keyword, name, region, 빈 파라미터)
-- ✅ join: 2개 (가입, 박스 변경)
-- ✅ getById: 2개 (상세 조회, memberCount 포함)
-- ✅ getMembers: 1개 (멤버 목록)
-
-**services.test.ts** (31 tests):
-- ✅ createBox: 1개
-- ✅ joinBox: 5개 (가입, 존재하지 않는 박스, 중복 가입, 자동 탈퇴, role 기본값)
-- ✅ getBoxById: 3개 (상세 조회, 존재하지 않는 ID, memberCount)
-- ✅ searchBoxes (name/region): 6개 (name, region, AND, 빈 파라미터, memberCount, 결과 없음)
-- ✅ searchBoxes (keyword): 6개 (빈 키워드, name, region, 대소문자, memberCount, 공백 trim)
-- ✅ getCurrentBox: 4개 (조회, 없음, memberCount, joinedAt)
-- ✅ getBoxMembers: 3개 (목록, joinedAt, 빈 목록)
-- ✅ createBoxWithMembership: 3개 (트랜잭션, 기존 멤버십 제거, previousBoxId)
-
-**커버리지 평가**: ✅ 우수
-- 핵심 비즈니스 로직 모두 커버
-- Edge case 테스트 포함 (빈 값, 존재하지 않는 ID, 중복 가입)
-- 트랜잭션 동작 검증
-- 단일 박스 정책 검증 (자동 탈퇴, previousBoxId)
-
----
-
-## 발견된 이슈 및 권장 사항
-
-### 이슈 없음 ✅
-
-모든 코드가 CLAUDE.md 표준을 준수하고 있으며, 테스트가 모두 통과했습니다.
-
-### 권장 사항 (선택 사항)
-
-#### 1. Mobile API Contract 개선 (낮음)
-
-**현재**:
-```dart
-Future<MembershipModel> joinBox(int boxId) async {
-  final response = await _dio.post('/boxes/$boxId/join');
-  return MembershipModel.fromJson(response.data['membership']);
-}
-```
-
-**권장**:
-```dart
-Future<JoinBoxResponse> joinBox(int boxId) async {
-  final response = await _dio.post('/boxes/$boxId/join');
-  return JoinBoxResponse.fromJson(response.data);
-}
-
-@freezed
-class JoinBoxResponse with _$JoinBoxResponse {
-  const factory JoinBoxResponse({
-    required MembershipModel membership,
-    int? previousBoxId,
-  }) = _JoinBoxResponse;
-}
-```
-
-**이유**: `previousBoxId` 정보를 활용하여 "이전 박스에서 탈퇴되었습니다" UX 개선
-
-#### 2. BoxModel 확장 (낮음)
-
-**현재**:
-```dart
-@freezed
-class BoxModel with _$BoxModel {
-  const factory BoxModel({
-    required int id,
-    required String name,
-    required String region,
-    String? description,
-    int? memberCount,
-    String? joinedAt,
-  }) = _BoxModel;
-}
-```
-
-**권장**:
-```dart
-@freezed
-class BoxModel with _$BoxModel {
-  const factory BoxModel({
-    required int id,
-    required String name,
-    required String region,
-    String? description,
-    int? memberCount,
-    String? joinedAt,
-    int? createdBy,         // 추가
-    String? createdAt,      // 추가
-    String? updatedAt,      // 추가
-  }) = _BoxModel;
-}
-```
-
-**이유**: Server가 반환하는 모든 필드를 수용하여 향후 확장성 확보 (Freezed는 알 수 없는 필드 무시하므로 하위 호환성 유지)
-
-#### 3. 검색 성능 최적화 (낮음, 향후)
-
-**현재**: ILIKE 쿼리 (부분 일치)
-
-**향후**: PostgreSQL Full-Text Search (박스 수가 10,000개 이상일 때)
-```sql
-ALTER TABLE boxes
-ADD COLUMN search_vector tsvector
-GENERATED ALWAYS AS (
-  to_tsvector('korean', name || ' ' || region)
-) STORED;
-
-CREATE INDEX idx_boxes_search_vector ON boxes USING GIN(search_vector);
-```
-
-**이유**: 현재는 박스 수가 적어 문제 없지만, 향후 대규모 데이터에서 성능 개선 가능
+**개선 필요**:
+- ⚠️ ILIKE 와일드카드 이스케이프 추가 권장
 
 ---
 
@@ -621,40 +372,40 @@ CREATE INDEX idx_boxes_search_vector ON boxes USING GIN(search_vector);
 
 | 항목 | 점수 | 평가 |
 |------|------|------|
-| **코드 품질** | 9.5/10 | Express 패턴 완벽 준수, 트랜잭션 구현 우수 |
+| **코드 품질** | 8.5/10 | Critical 이슈 1건 (validators.ts trim 순서) |
 | **테스트 커버리지** | 9.0/10 | 핵심 로직 모두 커버, Edge case 테스트 포함 |
-| **API 설계** | 9.0/10 | RESTful 준수, 하위 호환성 유지, Mobile과 일치 |
-| **에러 처리** | 9.5/10 | NotFoundException, BusinessException 적절히 사용 |
-| **로깅** | 9.5/10 | Domain Probe 패턴 준수, 구조화된 로그 |
-| **문서화** | 9.0/10 | JSDoc 주석 충실, 한국어 사용 |
+| **API 설계** | 9.0/10 | RESTful 준수, 하위 호환성 유지 |
+| **에러 처리** | 8.5/10 | BusinessException, NotFoundException 사용, 409 처리 확인 필요 |
+| **로깅** | 8.5/10 | Domain Probe 패턴, 트랜잭션 로깅 위치 개선 필요 |
+| **문서화** | 8.5/10 | JSDoc 주석, types.ts JSDoc 누락 |
 | **성능** | 9.0/10 | Index 설정, memberCount 집계 최적화 |
-| **보안** | 9.5/10 | SQL Injection 방지, 인증 미들웨어 적용 |
+| **보안** | 9.0/10 | SQL Injection 방지, 와일드카드 이스케이프 권장 |
 
-**종합 점수**: **9.3/10** (우수)
+**종합 점수**: **8.8/10** (우수, Critical 이슈 수정 후 9.3/10)
 
 ---
 
 ## 최종 승인
 
-### 승인 상태: ✅ **APPROVED**
+### 승인 상태: ⚠️ **CONDITIONAL APPROVAL**
 
-**승인 근거**:
-1. 모든 테스트 통과 (277 tests, 100%)
-2. Express 미들웨어 패턴 완벽 준수
-3. 트랜잭션 구현으로 데이터 정합성 보장
-4. 통합 키워드 검색 구현 완료
-5. Mobile API Contract 일치 (일부 권장 사항 있음)
-6. Domain Probe 로깅 패턴 준수
-7. JSDoc 문서화 충실
+**승인 조건**:
+1. 🔴 **validators.ts:7** — trim() 순서 수정 (Critical)
+2. 🟠 **handlers.ts** — 트랜잭션 실패 로깅 추가 (권장)
+3. 🟠 **services.ts** — 트랜잭션 커밋 후 로깅 이동 (권장)
 
-**다음 단계**:
-1. Mobile CTO Review 진행
-2. Independent Reviewer 검증
-3. 문서 생성 (DONE.md)
-4. PR 생성 및 배포
+**승인 후 다음 단계**:
+1. Critical 이슈 수정 완료
+2. 테스트 재실행 (277 tests 통과 확인)
+3. Mobile CTO Review 진행
+4. Independent Reviewer 검증
+
+**선택 사항 (권장)**:
+- 🟡 ILIKE 와일드카드 이스케이프 함수 추가
+- 🟢 types.ts JSDoc 주석 추가
 
 ---
 
 **Reviewer**: CTO
-**Date**: 2026-02-09
-**Signature**: ✅ Approved
+**Date**: 2026-02-10 (Updated with CodeRabbit Issues)
+**Signature**: ⚠️ Conditional Approval (Critical 이슈 수정 필수)

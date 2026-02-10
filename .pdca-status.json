@@ -1,12 +1,12 @@
 {
   "features": {
     "wowa-box": {
-      "phase": "act",
+      "phase": "check",
       "platform": "fullstack",
       "frontendType": "mobile",
       "startedAt": "2026-02-09T00:00:00.000Z",
-      "matchRate": 97,
-      "iterationCount": 1,
+      "matchRate": 93,
+      "iterationCount": 2,
       "documents": {
         "plan": "docs/wowa/wowa-box/user-story.md",
         "design-server": "docs/wowa/wowa-box/server-brief.md",

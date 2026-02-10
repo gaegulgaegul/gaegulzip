@@ -6,6 +6,15 @@ import { NotFoundException, BusinessException } from '../../utils/errors';
 import * as boxProbe from './box.probe';
 
 /**
+ * SQL ILIKE 패턴에서 와일드카드 문자를 이스케이프합니다.
+ * @param value - 이스케이프할 문자열
+ * @returns 이스케이프된 문자열 (%, _, \ 문자가 리터럴로 처리됨)
+ */
+function escapeLikePattern(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
+/**
  * 박스 생성
  * @param data - 박스 생성 데이터
  * @returns 생성된 박스 객체
@@ -128,7 +137,8 @@ export async function searchBoxes(input: SearchBoxInput): Promise<BoxWithMemberC
       return [];
     }
 
-    // name OR region ILIKE 검색
+    // name OR region ILIKE 검색 (와일드카드 이스케이프 적용)
+    const escapedKeyword = escapeLikePattern(trimmedKeyword);
     const results = await db
       .select({
         id: boxes.id,
@@ -141,8 +151,8 @@ export async function searchBoxes(input: SearchBoxInput): Promise<BoxWithMemberC
       .leftJoin(boxMembers, eq(boxes.id, boxMembers.boxId))
       .where(
         or(
-          ilike(boxes.name, `%${trimmedKeyword}%`),
-          ilike(boxes.region, `%${trimmedKeyword}%`)
+          ilike(boxes.name, `%${escapedKeyword}%`),
+          ilike(boxes.region, `%${escapedKeyword}%`)
         )
       )
       .groupBy(boxes.id);
@@ -155,13 +165,15 @@ export async function searchBoxes(input: SearchBoxInput): Promise<BoxWithMemberC
     return [];
   }
 
-  // WHERE 조건 구성
+  // WHERE 조건 구성 (와일드카드 이스케이프 적용)
   const conditions = [];
   if (input.name) {
-    conditions.push(ilike(boxes.name, `%${input.name}%`));
+    const escapedName = escapeLikePattern(input.name);
+    conditions.push(ilike(boxes.name, `%${escapedName}%`));
   }
   if (input.region) {
-    conditions.push(ilike(boxes.region, `%${input.region}%`));
+    const escapedRegion = escapeLikePattern(input.region);
+    conditions.push(ilike(boxes.region, `%${escapedRegion}%`));
   }
 
   // 박스 조회 + memberCount 집계
@@ -238,7 +250,7 @@ export async function getBoxMembers(boxId: number) {
  * @throws 트랜잭션 실패 시 전체 롤백
  */
 export async function createBoxWithMembership(data: CreateBoxInput): Promise<CreateBoxResponse> {
-  return await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     // 1. 박스 생성
     const [box] = await tx.insert(boxes).values({
       name: data.name,
@@ -260,10 +272,11 @@ export async function createBoxWithMembership(data: CreateBoxInput): Promise<Cre
     }
 
     // 3. 생성자를 새 박스의 멤버로 등록
+    const memberRole: BoxMemberRole = 'member';
     const [rawMembership] = await tx.insert(boxMembers).values({
       boxId: box.id,
       userId: data.createdBy,
-      role: 'member',
+      role: memberRole,
     }).returning();
 
     const membership: BoxMember = {
@@ -271,26 +284,28 @@ export async function createBoxWithMembership(data: CreateBoxInput): Promise<Cre
       role: rawMembership.role as BoxMemberRole,
     };
 
-    // 4. 로깅
-    if (previousBoxId) {
-      boxProbe.boxSwitched({
-        userId: data.createdBy,
-        previousBoxId,
-        newBoxId: box.id,
-      });
-    } else {
-      boxProbe.created({
-        boxId: box.id,
-        name: box.name,
-        region: box.region,
-        createdBy: box.createdBy,
-      });
-      boxProbe.memberJoined({
-        boxId: box.id,
-        userId: data.createdBy,
-      });
-    }
-
     return { box, membership, previousBoxId };
   });
+
+  // 4. 트랜잭션 커밋 후 프로브 로깅
+  if (result.previousBoxId) {
+    boxProbe.boxSwitched({
+      userId: data.createdBy,
+      previousBoxId: result.previousBoxId,
+      newBoxId: result.box.id,
+    });
+  } else {
+    boxProbe.created({
+      boxId: result.box.id,
+      name: result.box.name,
+      region: result.box.region,
+      createdBy: result.box.createdBy,
+    });
+    boxProbe.memberJoined({
+      boxId: result.box.id,
+      userId: data.createdBy,
+    });
+  }
+
+  return result;
 }
