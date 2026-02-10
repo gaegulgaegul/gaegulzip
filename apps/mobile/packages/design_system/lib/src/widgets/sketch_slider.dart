@@ -1,8 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
-import '../painters/sketch_painter.dart';
-import '../painters/sketch_circle_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손그림 스타일 슬라이더 위젯
@@ -201,11 +199,9 @@ class _SketchSliderState extends State<SketchSlider> {
     final sketchTheme = SketchThemeExtension.maybeOf(context);
     final isDisabled = widget.onChanged == null;
 
-    final effectiveActiveColor = widget.activeColor ?? SketchDesignTokens.accentPrimary;
+    final effectiveActiveColor = widget.activeColor ?? SketchDesignTokens.base900;
     final effectiveInactiveColor = widget.inactiveColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveThumbColor = widget.thumbColor ?? effectiveActiveColor;
-    final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
-    final effectiveRoughness = widget.roughness ?? sketchTheme?.roughness ?? SketchDesignTokens.roughness;
 
     return Opacity(
       opacity: isDisabled ? SketchDesignTokens.opacityDisabled : 1.0,
@@ -246,18 +242,12 @@ class _SketchSliderState extends State<SketchSlider> {
                       left: 0,
                       right: 0,
                       top: (widget.thumbSize - widget.trackHeight) / 2,
-                      child: CustomPaint(
-                        painter: SketchPainter(
-                          fillColor: effectiveInactiveColor,
-                          borderColor: effectiveInactiveColor,
-                          strokeWidth: effectiveStrokeWidth,
-                          roughness: effectiveRoughness,
-                          seed: widget.seed,
-                          enableNoise: false,
-                        ),
-                        child: SizedBox(
-                          height: widget.trackHeight,
-                          width: trackWidth,
+                      child: Container(
+                        height: widget.trackHeight,
+                        width: trackWidth,
+                        decoration: BoxDecoration(
+                          color: effectiveInactiveColor,
+                          borderRadius: BorderRadius.circular(widget.trackHeight / 2),
                         ),
                       ),
                     ),
@@ -266,18 +256,12 @@ class _SketchSliderState extends State<SketchSlider> {
                     Positioned(
                       left: 0,
                       top: (widget.thumbSize - widget.trackHeight) / 2,
-                      child: CustomPaint(
-                        painter: SketchPainter(
-                          fillColor: effectiveActiveColor,
-                          borderColor: effectiveActiveColor,
-                          strokeWidth: effectiveStrokeWidth,
-                          roughness: effectiveRoughness,
-                          seed: widget.seed + 1,
-                          enableNoise: false,
-                        ),
-                        child: SizedBox(
-                          height: widget.trackHeight,
-                          width: thumbPosition,
+                      child: Container(
+                        height: widget.trackHeight,
+                        width: thumbPosition,
+                        decoration: BoxDecoration(
+                          color: effectiveActiveColor,
+                          borderRadius: BorderRadius.circular(widget.trackHeight / 2),
                         ),
                       ),
                     ),
@@ -286,17 +270,12 @@ class _SketchSliderState extends State<SketchSlider> {
                     Positioned(
                       left: thumbPosition - widget.thumbSize / 2,
                       top: 0,
-                      child: CustomPaint(
-                        painter: SketchCirclePainter(
-                          fillColor: effectiveThumbColor,
-                          borderColor: effectiveThumbColor,
-                          strokeWidth: effectiveStrokeWidth,
-                          roughness: effectiveRoughness,
-                          seed: widget.seed + 2,
-                        ),
-                        child: SizedBox(
-                          width: widget.thumbSize,
-                          height: widget.thumbSize,
+                      child: Container(
+                        width: widget.thumbSize,
+                        height: widget.thumbSize,
+                        decoration: BoxDecoration(
+                          color: effectiveThumbColor,
+                          shape: BoxShape.circle,
                         ),
                       ),
                     ),

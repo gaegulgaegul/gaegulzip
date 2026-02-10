@@ -3,8 +3,6 @@ import 'dart:math';
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
-import '../painters/sketch_painter.dart';
-import '../painters/sketch_circle_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 프로그레스 바 스타일
@@ -173,10 +171,11 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
   Widget build(BuildContext context) {
     final sketchTheme = SketchThemeExtension.maybeOf(context);
 
-    final effectiveProgressColor = widget.progressColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.accentPrimary;
+    final effectiveProgressColor = widget.progressColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base900;
     final effectiveBackgroundColor = widget.backgroundColor ?? sketchTheme?.fillColor ?? SketchDesignTokens.base200;
     final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
+
     final effectiveRoughness = widget.roughness ?? sketchTheme?.roughness ?? SketchDesignTokens.roughness;
 
     if (widget.style == SketchProgressBarStyle.linear) {
@@ -185,7 +184,6 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
         effectiveBackgroundColor,
         effectiveBorderColor,
         effectiveStrokeWidth,
-        effectiveRoughness,
       );
     } else {
       return _buildCircular(
@@ -203,39 +201,32 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
     Color backgroundColor,
     Color borderColor,
     double strokeWidth,
-    double roughness,
   ) {
     return SizedBox(
       height: widget.height,
       child: Stack(
         children: [
           // 배경
-          CustomPaint(
-            painter: SketchPainter(
-              fillColor: backgroundColor,
-              borderColor: borderColor,
-              strokeWidth: strokeWidth,
-              roughness: roughness,
-              seed: widget.seed,
-              enableNoise: false,
+          Container(
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              border: Border.all(
+                color: borderColor,
+                width: strokeWidth,
+              ),
+              borderRadius: BorderRadius.circular(widget.height / 2),
             ),
-            child: const SizedBox.expand(),
           ),
 
           // 진행 바
           if (widget.value != null)
             FractionallySizedBox(
               widthFactor: widget.value,
-              child: CustomPaint(
-                painter: SketchPainter(
-                  fillColor: progressColor,
-                  borderColor: progressColor,
-                  strokeWidth: strokeWidth,
-                  roughness: roughness,
-                  seed: widget.seed + 1,
-                  enableNoise: false,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: progressColor,
+                  borderRadius: BorderRadius.circular(widget.height / 2),
                 ),
-                child: const SizedBox.expand(),
               ),
             )
           else
@@ -249,16 +240,11 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
                     0.0,
                   ),
                   widthFactor: 0.3,
-                  child: CustomPaint(
-                    painter: SketchPainter(
-                      fillColor: progressColor,
-                      borderColor: progressColor,
-                      strokeWidth: strokeWidth,
-                      roughness: roughness,
-                      seed: widget.seed + 1,
-                      enableNoise: false,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: progressColor,
+                      borderRadius: BorderRadius.circular(widget.height / 2),
                     ),
-                    child: const SizedBox.expand(),
                   ),
                 );
               },
@@ -284,17 +270,15 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
         alignment: Alignment.center,
         children: [
           // 배경 원
-          CustomPaint(
-            painter: SketchCirclePainter(
-              fillColor: Colors.transparent,
-              borderColor: backgroundColor,
-              strokeWidth: widget.height,
-              roughness: roughness,
-              seed: widget.seed,
-            ),
-            child: SizedBox(
-              width: effectiveSize,
-              height: effectiveSize,
+          Container(
+            width: effectiveSize,
+            height: effectiveSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: backgroundColor,
+                width: widget.height,
+              ),
             ),
           ),
 

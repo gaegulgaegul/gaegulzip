@@ -1,7 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
-import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손으로 그린 스케치 스타일 모양의 컨테이너 widget.
@@ -140,32 +139,25 @@ class SketchContainer extends StatelessWidget {
     final sketchTheme = SketchThemeExtension.maybeOf(context);
 
     final effectiveFillColor = fillColor ?? sketchTheme?.fillColor ?? Colors.white;
-    final effectiveBorderColor = borderColor ?? sketchTheme?.borderColor ?? const Color(0xFFDCDCDC);
+    final effectiveBorderColor = borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base900;
     final effectiveStrokeWidth = strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
-    final effectiveRoughness = roughness ?? sketchTheme?.roughness ?? SketchDesignTokens.roughness;
-    final effectiveBowing = bowing ?? sketchTheme?.bowing ?? SketchDesignTokens.bowing;
     final effectivePadding = padding ?? const EdgeInsets.all(SketchDesignTokens.spacingMd);
 
     return Container(
       width: width,
       height: height,
       margin: margin,
-      child: CustomPaint(
-        painter: SketchPainter(
-          fillColor: effectiveFillColor,
-          borderColor: effectiveBorderColor,
-          strokeWidth: effectiveStrokeWidth,
-          roughness: effectiveRoughness,
-          bowing: effectiveBowing,
-          seed: seed,
-          enableNoise: enableNoise,
+      decoration: BoxDecoration(
+        color: effectiveFillColor,
+        border: Border.all(
+          color: effectiveBorderColor,
+          width: effectiveStrokeWidth,
         ),
-        child: Container(
-          padding: effectivePadding,
-          alignment: alignment,
-          child: child,
-        ),
+        borderRadius: BorderRadius.circular(6),
       ),
+      padding: effectivePadding,
+      alignment: alignment,
+      child: child,
     );
   }
 }

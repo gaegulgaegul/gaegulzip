@@ -68,7 +68,7 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
     this.strokeWidth = SketchDesignTokens.strokeStandard,
     this.roughness = SketchDesignTokens.roughness,
     this.bowing = SketchDesignTokens.bowing,
-    this.borderColor = const Color(0xFFDCDCDC), // base300
+    this.borderColor = const Color(0xFF343434), // base900 — Frame0 스케치 스타일: 어두운 테두리
     this.fillColor = const Color(0xFFFFFFFF), // white
     this.shadowOffset = SketchDesignTokens.shadowOffsetMd,
     this.shadowBlur = SketchDesignTokens.shadowBlurMd,
@@ -78,7 +78,7 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
   /// 라이트 테마 변형을 생성함.
   factory SketchThemeExtension.light() {
     return const SketchThemeExtension(
-      borderColor: Color(0xFFDCDCDC), // base300
+      borderColor: Color(0xFF343434), // base900 — Frame0 모노크롬
       fillColor: Color(0xFFFFFFFF), // white
     );
   }
