@@ -257,6 +257,22 @@ class SketchDesignTokens {
   static const double fontSize6Xl = 60.0;
 
   // ============================================================================
+  // 폰트 패밀리 (Frame0 Default Fonts)
+  // ============================================================================
+
+  /// Hand 폰트 — Sketch 테마의 기본 손글씨 폰트
+  static const String fontFamilyHand = 'PatrickHand';
+
+  /// Sans 폰트 — Solid 테마의 기본 산세리프 폰트
+  static const String fontFamilySans = 'Roboto';
+
+  /// Mono 폰트 — 코드, 숫자, 기술적 텍스트
+  static const String fontFamilyMono = 'JetBrainsMono';
+
+  /// Serif 폰트 — 본문, 장문 텍스트
+  static const String fontFamilySerif = 'Georgia';
+
+  // ============================================================================
   // 불투명도
   // ============================================================================
 
