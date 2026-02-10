@@ -49,10 +49,9 @@ class _ContainerDemoState extends State<ContainerDemo> {
         const SizedBox(height: SketchDesignTokens.spacingLg),
         SketchContainer(
           strokeWidth: _strokeWidth,
-          roughness: _roughness,
           padding: const EdgeInsets.all(SketchDesignTokens.spacingLg),
           child: const Text(
-            'This is a SketchContainer with customizable stroke width and roughness.',
+            'This is a SketchContainer with customizable stroke width.',
             textAlign: TextAlign.center,
           ),
         ),
@@ -113,33 +112,12 @@ class _ContainerDemoState extends State<ContainerDemo> {
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
 
-        // 기본 (부드러운)
-        const Text('부드러운 (roughness: 0.3)', style: TextStyle(fontWeight: FontWeight.w500)),
+        // 기본 스타일 예제
+        const Text('기본 스타일', style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: SketchDesignTokens.spacingSm),
         const SketchContainer(
-          roughness: 0.3,
           padding: EdgeInsets.all(SketchDesignTokens.spacingLg),
-          child: Text('Smooth sketch effect'),
-        ),
-        const SizedBox(height: SketchDesignTokens.spacingLg),
-
-        // 중간
-        const Text('중간 (roughness: 0.8)', style: TextStyle(fontWeight: FontWeight.w500)),
-        const SizedBox(height: SketchDesignTokens.spacingSm),
-        const SketchContainer(
-          roughness: 0.8,
-          padding: EdgeInsets.all(SketchDesignTokens.spacingLg),
-          child: Text('Medium sketch effect'),
-        ),
-        const SizedBox(height: SketchDesignTokens.spacingLg),
-
-        // 강한
-        const Text('강한 (roughness: 1.5)', style: TextStyle(fontWeight: FontWeight.w500)),
-        const SizedBox(height: SketchDesignTokens.spacingSm),
-        const SketchContainer(
-          roughness: 1.5,
-          padding: EdgeInsets.all(SketchDesignTokens.spacingLg),
-          child: Text('Strong sketch effect'),
+          child: Text('Default sketch container'),
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
 

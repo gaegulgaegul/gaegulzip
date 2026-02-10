@@ -76,12 +76,6 @@ class SketchSwitch extends StatefulWidget {
   /// 선 두께
   final double? strokeWidth;
 
-  /// 거칠기 계수
-  final double? roughness;
-
-  /// 랜덤 시드
-  final int seed;
-
   const SketchSwitch({
     super.key,
     required this.value,
@@ -92,8 +86,6 @@ class SketchSwitch extends StatefulWidget {
     this.width = 50.0,
     this.height = 28.0,
     this.strokeWidth,
-    this.roughness,
-    this.seed = 0,
   });
 
   @override

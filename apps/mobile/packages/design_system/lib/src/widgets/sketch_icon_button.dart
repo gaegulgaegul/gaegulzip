@@ -105,12 +105,6 @@ class SketchIconButton extends StatefulWidget {
   /// 테두리의 스트로크 너비.
   final double? strokeWidth;
 
-  /// 손으로 그린 흔들림을 위한 거칠기 계수.
-  final double? roughness;
-
-  /// 재현 가능한 스케치 모양을 위한 무작위 시드.
-  final int seed;
-
   const SketchIconButton({
     super.key,
     required this.icon,
@@ -124,8 +118,6 @@ class SketchIconButton extends StatefulWidget {
     this.fillColor,
     this.borderColor,
     this.strokeWidth,
-    this.roughness,
-    this.seed = 0,
   });
 
   @override

@@ -108,12 +108,6 @@ class SketchSlider extends StatefulWidget {
   /// 선 두께
   final double? strokeWidth;
 
-  /// 거칠기 계수
-  final double? roughness;
-
-  /// 랜덤 시드
-  final int seed;
-
   const SketchSlider({
     super.key,
     required this.value,
@@ -130,8 +124,6 @@ class SketchSlider extends StatefulWidget {
     this.trackHeight = 6.0,
     this.thumbSize = 20.0,
     this.strokeWidth,
-    this.roughness,
-    this.seed = 0,
   }) : assert(min < max, 'min은 max보다 작아야 함'),
        assert(value >= min && value <= max, 'value는 min과 max 사이여야 함');
 

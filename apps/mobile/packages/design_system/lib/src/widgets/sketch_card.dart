@@ -48,7 +48,7 @@ import '../theme/sketch_theme_extension.dart';
 /// SketchCard(
 ///   body: Text('Custom card'),
 ///   fillColor: SketchDesignTokens.accentLight,
-///   borderColor: SketchDesignTokens.accentPrimary,
+///   borderColor: SketchDesignTokens.accentSecondary,
 ///   elevation: 3,
 ///   padding: EdgeInsets.all(SketchDesignTokens.spacingLg),
 /// )
@@ -106,22 +106,6 @@ class SketchCard extends StatefulWidget {
   /// null이면 테마의 `SketchThemeExtension.strokeWidth` 사용.
   final double? strokeWidth;
 
-  /// 손으로 그린 흔들림을 위한 거칠기 계수 (0.0-1.0+).
-  ///
-  /// null이면 테마의 `SketchThemeExtension.roughness` 사용.
-  final double? roughness;
-
-  /// 곡선 왜곡을 위한 휘어짐 계수.
-  ///
-  /// null이면 테마의 `SketchThemeExtension.bowing` 사용.
-  final double? bowing;
-
-  /// 재현 가능한 스케치 모양을 위한 무작위 시드.
-  final int seed;
-
-  /// 노이즈 텍스처 채우기 활성화 여부.
-  final bool enableNoise;
-
   /// 커스텀 너비 (null이면 콘텐츠에 맞춰 확장).
   final double? width;
 
@@ -144,10 +128,6 @@ class SketchCard extends StatefulWidget {
     this.fillColor,
     this.borderColor,
     this.strokeWidth,
-    this.roughness,
-    this.bowing,
-    this.seed = 0,
-    this.enableNoise = true,
     this.width,
     this.height,
     this.margin,

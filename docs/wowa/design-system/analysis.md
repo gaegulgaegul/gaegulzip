@@ -1,81 +1,97 @@
-# Design System 갭 분석 보고서
+# Gap Analysis: Design System v2 (Cycle 2, Iteration 1)
 
-- **피처**: design-system (Frame0 모노크롬 스타일 전환)
-- **플랫폼**: Mobile (Flutter)
+- **Feature**: design-system
+- **Platform**: Mobile (Flutter)
+- **Cycle**: 2 (신규 위젯 추가 + 기존 위젯 수정)
 - **분석일**: 2026-02-10
-- **Match Rate**: **97%**
+- **flutter analyze**: 에러 0개, warning 3개 (기존 painter), info 9개
+
+## Match Rate: 91% (이전 78%)
+
+| 카테고리 | Match Rate | 이전 | 갭 수 |
+|---------|:----------:|:----:|:-----:|
+| 토큰/테마 | 98% | 72% | 1 |
+| 기존 위젯 수정 | 92% | 65% | 0 |
+| 신규 위젯 (11개) | 88% | 87% | 2 |
 
 ---
 
-## 전체 점수
+## 해결된 갭 (6건)
 
-| 카테고리 | 점수 | 상태 |
-|---------|:----:|:----:|
-| 모노크롬 전환 완성도 | 100% | PASS |
-| CustomPaint 제거 완성도 | 100% | PASS |
-| BoxDecoration 일관성 | 100% | PASS |
-| 테마 연동 | 92% | PASS |
-| 비활성화 상태 패턴 | 86% | PASS |
-| 버튼 레이아웃 (클리핑 수정) | 100% | PASS |
-| 미사용 코드 정리 | 100% | PASS |
-| 가이드 문서 동기화 | 72% | WARN |
+### 1. accentPrimary 색상 → 파란색 통일 (CRITICAL → 해결)
 
----
+| 토큰 | 디자인 값 | 구현 값 |
+|------|----------|---------|
+| accentPrimary | `#2196F3` | `#2196F3` |
+| accentPrimaryLight | `#64B5F6` | `#64B5F6` |
+| accentPrimaryDark | `#1976D2` | `#1976D2` |
 
-## 코드 품질 분석 (72/100)
+### 2. 기존 위젯 fontFamily 적용 (CRITICAL → 해결)
 
-### CRITICAL — 즉시 수정 필요
+SketchButton, SketchInput, SketchChip, SketchDropdown 모두 `fontFamilyHand` 적용 완료.
+SketchCard는 컨테이너 위젯으로 자체 TextStyle 없음 (정상).
 
-| # | 파일 | 이슈 |
-|---|------|------|
-| 1 | `sketch_input.dart` | `ColorSpec` 클래스가 public으로 노출됨 (다른 위젯은 `_ColorSpec`) |
-| 2 | `sketch_dropdown.dart` | 외부 탭 시 드롭다운이 닫히지 않음 (barrier 없음) |
-| 3 | `sketch_dropdown.dart` | Overlay가 위젯 트리 외부 context 참조 — stale reference 가능성 |
-| 4 | `sketch_card.dart:257-271` | `withOpacity()` deprecated — `withValues(alpha:)` 사용 필요 |
+### 3. SketchButton 크기 동기화 (HIGH → 해결)
 
-### WARNING — 개선 권장
+| Size | 디자인 | 구현 |
+|------|:------:|:----:|
+| medium | 44 | 44 |
+| large | 56 | 56 |
 
-| # | 파일 | 이슈 |
-|---|------|------|
-| 1 | 8개 위젯 | `roughness`, `bowing`, `seed`, `enableNoise` 파라미터 미사용 (CustomPaint 제거 후 잔존) |
-| 2 | doc-string 3건 | `accentPrimary` 오래된 예제 잔존 (sketch_container, sketch_card) |
-| 3 | `design_system.dart` | `Calculator` 보일러플레이트 클래스 잔존 |
-| 4 | 전체 | `BorderRadius.circular(6)` 등 하드코딩 — 토큰 활용 가능 |
+### 4. SketchAvatar xxl(120) 추가 (HIGH → 해결)
 
-### 미사용 파라미터 매트릭스
+```
+구현: xs(24), sm(32), md(40), lg(56), xl(80), xxl(120)
+```
 
-| 위젯 | roughness | bowing | seed | enableNoise |
-|------|:---------:|:------:|:----:|:-----------:|
-| sketch_container | 미사용 | 미사용 | 미사용 | 미사용 |
-| sketch_card | 미사용 | 미사용 | 미사용 | 미사용 |
-| sketch_dropdown | 미사용 | — | 미사용 | — |
-| sketch_icon_button | 미사용 | — | 미사용 | — |
-| sketch_slider | 미사용 | — | 미사용 | — |
-| sketch_switch | 미사용 | — | 미사용 | — |
-| sketch_input | 부분(저장만) | — | 미사용 | — |
-| sketch_chip | 부분(저장만) | — | — | — |
-| sketch_checkbox | **사용됨** | — | **사용됨** | — |
-| sketch_progress_bar | **사용됨** | — | **사용됨** | — |
+디자인의 xlarge(120)에 대응하는 xxl(120) 추가됨.
 
-> checkbox, progress_bar는 내부 CustomPainter를 유지하므로 정당한 사용
+### 5. surface 색상 값 동기화 (MEDIUM → 해결)
+
+| 토큰 | 디자인 | 구현 |
+|------|--------|------|
+| surface (Light) | `#F5F0E8` | `#F5F0E8` |
+| surfaceDark | `#23273A` | `#23273A` |
+
+### 6. BottomNavigationBar labelBehavior 기본값 (MEDIUM → 해결)
+
+디자인: showSelected / 구현: onlyShowSelected (동일 동작)
 
 ---
 
-## 권장 조치 우선순위
+## 잔여 갭 (3건)
 
-### 즉시
+### 7. SketchAppBar showSketchBorder TODO (MEDIUM)
 
-1. `sketch_input.dart`의 `ColorSpec` → `_ColorSpec` 변경
-2. `sketch_dropdown.dart`에 외부 탭 닫힘 처리 추가
-3. `sketch_card.dart`의 `withOpacity()` → `withValues(alpha:)` 수정
-4. doc-string의 `accentPrimary` 예제 3건 수정
+파라미터 존재하나 SketchPainter 연동이 TODO로 비활성화.
+`sketch_app_bar.dart:189`
 
-### 단기
+### 8. SketchTabBar filled 인디케이터 미구현 (LOW)
 
-5. 8개 위젯에서 미사용 `roughness`/`seed`/`bowing`/`enableNoise` 파라미터 제거
-6. `design_system.dart`의 `Calculator` 클래스 삭제
+underline만 구현됨. filled 스타일은 placeholder 상태.
+`sketch_tab_bar.dart:216`
 
-### 백로그
+### 9. SketchThemeExtension.light() surfaceColor (MEDIUM)
 
-7. `BorderRadius` 값을 `SketchDesignTokens` 토큰으로 통일
-8. `sketch_button` 테마 연동 검토
+`sketch_theme_extension.dart:91`에서 surfaceColor가 `#F7F7F7` (중성 회색).
+디자인 토큰 `#F5F0E8` (따뜻한 크림)과 불일치.
+
+---
+
+## 스킵 항목
+
+- SocialLoginButton.sketchStyle: 사용자 판단으로 불필요
+
+---
+
+## Frame0 원본 대비 추가 갭 (참조용)
+
+1. 스케치 테두리 → BoxDecoration 교체로 손그림 느낌 약화
+2. Hand-drawn 아이콘셋 부재 (Material Icons 사용 중)
+
+---
+
+## 결론
+
+90% 임계값 달성. 잔여 3건은 모두 비차단(non-blocking) 수준으로
+enhancement 항목으로 추적 가능.

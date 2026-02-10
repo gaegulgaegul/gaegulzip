@@ -18,10 +18,10 @@ enum SketchButtonSize {
   /// 작은 버튼: 32px 높이, 8px/16px 패딩.
   small,
 
-  /// 중간 버튼: 40px 높이, 12px/24px 패딩 (기본값).
+  /// 중간 버튼: 44px 높이, 12px/24px 패딩 (기본값).
   medium,
 
-  /// 큰 버튼: 48px 높이, 16px/32px 패딩.
+  /// 큰 버튼: 56px 높이, 16px/32px 패딩.
   large,
 }
 
@@ -73,8 +73,8 @@ enum SketchButtonSize {
 ///
 /// **크기:**
 /// - [SketchButtonSize.small]: 32px 높이
-/// - [SketchButtonSize.medium]: 40px 높이 (기본값)
-/// - [SketchButtonSize.large]: 48px 높이
+/// - [SketchButtonSize.medium]: 44px 높이 (기본값)
+/// - [SketchButtonSize.large]: 56px 높이
 class SketchButton extends StatefulWidget {
   /// 버튼 텍스트 (아이콘만 사용할 경우 null 가능).
   final String? text;
@@ -150,7 +150,7 @@ class _SketchButtonState extends State<SketchButton> {
                 color: colorSpec.borderColor,
                 width: colorSpec.strokeWidth,
               ),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(9999),
             ),
             padding: sizeSpec.padding,
             child: _buildContent(sizeSpec, colorSpec),
@@ -193,6 +193,7 @@ class _SketchButtonState extends State<SketchButton> {
           Text(
             widget.text!,
             style: TextStyle(
+              fontFamily: SketchDesignTokens.fontFamilyHand,
               color: colorSpec.textColor,
               fontSize: sizeSpec.fontSize,
               fontWeight: FontWeight.w400,
@@ -218,6 +219,7 @@ class _SketchButtonState extends State<SketchButton> {
       child: Text(
         widget.text!,
         style: TextStyle(
+          fontFamily: SketchDesignTokens.fontFamilyHand,
           color: colorSpec.textColor,
           fontSize: sizeSpec.fontSize,
           fontWeight: FontWeight.w400,
@@ -236,13 +238,13 @@ class _SketchButtonState extends State<SketchButton> {
         );
       case SketchButtonSize.medium:
         return _SizeSpec(
-          height: 40.0,
+          height: 44.0,
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           fontSize: SketchDesignTokens.fontSizeBase,
         );
       case SketchButtonSize.large:
         return _SizeSpec(
-          height: 48.0,
+          height: 56.0,
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
           fontSize: SketchDesignTokens.fontSizeLg,
         );

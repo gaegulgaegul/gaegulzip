@@ -640,8 +640,6 @@ class TokensView extends GetView<TokensController> {
               child: SketchContainer(
                 width: 200,
                 height: 120,
-                roughness: controller.demoRoughness.value,
-                bowing: controller.demoBowing.value,
                 child: const Center(
                   child: Text(
                     '스케치 효과',

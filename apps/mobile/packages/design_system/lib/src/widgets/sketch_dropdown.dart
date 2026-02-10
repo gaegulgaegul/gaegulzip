@@ -77,12 +77,6 @@ class SketchDropdown<T> extends StatefulWidget {
   /// 선 두께
   final double? strokeWidth;
 
-  /// 거칠기 계수
-  final double? roughness;
-
-  /// 랜덤 시드
-  final int seed;
-
   const SketchDropdown({
     super.key,
     this.value,
@@ -94,8 +88,6 @@ class SketchDropdown<T> extends StatefulWidget {
     this.fillColor,
     this.borderColor,
     this.strokeWidth,
-    this.roughness,
-    this.seed = 0,
   });
 
   @override
@@ -203,6 +195,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                               : Text(
                                   item.toString(),
                                   style: TextStyle(
+                                    fontFamily: SketchDesignTokens.fontFamilyHand,
                                     fontSize: SketchDesignTokens.fontSizeBase,
                                     color: SketchDesignTokens.base900,
                                     fontWeight: isSelected
@@ -268,6 +261,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                               : Text(
                                   widget.value.toString(),
                                   style: const TextStyle(
+                                    fontFamily: SketchDesignTokens.fontFamilyHand,
                                     fontSize: SketchDesignTokens.fontSizeBase,
                                     color: SketchDesignTokens.base900,
                                   ),
@@ -275,6 +269,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                           : Text(
                               widget.hint ?? '',
                               style: const TextStyle(
+                                fontFamily: SketchDesignTokens.fontFamilyHand,
                                 fontSize: SketchDesignTokens.fontSizeBase,
                                 color: SketchDesignTokens.base500,
                               ),

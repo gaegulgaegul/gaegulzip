@@ -99,12 +99,6 @@ class SketchChip extends StatefulWidget {
   /// 테두리의 스트로크 너비.
   final double? strokeWidth;
 
-  /// 손으로 그린 흔들림을 위한 거칠기 계수.
-  final double? roughness;
-
-  /// 재현 가능한 스케치 모양을 위한 무작위 시드.
-  final int seed;
-
   /// 내부 패딩.
   final EdgeInsetsGeometry padding;
 
@@ -126,8 +120,6 @@ class SketchChip extends StatefulWidget {
     this.labelColor,
     this.iconColor,
     this.strokeWidth,
-    this.roughness,
-    this.seed = 0,
     this.padding = const EdgeInsets.symmetric(
       horizontal: 12.0,
       vertical: 6.0,
@@ -182,6 +174,7 @@ class _SketchChipState extends State<SketchChip> {
               Text(
                 widget.label,
                 style: TextStyle(
+                  fontFamily: SketchDesignTokens.fontFamilyHand,
                   fontSize: SketchDesignTokens.fontSizeSm,
                   fontWeight: FontWeight.w500,
                   color: colorSpec.labelColor,
@@ -227,7 +220,6 @@ class _SketchChipState extends State<SketchChip> {
         borderColor: widget.borderColor ?? SketchDesignTokens.base300,
         labelColor: widget.labelColor ?? SketchDesignTokens.base900,
         strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
-        roughness: widget.roughness ?? SketchDesignTokens.roughness,
       );
     }
 
@@ -238,7 +230,6 @@ class _SketchChipState extends State<SketchChip> {
         borderColor: SketchDesignTokens.base900,
         labelColor: Colors.white,
         strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
-        roughness: widget.roughness ?? SketchDesignTokens.roughness,
       );
     }
 
@@ -248,7 +239,6 @@ class _SketchChipState extends State<SketchChip> {
       borderColor: theme?.borderColor ?? SketchDesignTokens.base900,
       labelColor: SketchDesignTokens.base900,
       strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
-      roughness: widget.roughness ?? SketchDesignTokens.roughness,
     );
   }
 }
@@ -259,13 +249,11 @@ class _ColorSpec {
   final Color borderColor;
   final Color labelColor;
   final double strokeWidth;
-  final double roughness;
 
   const _ColorSpec({
     required this.fillColor,
     required this.borderColor,
     required this.labelColor,
     required this.strokeWidth,
-    required this.roughness,
   });
 }

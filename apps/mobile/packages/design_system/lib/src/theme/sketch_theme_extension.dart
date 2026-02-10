@@ -54,6 +54,12 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
   /// 기본 채우기 색상.
   final Color fillColor;
 
+  /// 카드/모달 표면 색상.
+  final Color surfaceColor;
+
+  /// 링크/선택 상태 색상.
+  final Color linkColor;
+
   /// 그림자 오프셋.
   final Offset shadowOffset;
 
@@ -70,6 +76,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
     this.bowing = SketchDesignTokens.bowing,
     this.borderColor = const Color(0xFF343434), // base900 — Frame0 스케치 스타일: 어두운 테두리
     this.fillColor = const Color(0xFFFFFFFF), // white
+    this.surfaceColor = const Color(0xFFF7F7F7), // surface — 카드/모달 표면색
+    this.linkColor = const Color(0xFF2196F3), // linkBlue — 링크/선택 상태
     this.shadowOffset = SketchDesignTokens.shadowOffsetMd,
     this.shadowBlur = SketchDesignTokens.shadowBlurMd,
     this.shadowColor = SketchDesignTokens.shadowColor,
@@ -79,7 +87,9 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
   factory SketchThemeExtension.light() {
     return const SketchThemeExtension(
       borderColor: Color(0xFF343434), // base900 — Frame0 모노크롬
-      fillColor: Color(0xFFFFFFFF), // white
+      fillColor: Color(0xFFFAF8F5), // background — 크림색 배경
+      surfaceColor: Color(0xFFF7F7F7), // surface — 카드/모달 표면색
+      linkColor: Color(0xFF2196F3), // linkBlue — 링크/선택 상태
     );
   }
 
@@ -87,7 +97,9 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
   factory SketchThemeExtension.dark() {
     return const SketchThemeExtension(
       borderColor: Color(0xFF5E5E5E), // base700
-      fillColor: Color(0xFF343434), // base900
+      fillColor: Color(0xFF1A1D29), // backgroundDark — 네이비 배경
+      surfaceColor: Color(0xFF2A2D3A), // surfaceDark — 어두운 표면색
+      linkColor: Color(0xFF64B5F6), // linkBlueDark — 밝은 링크색 (다크 모드용)
       shadowColor: Color(0x40000000), // 다크 모드용 더 어두운 그림자
     );
   }
@@ -98,6 +110,7 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       strokeWidth: SketchDesignTokens.strokeBold,
       roughness: 1.2,
       bowing: 0.8,
+      fillColor: Color(0xFFFAF8F5), // background — 크림색 배경
     );
   }
 
@@ -107,6 +120,7 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       strokeWidth: SketchDesignTokens.strokeThin,
       roughness: 0.3,
       bowing: 0.2,
+      fillColor: Color(0xFFFAF8F5), // background — 크림색 배경
     );
   }
 
@@ -119,6 +133,7 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       strokeWidth: SketchDesignTokens.strokeThin,
       roughness: 0.0,
       bowing: 0.0,
+      fillColor: Color(0xFFFAF8F5), // background — 크림색 배경
     );
   }
 
@@ -131,6 +146,7 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       strokeWidth: SketchDesignTokens.strokeBold,
       roughness: 1.8,
       bowing: 1.2,
+      fillColor: Color(0xFFFAF8F5), // background — 크림색 배경
     );
   }
 
@@ -141,6 +157,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
     double? bowing,
     Color? borderColor,
     Color? fillColor,
+    Color? surfaceColor,
+    Color? linkColor,
     Offset? shadowOffset,
     double? shadowBlur,
     Color? shadowColor,
@@ -151,6 +169,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       bowing: bowing ?? this.bowing,
       borderColor: borderColor ?? this.borderColor,
       fillColor: fillColor ?? this.fillColor,
+      surfaceColor: surfaceColor ?? this.surfaceColor,
+      linkColor: linkColor ?? this.linkColor,
       shadowOffset: shadowOffset ?? this.shadowOffset,
       shadowBlur: shadowBlur ?? this.shadowBlur,
       shadowColor: shadowColor ?? this.shadowColor,
@@ -172,6 +192,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       bowing: lerpDouble(bowing, other.bowing, t)!,
       borderColor: Color.lerp(borderColor, other.borderColor, t)!,
       fillColor: Color.lerp(fillColor, other.fillColor, t)!,
+      surfaceColor: Color.lerp(surfaceColor, other.surfaceColor, t)!,
+      linkColor: Color.lerp(linkColor, other.linkColor, t)!,
       shadowOffset: Offset.lerp(shadowOffset, other.shadowOffset, t)!,
       shadowBlur: lerpDouble(shadowBlur, other.shadowBlur, t)!,
       shadowColor: Color.lerp(shadowColor, other.shadowColor, t)!,
@@ -231,6 +253,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
         other.bowing == bowing &&
         other.borderColor == borderColor &&
         other.fillColor == fillColor &&
+        other.surfaceColor == surfaceColor &&
+        other.linkColor == linkColor &&
         other.shadowOffset == shadowOffset &&
         other.shadowBlur == shadowBlur &&
         other.shadowColor == shadowColor;
@@ -244,6 +268,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       bowing,
       borderColor,
       fillColor,
+      surfaceColor,
+      linkColor,
       shadowOffset,
       shadowBlur,
       shadowColor,
@@ -258,6 +284,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
         'bowing: $bowing, '
         'borderColor: $borderColor, '
         'fillColor: $fillColor, '
+        'surfaceColor: $surfaceColor, '
+        'linkColor: $linkColor, '
         'shadowOffset: $shadowOffset, '
         'shadowBlur: $shadowBlur, '
         'shadowColor: $shadowColor'

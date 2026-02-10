@@ -147,12 +147,6 @@ class SketchInput extends StatefulWidget {
   /// 커스텀 스트로크 너비.
   final double? strokeWidth;
 
-  /// 커스텀 거칠기.
-  final double? roughness;
-
-  /// 스케치 모양을 위한 무작위 시드.
-  final int seed;
-
   const SketchInput({
     super.key,
     this.label,
@@ -180,8 +174,6 @@ class SketchInput extends StatefulWidget {
     this.fillColor,
     this.borderColor,
     this.strokeWidth,
-    this.roughness,
-    this.seed = 0,
   });
 
   @override
@@ -233,6 +225,7 @@ class _SketchInputState extends State<SketchInput> {
           Text(
             widget.label!,
             style: TextStyle(
+              fontFamily: SketchDesignTokens.fontFamilyHand,
               fontSize: SketchDesignTokens.fontSizeSm,
               fontWeight: FontWeight.w500,
               color: hasError ? SketchDesignTokens.error : SketchDesignTokens.base900,
@@ -291,12 +284,14 @@ class _SketchInputState extends State<SketchInput> {
                   textAlign: widget.textAlign,
                   style: widget.style ??
                       TextStyle(
+                        fontFamily: SketchDesignTokens.fontFamilyHand,
                         fontSize: SketchDesignTokens.fontSizeBase,
                         color: colorSpec.textColor,
                       ),
                   decoration: InputDecoration(
                     hintText: widget.hint,
                     hintStyle: TextStyle(
+                      fontFamily: SketchDesignTokens.fontFamilyHand,
                       color: colorSpec.hintColor,
                       fontSize: SketchDesignTokens.fontSizeBase,
                     ),
@@ -329,6 +324,7 @@ class _SketchInputState extends State<SketchInput> {
           Text(
             widget.errorText ?? widget.helperText!,
             style: TextStyle(
+              fontFamily: SketchDesignTokens.fontFamilyHand,
               fontSize: SketchDesignTokens.fontSizeXs,
               color: hasError ? SketchDesignTokens.error : SketchDesignTokens.base600,
             ),
@@ -364,7 +360,6 @@ class _SketchInputState extends State<SketchInput> {
         hintColor: SketchDesignTokens.base400,
         iconColor: SketchDesignTokens.base400,
         strokeWidth: SketchDesignTokens.strokeStandard,
-        roughness: SketchDesignTokens.roughness,
       );
     }
 
@@ -376,7 +371,6 @@ class _SketchInputState extends State<SketchInput> {
         hintColor: SketchDesignTokens.base500,
         iconColor: SketchDesignTokens.error,
         strokeWidth: SketchDesignTokens.strokeBold,
-        roughness: SketchDesignTokens.roughness + 0.1,
       );
     }
 
@@ -389,7 +383,6 @@ class _SketchInputState extends State<SketchInput> {
         hintColor: SketchDesignTokens.base500,
         iconColor: SketchDesignTokens.base900,
         strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeBold,
-        roughness: widget.roughness ?? SketchDesignTokens.roughness + 0.1,
       );
     }
 
@@ -401,7 +394,6 @@ class _SketchInputState extends State<SketchInput> {
       hintColor: SketchDesignTokens.base500,
       iconColor: SketchDesignTokens.base600,
       strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
-      roughness: widget.roughness ?? SketchDesignTokens.roughness,
     );
   }
 }
@@ -414,7 +406,6 @@ class _ColorSpec {
   final Color hintColor;
   final Color iconColor;
   final double strokeWidth;
-  final double roughness;
 
   const _ColorSpec({
     required this.fillColor,
@@ -423,6 +414,5 @@ class _ColorSpec {
     required this.hintColor,
     required this.iconColor,
     required this.strokeWidth,
-    required this.roughness,
   });
 }

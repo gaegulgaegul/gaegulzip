@@ -32,7 +32,6 @@ class NoticeListCard extends StatelessWidget {
         fillColor: notice.isRead
             ? Colors.white
             : const Color(0xFFFFF9F7), // 아주 연한 오렌지
-        roughness: 0.8,
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
