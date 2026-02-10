@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:push/push.dart';
 import 'package:auth_sdk/auth_sdk.dart';
 import 'package:notice/notice.dart';
+import 'package:design_system/design_system.dart';
 import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 
@@ -122,6 +123,12 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        scaffoldBackgroundColor: SketchDesignTokens.background,
+        extensions: const [
+          SketchThemeExtension(
+            fillColor: SketchDesignTokens.background,
+          ),
+        ],
       ),
     );
   }
