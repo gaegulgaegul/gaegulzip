@@ -256,19 +256,19 @@ class _SketchCardState extends State<SketchCard> {
         return _ElevationSpec(
           shadowOffset: const Offset(0, 2),
           shadowBlur: 4.0,
-          shadowColor: SketchDesignTokens.shadowColor.withOpacity(0.1),
+          shadowColor: SketchDesignTokens.shadowColor.withValues(alpha: 0.1),
         );
       case 2:
         return _ElevationSpec(
           shadowOffset: const Offset(0, 4),
           shadowBlur: 8.0,
-          shadowColor: SketchDesignTokens.shadowColor.withOpacity(0.15),
+          shadowColor: SketchDesignTokens.shadowColor.withValues(alpha: 0.15),
         );
       case 3:
         return _ElevationSpec(
           shadowOffset: const Offset(0, 8),
           shadowBlur: 16.0,
-          shadowColor: SketchDesignTokens.shadowColor.withOpacity(0.2),
+          shadowColor: SketchDesignTokens.shadowColor.withValues(alpha: 0.2),
         );
       default:
         return const _ElevationSpec(

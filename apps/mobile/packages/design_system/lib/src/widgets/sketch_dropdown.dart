@@ -119,15 +119,23 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
 
   void _openDropdown() {
     _overlayEntry = _createOverlayEntry();
-    Overlay.of(context).insert(_overlayEntry!);
+    final overlay = Overlay.of(context);
+    overlay.insert(_barrierEntry!);
+    overlay.insert(_overlayEntry!);
     setState(() => _isOpen = true);
   }
 
   void _closeDropdown() {
+    _barrierEntry?.remove();
+    _barrierEntry = null;
     _overlayEntry?.remove();
     _overlayEntry = null;
-    setState(() => _isOpen = false);
+    if (mounted) {
+      setState(() => _isOpen = false);
+    }
   }
+
+  OverlayEntry? _barrierEntry;
 
   OverlayEntry _createOverlayEntry() {
     final renderBox = context.findRenderObject() as RenderBox;
@@ -137,6 +145,15 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
     final effectiveFillColor = widget.fillColor ?? sketchTheme?.fillColor ?? Colors.white;
     final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
+
+    // 외부 탭 감지용 투명 barrier
+    _barrierEntry = OverlayEntry(
+      builder: (context) => GestureDetector(
+        onTap: _closeDropdown,
+        behavior: HitTestBehavior.opaque,
+        child: const SizedBox.expand(),
+      ),
+    );
 
     return OverlayEntry(
       builder: (context) => Positioned(

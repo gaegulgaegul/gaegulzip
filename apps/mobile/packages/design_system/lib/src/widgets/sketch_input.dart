@@ -217,7 +217,7 @@ class _SketchInputState extends State<SketchInput> {
     final hasError = widget.errorText != null;
 
     // 상태에 따라 색상 결정
-    final ColorSpec colorSpec = _getColorSpec(
+    final _ColorSpec colorSpec = _getColorSpec(
       sketchTheme,
       isFocused: _isFocused,
       hasError: hasError,
@@ -350,14 +350,14 @@ class _SketchInputState extends State<SketchInput> {
     }
   }
 
-  ColorSpec _getColorSpec(
+  _ColorSpec _getColorSpec(
     SketchThemeExtension? theme, {
     required bool isFocused,
     required bool hasError,
     required bool isDisabled,
   }) {
     if (isDisabled) {
-      return ColorSpec(
+      return _ColorSpec(
         fillColor: SketchDesignTokens.base100,
         borderColor: SketchDesignTokens.base300,
         textColor: SketchDesignTokens.base500,
@@ -369,7 +369,7 @@ class _SketchInputState extends State<SketchInput> {
     }
 
     if (hasError) {
-      return ColorSpec(
+      return _ColorSpec(
         fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
         borderColor: SketchDesignTokens.error,
         textColor: SketchDesignTokens.base900,
@@ -382,7 +382,7 @@ class _SketchInputState extends State<SketchInput> {
 
     if (isFocused) {
       // Frame0 스타일: 포커스 시 굵은 검정 테두리
-      return ColorSpec(
+      return _ColorSpec(
         fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
         borderColor: widget.borderColor ?? SketchDesignTokens.black,
         textColor: SketchDesignTokens.base900,
@@ -394,7 +394,7 @@ class _SketchInputState extends State<SketchInput> {
     }
 
     // 일반 상태 — Frame0 스타일: 어두운 테두리
-    return ColorSpec(
+    return _ColorSpec(
       fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
       borderColor: widget.borderColor ?? theme?.borderColor ?? SketchDesignTokens.base900,
       textColor: SketchDesignTokens.base900,
@@ -407,7 +407,7 @@ class _SketchInputState extends State<SketchInput> {
 }
 
 /// 내부 색상 사양.
-class ColorSpec {
+class _ColorSpec {
   final Color fillColor;
   final Color borderColor;
   final Color textColor;
@@ -416,7 +416,7 @@ class ColorSpec {
   final double strokeWidth;
   final double roughness;
 
-  const ColorSpec({
+  const _ColorSpec({
     required this.fillColor,
     required this.borderColor,
     required this.textColor,
