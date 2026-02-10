@@ -366,7 +366,7 @@ SketchRadio(
 
 | 현재 위젯 | 교체 위젯 | 변경 사항 | 우선순위 |
 |----------|----------|---------|---------|
-| `AppBar` | `SketchAppBar` | title: '박스 찾기', centerTitle: true | 높음 |
+| `AppBar` | `SketchAppBar` | title: '박스 찾기' | 높음 |
 | `CircularProgressIndicator` | `SketchProgressBar` | style: circular, value: null | 높음 |
 
 **비고:** 이 화면은 이미 SketchDesignTokens를 매우 잘 활용하고 있어 추가 교체가 거의 불필요합니다.
@@ -389,7 +389,7 @@ SketchRadio(
 
 | 현재 위젯 | 교체 위젯 | 변경 사항 | 우선순위 |
 |----------|----------|---------|---------|
-| `AppBar` | `SketchAppBar` | title: '새 박스 만들기', centerTitle: true | 높음 |
+| `AppBar` | `SketchAppBar` | title: '새 박스 만들기' | 높음 |
 
 **비고:** 이 화면은 거의 완벽하게 디자인 시스템을 사용 중입니다.
 
@@ -486,14 +486,14 @@ SketchIconButton(
 | WodDetailView | `AppBar(title: const Text('WOD 상세'))` | `SketchAppBar(title: 'WOD 상세')` |
 | WodSelectView | `AppBar(title: const Text('WOD 선택'))` | `SketchAppBar(title: 'WOD 선택')` |
 | ProposalReviewView | `AppBar(title: const Text('제안 검토'))` | `SketchAppBar(title: '제안 검토')` |
-| BoxSearchView | `AppBar(...)` | `SketchAppBar(title: '박스 찾기', centerTitle: true)` |
-| BoxCreateView | `AppBar(...)` | `SketchAppBar(title: '새 박스 만들기', centerTitle: true)` |
+| BoxSearchView | `AppBar(...)` | `SketchAppBar(title: '박스 찾기')` |
+| BoxCreateView | `AppBar(...)` | `SketchAppBar(title: '새 박스 만들기')` |
 | SettingsView | `AppBar(title: const Text('설정'))` | `SketchAppBar(title: '설정')` |
 | NotificationView | `AppBar(...)` | `SketchAppBar(title: '알림', leading: back)` |
 
 **주의사항:**
 - `SketchAppBar`는 자동으로 뒤로가기 버튼을 표시합니다 (leading 생략 가능)
-- `centerTitle`, `actions` 등의 속성은 동일하게 사용 가능
+- `actions` 등의 속성은 동일하게 사용 가능
 
 ### 2. CircularProgressIndicator → SketchProgressBar
 
@@ -615,6 +615,7 @@ const Icon(
 ```
 
 **공통 색상 매핑:**
+
 | 기존 | SketchDesignTokens |
 |-----|-------------------|
 | `Colors.black87` | `base900` |
@@ -626,6 +627,7 @@ const Icon(
 | `Colors.red` | `error` |
 
 **공통 크기 매핑:**
+
 | 기존 | SketchDesignTokens |
 |-----|-------------------|
 | 30px | `fontSize3Xl` |

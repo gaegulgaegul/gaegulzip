@@ -126,14 +126,14 @@ flutter run
 **교체 항목:**
 
 ##### 1. BoxSearchView
-- [ ] AppBar → SketchAppBar (title: '박스 찾기', centerTitle: true)
+- [ ] AppBar → SketchAppBar (title: '박스 찾기')
 - [ ] CircularProgressIndicator → SketchProgressBar (style: circular, value: null, size: 48)
 - [ ] import 추가: `import 'package:design_system/design_system.dart';` (이미 있을 수 있음)
 
 **비고:** 이 화면은 이미 SketchDesignTokens를 잘 활용 중이므로 AppBar와 ProgressBar만 교체
 
 ##### 2. BoxCreateView
-- [ ] AppBar → SketchAppBar (title: '새 박스 만들기', centerTitle: true)
+- [ ] AppBar → SketchAppBar (title: '새 박스 만들기')
 
 **비고:** 이 화면은 거의 완벽하게 디자인 시스템을 사용 중이므로 AppBar만 교체
 
@@ -151,13 +151,11 @@ flutter run
 // Before
 AppBar(
   title: const Text('박스 찾기'),
-  centerTitle: true,
 )
 
 // After
 SketchAppBar(
   title: '박스 찾기',
-  centerTitle: true,
 )
 ```
 

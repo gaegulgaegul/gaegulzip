@@ -73,7 +73,7 @@ SketchAppBar(title: 'WOD 등록')
 **주요 변경사항:**
 - `AppBar` → `SketchAppBar`
 - `title` 파라미터는 String 직접 전달 (Text 위젯 불필요)
-- `centerTitle`, `actions`, `leading` 속성은 동일하게 사용 가능
+- `actions`, `leading` 속성은 동일하게 사용 가능
 - SketchAppBar는 자동으로 뒤로가기 버튼 표시
 
 **검증 기준:**
@@ -421,7 +421,7 @@ SketchRadio(
 
 | 현재 위젯 | 교체 위젯 | 변경 내용 | 우선순위 |
 |----------|----------|---------|---------|
-| `AppBar` | `SketchAppBar` | title: '박스 찾기', centerTitle: true | 높음 |
+| `AppBar` | `SketchAppBar` | title: '박스 찾기' | 높음 |
 | `CircularProgressIndicator` | `SketchProgressBar` | style: circular, value: null | 높음 |
 
 **비고:** 이 화면은 이미 SketchDesignTokens를 매우 잘 활용하고 있어 추가 교체가 거의 불필요합니다.
@@ -439,7 +439,7 @@ SketchRadio(
 
 | 현재 위젯 | 교체 위젯 | 변경 내용 | 우선순위 |
 |----------|----------|---------|---------|
-| `AppBar` | `SketchAppBar` | title: '새 박스 만들기', centerTitle: true | 높음 |
+| `AppBar` | `SketchAppBar` | title: '새 박스 만들기' | 높음 |
 
 **비고:** 이 화면은 거의 완벽하게 디자인 시스템을 사용 중입니다.
 

@@ -635,7 +635,7 @@ Widget _buildWodSection() {
     if (controller.isLoading.value) {
       return const Center(
         child: Padding(
-          padding: EdgeInsets.all(32),
+          padding: EdgeInsets.all(SketchDesignTokens.spacing2Xl),
           child: SketchProgressBar(
             style: SketchProgressBarStyle.circular,
             value: null,
