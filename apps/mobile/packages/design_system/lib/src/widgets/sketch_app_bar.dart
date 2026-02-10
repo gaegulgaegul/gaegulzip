@@ -137,10 +137,10 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
     final theme = SketchThemeExtension.maybeOf(context);
     final effectiveBgColor = backgroundColor ?? theme?.fillColor ?? SketchDesignTokens.white;
     final effectiveFgColor = foregroundColor ?? SketchDesignTokens.textPrimary;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
 
     Widget appBarContent = Container(
-      height: height,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: EdgeInsets.only(top: statusBarHeight, left: 8, right: 8),
       decoration: BoxDecoration(
         color: effectiveBgColor,
         boxShadow: showShadow
@@ -153,35 +153,38 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
               ]
             : null,
       ),
-      child: Row(
-        children: [
-          // Leading
-          if (leading != null)
-            leading!
-          else if (Navigator.canPop(context))
-            SketchIconButton(
-              icon: Icons.arrow_back,
-              onPressed: () => Navigator.pop(context),
+      child: SizedBox(
+        height: height,
+        child: Row(
+          children: [
+            // Leading
+            if (leading != null)
+              leading!
+            else if (Navigator.canPop(context))
+              SketchIconButton(
+                icon: Icons.arrow_back,
+                onPressed: () => Navigator.pop(context),
+              ),
+
+            // Title
+            Expanded(
+              child: titleWidget ??
+                  Text(
+                    title ?? '',
+                    style: TextStyle(
+                      fontFamily: SketchDesignTokens.fontFamilyHand,
+                      fontSize: SketchDesignTokens.fontSizeLg,
+                      fontWeight: FontWeight.w600,
+                      color: effectiveFgColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
             ),
 
-          // Title
-          Expanded(
-            child: titleWidget ??
-                Text(
-                  title ?? '',
-                  style: TextStyle(
-                    fontFamily: SketchDesignTokens.fontFamilyHand,
-                    fontSize: SketchDesignTokens.fontSizeLg,
-                    fontWeight: FontWeight.w600,
-                    color: effectiveFgColor,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-          ),
-
-          // Actions
-          if (actions != null) ...actions!,
-        ],
+            // Actions
+            if (actions != null) ...actions!,
+          ],
+        ),
       ),
     );
 
