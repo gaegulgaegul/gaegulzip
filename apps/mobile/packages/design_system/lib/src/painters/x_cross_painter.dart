@@ -202,36 +202,29 @@ class XCrossPainter extends CustomPainter {
     final path = Path();
     final segments = 8; // 선을 8개 세그먼트로 분할
 
+    // 선의 수직 방향 각도 (루프 밖에서 한 번만 계산)
+    final angle = atan2(end.dy - start.dy, end.dx - start.dx);
+    final perpAngle = angle + pi / 2;
+
+    // 모든 점을 미리 계산하여 이전 점 참조 시 일관성 보장
+    final points = <Offset>[];
     for (int i = 0; i <= segments; i++) {
       final t = i / segments;
       final x = start.dx + (end.dx - start.dx) * t;
       final y = start.dy + (end.dy - start.dy) * t;
-
-      // 선의 수직 방향으로 흔들림 추가
-      final angle = atan2(end.dy - start.dy, end.dx - start.dx);
-      final perpAngle = angle + pi / 2;
       final offset = (random.nextDouble() - 0.5) * roughness * 4;
+      points.add(Offset(
+        x + cos(perpAngle) * offset,
+        y + sin(perpAngle) * offset,
+      ));
+    }
 
-      final wobbleX = x + cos(perpAngle) * offset;
-      final wobbleY = y + sin(perpAngle) * offset;
-
-      if (i == 0) {
-        path.moveTo(wobbleX, wobbleY);
-      } else {
-        // 이전 점 계산
-        final prevT = (i - 1) / segments;
-        final prevX = start.dx + (end.dx - start.dx) * prevT;
-        final prevY = start.dy + (end.dy - start.dy) * prevT;
-        final prevOffset = (random.nextDouble() - 0.5) * roughness * 4;
-        final prevWobbleX = prevX + cos(perpAngle) * prevOffset;
-        final prevWobbleY = prevY + sin(perpAngle) * prevOffset;
-
-        // 중간 제어점으로 베지어 곡선
-        final controlX = (prevWobbleX + wobbleX) / 2;
-        final controlY = (prevWobbleY + wobbleY) / 2;
-
-        path.quadraticBezierTo(controlX, controlY, wobbleX, wobbleY);
-      }
+    path.moveTo(points[0].dx, points[0].dy);
+    for (int i = 1; i <= segments; i++) {
+      // 이전 점과 현재 점의 중간을 제어점으로 사용
+      final controlX = (points[i - 1].dx + points[i].dx) / 2;
+      final controlY = (points[i - 1].dy + points[i].dy) / 2;
+      path.quadraticBezierTo(controlX, controlY, points[i].dx, points[i].dy);
     }
 
     return path;

@@ -189,8 +189,6 @@ class ColorPaletteView extends GetView<ColorPaletteController> {
       if (colors.isEmpty) return const SizedBox.shrink();
 
       final primaryColor = colors['primary'] ?? SketchDesignTokens.accentPrimary;
-      final secondaryColor =
-          colors['secondary'] ?? SketchDesignTokens.base300;
       final backgroundColor =
           colors['background'] ?? SketchDesignTokens.white;
 
@@ -205,7 +203,7 @@ class ColorPaletteView extends GetView<ColorPaletteController> {
             ),
           ),
           const SizedBox(height: SketchDesignTokens.spacingMd),
-          _buildButtonPreview(primaryColor, secondaryColor),
+          _buildButtonPreview(),
           const SizedBox(height: SketchDesignTokens.spacingLg),
           _buildCardPreview(backgroundColor, primaryColor),
         ],
@@ -214,7 +212,7 @@ class ColorPaletteView extends GetView<ColorPaletteController> {
   }
 
   /// 버튼 미리보기 빌드
-  Widget _buildButtonPreview(Color primaryColor, Color secondaryColor) {
+  Widget _buildButtonPreview() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

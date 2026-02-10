@@ -921,7 +921,7 @@ class XCrossPainter extends CustomPainter {
       // Bezier 곡선으로 불규칙한 선 생성
       final dx = end.dx - start.dx;
       final dy = end.dy - start.dy;
-      final distance = (dx * dx + dy * dy).squareRoot();
+      final distance = sqrt(dx * dx + dy * dy);
 
       // 세그먼트 수 (거리에 비례)
       final segments = (distance / 20).ceil().clamp(2, 10);

@@ -155,8 +155,8 @@ class ThemeShowcaseView extends GetView<ThemeShowcaseController> {
     return Obx(() {
       final themeExtension = controller.currentThemeExtension;
 
-      return Theme(
-        data: Theme.of(Get.context!).copyWith(
+      return Builder(builder: (context) => Theme(
+        data: Theme.of(context).copyWith(
           extensions: [themeExtension],
         ),
         child: Column(
@@ -179,7 +179,7 @@ class ThemeShowcaseView extends GetView<ThemeShowcaseController> {
             _buildContainerSamples(),
           ],
         ),
-      );
+      ));
     });
   }
 

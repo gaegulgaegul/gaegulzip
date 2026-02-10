@@ -209,10 +209,11 @@ class _SketchNumberInputState extends State<SketchNumberInput> {
                 ),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(
-                    RegExp(widget.decimalPlaces > 0 ? r'^\d*\.?\d*' : r'^\d*'),
+                    RegExp(widget.decimalPlaces > 0 ? r'^\d*\.?\d*$' : r'^\d*$'),
                   ),
                 ],
                 onChanged: (text) {
+                  if (text.isEmpty) return;
                   final parsedValue = double.tryParse(text);
                   if (parsedValue != null) {
                     widget.onChanged(_clampValue(parsedValue));

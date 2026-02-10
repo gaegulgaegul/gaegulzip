@@ -31,6 +31,7 @@ class ColorPaletteController extends GetxController {
   ///
   /// [palette] 선택할 팔레트 이름
   void selectPalette(String palette) {
+    if (!availablePalettes.contains(palette)) return;
     selectedPalette.value = palette;
   }
 

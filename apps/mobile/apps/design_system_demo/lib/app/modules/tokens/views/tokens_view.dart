@@ -637,18 +637,11 @@ class TokensView extends GetView<TokensController> {
             ),
             const SizedBox(height: SketchDesignTokens.spacingMd),
             Center(
-              child: SketchContainer(
-                width: 200,
-                height: 120,
-                child: const Center(
-                  child: Text(
-                    '스케치 효과',
-                    style: TextStyle(
-                      fontSize: SketchDesignTokens.fontSizeLg,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+              child: CustomPaint(
+                painter: XCrossPainter(
+                  roughness: controller.demoRoughness.value,
                 ),
+                child: const SizedBox(width: 200, height: 120),
               ),
             ),
           ],

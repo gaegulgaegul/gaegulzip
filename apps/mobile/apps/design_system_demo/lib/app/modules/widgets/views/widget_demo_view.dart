@@ -23,7 +23,7 @@ class WidgetDemoView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final widgetName = Get.arguments as String;
+    final widgetName = Get.arguments as String? ?? 'Unknown';
 
     return Scaffold(
       appBar: AppBar(

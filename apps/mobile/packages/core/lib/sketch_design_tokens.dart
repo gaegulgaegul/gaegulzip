@@ -342,7 +342,7 @@ class SketchDesignTokens {
   /// 라이트모드 표면색 - 카드/모달 배경, 따뜻한 크림 (#F5F0E8)
   static const Color surface = Color(0xFFF5F0E8);
 
-  /// 다크모드 표면색 - 카드/모달 배경 (#232736)
+  /// 다크모드 표면색 - 카드/모달 배경 (#23273A)
   static const Color surfaceDark = Color(0xFF23273A);
 
   /// 라이트모드 Surface Variant - 호버, 선택 상태 (#EBE6DC)

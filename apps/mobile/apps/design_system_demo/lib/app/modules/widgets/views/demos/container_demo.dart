@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 /// SketchContainer 데모
 ///
-/// fillColor, borderColor, strokeWidth, roughness 속성을 실시간으로 조절할 수 있습니다.
+/// fillColor, borderColor, strokeWidth 속성을 실시간으로 조절할 수 있습니다.
 class ContainerDemo extends StatefulWidget {
   const ContainerDemo({super.key});
 
@@ -15,7 +15,6 @@ class ContainerDemo extends StatefulWidget {
 class _ContainerDemoState extends State<ContainerDemo> {
   // 조절 가능한 속성들
   double _strokeWidth = 2.0;
-  double _roughness = 0.8;
 
   @override
   Widget build(BuildContext context) {
@@ -84,16 +83,6 @@ class _ContainerDemoState extends State<ContainerDemo> {
           onChanged: (value) => setState(() => _strokeWidth = value),
         ),
 
-        // Roughness 슬라이더
-        Text('Roughness: ${_roughness.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.w500)),
-        SketchSlider(
-          value: _roughness,
-          min: 0.0,
-          max: 2.0,
-          divisions: 20,
-          label: _roughness.toStringAsFixed(1),
-          onChanged: (value) => setState(() => _roughness = value),
-        ),
       ],
     );
   }

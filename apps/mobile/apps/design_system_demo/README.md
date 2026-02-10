@@ -1,16 +1,19 @@
-# design_system_demo
+# Design System Demo
 
-A new Flutter project.
+Frame0 스케치 스타일 디자인 시스템 데모 앱입니다.
 
-## Getting Started
+## 실행 방법
 
-This project is a starting point for a Flutter application.
+```bash
+cd apps/mobile
+melos bootstrap
+cd apps/design_system_demo
+flutter run
+```
 
-A few resources to get you started if this is your first Flutter project:
+## 기능
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- 디자인 토큰 (색상, 타이포그래피, 간격, 스트로크) 시각화
+- 위젯 갤러리 (Button, Card, Input, Modal 등)
+- 테마 프리셋 쇼케이스
+- 컬러 팔레트 미리보기

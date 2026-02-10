@@ -290,7 +290,7 @@ class SketchAvatar extends StatelessWidget {
   static String getInitials(String? name) {
     if (name == null || name.isEmpty) return '';
 
-    final parts = name.trim().split(' ');
+    final parts = name.trim().split(' ').where((p) => p.isNotEmpty).toList();
     if (parts.length >= 2) {
       // 이름 + 성 첫 글자
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
