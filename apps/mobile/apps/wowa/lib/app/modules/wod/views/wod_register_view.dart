@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../controllers/wod_register_controller.dart';
 
@@ -12,7 +13,7 @@ class WodRegisterView extends GetView<WodRegisterController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('WOD 등록')),
+      appBar: const SketchAppBar(title: 'WOD 등록'),
       body: SafeArea(
         child: Column(
           children: [
@@ -61,7 +62,7 @@ class WodRegisterView extends GetView<WodRegisterController> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('운동 타입',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            style: TextStyle(fontSize: SketchDesignTokens.fontSizeBase, fontFamily: SketchDesignTokens.fontFamilyHand, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Obx(() => Wrap(
               spacing: 8,
@@ -143,7 +144,7 @@ class WodRegisterView extends GetView<WodRegisterController> {
               children: [
                 const Text('운동 목록',
                     style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        TextStyle(fontSize: SketchDesignTokens.fontSizeBase, fontFamily: SketchDesignTokens.fontFamilyHand, fontWeight: FontWeight.bold)),
                 SketchButton(
                   text: '+ 운동 추가',
                   style: SketchButtonStyle.outline,
@@ -186,7 +187,7 @@ class WodRegisterView extends GetView<WodRegisterController> {
             if (controller.movements.length > 1)
               GestureDetector(
                 onTap: () => controller.removeMovement(index),
-                child: const Icon(Icons.close, size: 18, color: Colors.red),
+                child: const Icon(Icons.close, size: 18, color: SketchDesignTokens.error),
               ),
           ],
         ),

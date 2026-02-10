@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../../../data/models/wod/wod_model.dart';
 import '../../../data/models/wod/movement.dart';
@@ -15,11 +16,15 @@ class WodSelectView extends GetView<WodSelectController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('WOD 선택')),
+      appBar: const SketchAppBar(title: 'WOD 선택'),
       body: SafeArea(
         child: Obx(() {
           if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+                child: SketchProgressBar(
+                    style: SketchProgressBarStyle.circular,
+                    value: null,
+                    size: 48));
           }
 
           return Column(
@@ -41,26 +46,24 @@ class WodSelectView extends GetView<WodSelectController> {
 
   /// 경고 배너
   Widget _buildWarningBanner() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.amber[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.amber[300]!),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.warning_amber, color: Colors.amber, size: 20),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              '한 번 선택하면 변경할 수 없습니다. 신중하게 선택해주세요.',
-              style: TextStyle(fontSize: 13),
+    return Padding(
+      padding: const EdgeInsets.all(SketchDesignTokens.spacingLg),
+      child: SketchCard(
+        borderColor: SketchDesignTokens.warning,
+        strokeWidth: SketchDesignTokens.strokeBold,
+        fillColor: const Color(0xFFFFF8E1),
+        body: const Row(
+          children: [
+            Icon(Icons.warning_amber, color: SketchDesignTokens.warning, size: 20),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '한 번 선택하면 변경할 수 없습니다. 신중하게 선택해주세요.',
+                style: TextStyle(fontSize: SketchDesignTokens.fontSizeSm),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -93,8 +96,6 @@ class WodSelectView extends GetView<WodSelectController> {
   /// WOD 옵션 카드 (라디오 버튼)
   Widget _buildWodOptionCard(WodModel wod, {required bool isBase}) {
     return Obx(() {
-      final isSelected = controller.selectedWodId.value == wod.id;
-
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: GestureDetector(
@@ -103,23 +104,18 @@ class WodSelectView extends GetView<WodSelectController> {
             header: Row(
               children: [
                 // 라디오 버튼
-                Icon(
-                  isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                  color: isSelected ? Colors.blue : Colors.grey,
+                SketchRadio<int?>(
+                  value: wod.id,
+                  groupValue: controller.selectedWodId.value,
+                  onChanged: (_) => controller.selectWod(wod.id),
                 ),
                 const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isBase ? Colors.blue[100] : Colors.orange[100],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    isBase ? 'BASE' : 'PERSONAL',
-                    style: const TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.bold),
-                  ),
+                SketchChip(
+                  label: isBase ? 'BASE' : 'PERSONAL',
+                  selected: true,
+                  fillColor: isBase
+                      ? SketchDesignTokens.info
+                      : SketchDesignTokens.warning,
                 ),
                 const SizedBox(width: 8),
                 Text(wod.programData.type,
@@ -127,7 +123,7 @@ class WodSelectView extends GetView<WodSelectController> {
                 if (wod.selectedCount != null && wod.selectedCount! > 0) ...[
                   const Spacer(),
                   Text('${wod.selectedCount}명 선택',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+                      style: const TextStyle(color: SketchDesignTokens.base500, fontSize: SketchDesignTokens.fontSizeXs)),
                 ],
               ],
             ),
