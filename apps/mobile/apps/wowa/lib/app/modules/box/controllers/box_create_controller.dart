@@ -4,7 +4,6 @@ import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../../../data/repositories/box_repository.dart';
 import '../../../routes/app_routes.dart';
-import '../../../data/models/box/create_box_request.dart';
 
 /// 박스 생성 컨트롤러
 ///
