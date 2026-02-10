@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/box/box_model.dart';
+import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../controllers/box_search_controller.dart';
 import '../../../routes/app_routes.dart';

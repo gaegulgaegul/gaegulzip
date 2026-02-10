@@ -1,559 +1,414 @@
-# Mobile CTO Review: wowa-box (Updated with CodeRabbit Issues)
+# Mobile CTO Review: wowa-box (Rebase 후 최종 검증)
 
 **Feature**: wowa-box (박스 관리 기능 개선)
 **Platform**: Mobile (Flutter/GetX)
 **Reviewer**: CTO
-**Date**: 2026-02-10 (Updated)
-**PR**: #13
+**Date**: 2026-02-10
+**PR**: #13 (main에 squash merge 완료)
+**Branch**: feature/wowa-box (rebase 완료)
 
 ---
 
-## 검증 결과 요약
+## Rebase 후 상태 요약
+
+### 브랜치 상태
+- ✅ PR #13 main에 squash merge 완료
+- ✅ feature/wowa-box rebase 완료 (main 최신 반영)
+- ✅ Working tree clean (충돌 없음)
+
+### 아키텍처 변경 (main 브랜치 반영)
+**packages/api 패키지 제거**:
+- ❌ 제거: `apps/mobile/packages/api/`
+- ✅ 이동: 모델 → `apps/wowa/lib/app/data/models/`
+- ✅ 이동: 클라이언트 → `apps/wowa/lib/app/data/clients/`
+- ✅ Import 변경: `package:api/api.dart` → 상대 경로 import
+
+**Rebase 작업 내용**:
+- packages/api 의존성 제거
+- import 경로 모두 상대 경로로 변경
+- 모델/클라이언트 파일 위치 이동 완료
+
+---
+
+## 검증 결과
 
 ### 정적 분석 결과
-- **flutter analyze**: ✅ 통과
-- **Info 레벨**: 14개 (constant_identifier_names, use_super_parameters)
-- **Warning/Error**: 0개
-- **상태**: ✅ 문제 없음 (Info는 스타일 권장 사항)
+**Flutter analyze 실행 결과**:
+- ⚠️ **41 issues found**
+- ❌ Errors: 28건 (SketchDesignTokens 미import)
+- ⚠️ Warnings: 1건 (unused_local_variable)
+- ℹ️ Info: 12건 (constant_identifier_names, use_super_parameters)
 
-### 패키지 구조 검증
-```
-api/
-├── models/box/
-│   ├── box_model.dart (Freezed) ✅
-│   ├── box_search_response.dart (Freezed) ✅
-│   ├── create_box_request.dart (Freezed) ✅
-│   ├── box_create_response.dart (Freezed) ✅
-│   ├── membership_model.dart (Freezed) ✅
-│   └── box_member_model.dart (Freezed) ✅
-└── clients/
-    └── box_api_client.dart ✅
-
-wowa/lib/app/modules/box/
-├── controllers/
-│   ├── box_search_controller.dart ✅
-│   └── box_create_controller.dart ✅
-├── views/
-│   ├── box_search_view.dart ✅
-│   └── box_create_view.dart ✅
-└── bindings/
-    ├── box_search_binding.dart ✅
-    └── box_create_binding.dart ✅
-```
+**주요 에러 원인**: `box_search_view.dart`에서 `SketchDesignTokens` 사용했지만 core 패키지 import 누락
 
 ---
 
-## CodeRabbit PR #13 지적사항 통합 검토
+## ❌ Critical Issue: SketchDesignTokens Import 누락
 
-### 🔴 Critical Issues (1건)
+### 이슈 발견
 
-#### 1. `box_search_controller.dart:166` — firstWhere StateError 크래시 가능
+**파일**: `apps/mobile/apps/wowa/lib/app/modules/box/views/box_search_view.dart`
 
-**CodeRabbit 지적**:
+**현재 Import** (Line 1-6):
 ```dart
-final joinedBox = searchResults.firstWhere((box) => box.id == boxId);
-// searchResults에서 해당 박스를 찾지 못하면 StateError 발생
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../data/models/box/box_model.dart';
+import 'package:design_system/design_system.dart';  // ⚠️ SketchDesignTokens export 안 함
+import '../controllers/box_search_controller.dart';
+import '../../../routes/app_routes.dart';
 ```
 
-**시나리오**:
-1. 사용자가 박스 검색 → `searchResults`에 박스 A 포함
-2. 다른 사용자가 박스 A를 삭제 (또는 접근 불가 상태로 변경)
-3. 사용자가 박스 A 가입 시도 → 서버 API는 404/409 에러
-4. **API 실패 시 try-catch로 이동하므로 firstWhere에 도달 안 함 (정상)**
+**사용 위치 (28곳)**:
+- Line 54: `SketchDesignTokens.base500` (prefixIcon color)
+- Line 60: `SketchDesignTokens.base500` (suffixIcon color)
+- Line 110: `SketchDesignTokens.base300` (empty state icon)
+- Line 116: `SketchDesignTokens.fontSizeBase`
+- Line 117: `SketchDesignTokens.base500`
+- ... (28건 전체)
 
-**현재 코드 분석**:
+### 원인 분석
+
+**SketchDesignTokens 위치**: `apps/mobile/packages/core/lib/sketch_design_tokens.dart`
+
+**core 패키지 Export** (core/lib/core.dart):
 ```dart
-try {
-  await _repository.joinBox(boxId);  // 실패 시 throw → catch로 이동
-  final joinedBox = searchResults.firstWhere((box) => box.id == boxId);  // 도달 안 함
-  currentBox.value = joinedBox;
-} on NetworkException catch (e) { ... }
+export 'sketch_design_tokens.dart';  // ✅ Export됨
 ```
 
-**판정**: ⚠️ **MEDIUM** — API 실패 시 catch로 이동하므로 실제 크래시 확률 낮음, 하지만 방어 코드 추가 권장
-
-**수정 방안**:
+**design_system 패키지 Export** (design_system/lib/design_system.dart):
 ```dart
-try {
-  await _repository.joinBox(boxId);
-
-  // firstWhereOrNull 사용 (collection 패키지 또는 orElse 사용)
-  final joinedBox = searchResults.cast<BoxModel?>().firstWhere(
-    (box) => box?.id == boxId,
-    orElse: () => null,
-  );
-
-  if (joinedBox != null) {
-    currentBox.value = joinedBox;
-  }
-
-  Get.snackbar(...);
-} on NetworkException catch (e) { ... }
+export 'src/widgets/sketch_button.dart';
+export 'src/widgets/sketch_card.dart';
+// ... 위젯들만 export
+// ❌ SketchDesignTokens는 export 안 함
 ```
 
-**우선순위**: 🟠 **MEDIUM** — 방어 코드 추가 권장
+**판정**: box_search_view.dart에서 `package:core/core.dart` import 누락
 
 ---
 
-### 🟠 Major Issues (2건)
+## 🔧 수정 방안
 
-#### 2. `box_search_view.dart:203` — dynamic 타입 사용
+### box_search_view.dart Import 추가
 
-**CodeRabbit 지적**:
+**수정 전**:
 ```dart
-Widget _buildBoxCard(dynamic box) {  // ❌ dynamic 타입
-  return SketchCard(
-    body: Column(
-      children: [
-        Text(box.name),  // dynamic → String 암묵적 변환
-      ],
-    ),
-  );
-}
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../data/models/box/box_model.dart';
+import 'package:design_system/design_system.dart';
+import '../controllers/box_search_controller.dart';
+import '../../../routes/app_routes.dart';
 ```
 
-**문제**:
-- 타입 안전성 부족
-- IDE 자동완성 지원 안 됨
-- 런타임 에러 가능성
-
-**수정 방안**:
+**수정 후**:
 ```dart
-Widget _buildBoxCard(BoxModel box) {  // ✅ BoxModel 명시
-  return SketchCard(
-    body: Column(
-      children: [
-        Text(box.name),
-        Text(box.region),
-        if (box.description != null) Text(box.description!),
-      ],
-    ),
-    footer: SketchButton(
-      text: '가입',
-      onPressed: () => controller.joinBox(box.id),
-    ),
-  );
-}
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:core/core.dart';  // ✅ SketchDesignTokens import
+import 'package:design_system/design_system.dart';
+import '../../../data/models/box/box_model.dart';
+import '../controllers/box_search_controller.dart';
+import '../../../routes/app_routes.dart';
 ```
 
-**우선순위**: 🟡 **MEDIUM** — 타입 안전성 개선, 런타임 동작은 정상
+**영향 범위**: box_search_view.dart만 수정하면 28건 에러 모두 해결
 
 ---
 
-#### 3. `box_api_client.dart:72` — previousBoxId 정보 손실
+## 패키지 구조 검증
 
-**CodeRabbit 지적**: joinBox API 응답에서 previousBoxId 파싱 누락
+### 모델 파일 (apps/wowa/lib/app/data/models/box/)
 
-**현재 코드**:
-```dart
-Future<MembershipModel> joinBox(int boxId) async {
-  final response = await _dio.post('/boxes/$boxId/join');
-  return MembershipModel.fromJson(response.data['membership']);
-  // ❌ previousBoxId 정보 손실
-}
+**파일 목록**:
+```
+✅ box_model.dart (Freezed)
+✅ box_model.freezed.dart
+✅ box_model.g.dart
+✅ box_search_response.dart (Freezed)
+✅ box_search_response.freezed.dart
+✅ box_search_response.g.dart
+✅ create_box_request.dart (Freezed)
+✅ create_box_request.freezed.dart
+✅ create_box_request.g.dart
+✅ box_create_response.dart (Freezed)
+✅ box_create_response.freezed.dart
+✅ box_create_response.g.dart
+✅ membership_model.dart (Freezed)
+✅ membership_model.freezed.dart
+✅ membership_model.g.dart
+✅ box_member_model.dart (Freezed)
+✅ box_member_model.freezed.dart
+✅ box_member_model.g.dart
 ```
 
-**Server 응답**:
-```json
-{
-  "membership": { "id": 6, "boxId": 2, "userId": 42, "role": "member", "joinedAt": "2026-02-10T..." },
-  "previousBoxId": 1
-}
-```
-
-**수정 방안**:
-```dart
-// 1. 응답 모델 추가
-@freezed
-class JoinBoxResponse with _$JoinBoxResponse {
-  const factory JoinBoxResponse({
-    required MembershipModel membership,
-    int? previousBoxId,
-  }) = _JoinBoxResponse;
-
-  factory JoinBoxResponse.fromJson(Map<String, dynamic> json) =>
-      _$JoinBoxResponseFromJson(json);
-}
-
-// 2. API Client 수정
-Future<JoinBoxResponse> joinBox(int boxId) async {
-  final response = await _dio.post('/boxes/$boxId/join');
-  return JoinBoxResponse.fromJson(response.data);
-}
-
-// 3. Repository 수정
-Future<JoinBoxResponse> joinBox(int boxId) async {
-  try {
-    return await _apiService.joinBox(boxId);
-  } on DioException catch (e) {
-    // ... 에러 처리
-  }
-}
-
-// 4. Controller에서 활용
-final result = await _repository.joinBox(boxId);
-currentBox.value = searchResults.firstWhere((box) => box.id == boxId);
-
-if (result.previousBoxId != null) {
-  Get.snackbar(
-    '박스 변경 완료',
-    '이전 박스에서 탈퇴하고 새 박스에 가입했습니다',
-    // ...
-  );
-} else {
-  Get.snackbar('가입 완료', '박스에 가입되었습니다');
-}
-```
-
-**우선순위**: 🟠 **MEDIUM** — UX 개선 기회 (이전 박스 탈퇴 알림)
+**검증**: ✅ packages/api에서 apps/wowa/lib/app/data/models/box/로 이동 완료
 
 ---
 
-## 코드 품질 평가
+### API 클라이언트 (apps/wowa/lib/app/data/clients/)
 
-### 1. GetX 패턴 준수 (Controller/View/Binding 분리) ✅
+**파일**: `box_api_client.dart`
 
-#### Controller 1: BoxSearchController
+**Import 확인**:
+```dart
+import 'package:dio/dio.dart';
+import 'package:get/get.dart';
+import '../models/box/box_model.dart';                    // ✅ 상대 경로
+import '../models/box/box_search_response.dart';         // ✅ 상대 경로
+import '../models/box/create_box_request.dart';          // ✅ 상대 경로
+import '../models/box/box_create_response.dart';         // ✅ 상대 경로
+import '../models/box/membership_model.dart';            // ✅ 상대 경로
+import '../models/box/box_member_model.dart';            // ✅ 상대 경로
+```
+
+**검증**: ✅ packages/api에서 apps/wowa/lib/app/data/clients/로 이동 완료, import 경로 정상
+
+---
+
+### Controller Import 확인
+
+**box_search_controller.dart** (Line 1-6):
+```dart
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:core/core.dart';                         // ✅ Core import
+import 'package:design_system/design_system.dart';       // ✅ Design System import
+import '../../../data/repositories/box_repository.dart';  // ✅ 상대 경로
+import '../../../data/models/box/box_model.dart';        // ✅ 상대 경로
+```
+
+**검증**: ✅ import 경로 정상
+
+---
+
+## GetX 패턴 검증
+
+### Controller: BoxSearchController
 
 **반응형 상태 (.obs)**:
 ```dart
-/// 통합 검색 키워드 (박스 이름 또는 지역)
-final keyword = ''.obs;
-
-/// 검색 중 로딩 상태
-final isLoading = false.obs;
-
-/// 검색 결과 목록
-final searchResults = <BoxModel>[].obs;
-
-/// 현재 소속 박스 (단일 박스 정책)
-final currentBox = Rxn<BoxModel>();
-
-/// API 에러 메시지
-final errorMessage = ''.obs;
+final keyword = ''.obs;                      // ✅ 통합 검색 키워드
+final isLoading = false.obs;                 // ✅ 로딩 상태
+final searchResults = <BoxModel>[].obs;      // ✅ 검색 결과
+final currentBox = Rxn<BoxModel>();          // ✅ 현재 박스 (nullable)
+final errorMessage = ''.obs;                 // ✅ 에러 메시지
 ```
 
-**평가**: ✅ 우수
-- .obs 사용 올바름 (반응형 필요한 상태만)
-- Rxn 사용 (nullable 타입)
-- 상태 이름 명확
-
-**Debounce 구현**:
+**Debounce 구현** (Line 53-57):
 ```dart
-@override
-void onInit() {
-  super.onInit();
-  _repository = Get.find<BoxRepository>();
-  searchController = TextEditingController();
-
-  // Debounce 설정 (300ms)
-  _debounceWorker = debounce(
-    keyword,
-    (_) => searchBoxes(),
-    time: const Duration(milliseconds: 300),
-  );
-
-  searchController.addListener(() {
-    keyword.value = searchController.text;
-  });
-}
+_debounceWorker = debounce(
+  keyword,
+  (_) => searchBoxes(),
+  time: const Duration(milliseconds: 300),
+);
 ```
 
-**평가**: ✅ 우수
-- 300ms debounce 적용 (design-spec 준수)
-- TextEditingController → keyword.obs 동기화
-- onClose에서 dispose 처리
+**검증**: ✅ 300ms debounce 정상, design-spec.md 준수
 
 ---
 
-### 2. API 모델 (Freezed/json_serializable) ✅
+### CodeRabbit Issue 수정 확인: firstWhere orElse
 
-**BoxModel**:
+**이슈**: firstWhere가 요소를 찾지 못하면 StateError 발생
+
+**수정 후** (box_search_controller.dart Line 165-168):
 ```dart
-@freezed
-class BoxModel with _$BoxModel {
-  const factory BoxModel({
-    required int id,
-    required String name,
-    required String region,
-    String? description,
-    int? memberCount,
-    String? joinedAt,
-  }) = _BoxModel;
-
-  factory BoxModel.fromJson(Map<String, dynamic> json) =>
-      _$BoxModelFromJson(json);
-}
+final joinedBox = searchResults.firstWhere(
+  (box) => box.id == boxId,
+  orElse: () => throw Exception('가입한 박스를 찾을 수 없습니다'),
+);
 ```
 
-**평가**: ✅ 우수
-- Freezed 어노테이션 올바름
-- nullable 필드 명시
-- json_serializable 통합
-
-**API Contract 검증**: ✅ Server 응답 구조와 일치
-
----
-
-### 3. API Client (Dio) ✅
-
-**BoxApiClient**:
-```dart
-class BoxApiClient {
-  final Dio _dio = Get.find<Dio>();
-
-  /// 박스 검색 (통합 키워드)
-  Future<List<BoxModel>> searchBoxes(String keyword) async {
-    final response = await _dio.get(
-      '/boxes/search',
-      queryParameters: {'keyword': keyword},
-    );
-
-    final searchResponse = BoxSearchResponse.fromJson(response.data);
-    return searchResponse.boxes;
-  }
-
-  /// 박스 생성
-  Future<BoxCreateResponse> createBox(CreateBoxRequest request) async {
-    final response = await _dio.post(
-      '/boxes',
-      data: request.toJson(),
-    );
-    return BoxCreateResponse.fromJson(response.data);
-  }
-
-  /// 박스 가입
-  Future<MembershipModel> joinBox(int boxId) async {
-    final response = await _dio.post('/boxes/$boxId/join');
-    return MembershipModel.fromJson(response.data['membership']);
-  }
-}
-```
-
-**평가**: ✅ 우수
-- JSDoc 주석 충실 (한국어)
-- GET/POST 메서드 정확
-- queryParameters, data 사용 올바름
-- Freezed 모델 활용
-
-**⚠️ 발견 사항**: `joinBox` 메서드가 `response.data['membership']`만 파싱 → `previousBoxId` 정보 손실
-
----
-
-### 4. Controller-View 연결 검증
-
-#### BoxSearchView
-
-**Obx 사용 (검색 결과 영역)**:
-```dart
-Widget _buildSearchResults() {
-  return Obx(() {
-    // 1. 로딩 상태
-    if (controller.isLoading.value) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    // 2. 검색어 없음 (초기 상태)
-    if (controller.keyword.value.isEmpty) {
-      return _buildEmptySearch();
-    }
-
-    // 3. 에러 상태
-    if (controller.errorMessage.value.isNotEmpty) {
-      return _buildErrorState();
-    }
-
-    // 4. 검색 결과 없음
-    if (controller.searchResults.isEmpty) {
-      return _buildNoResults();
-    }
-
-    // 5. 검색 결과 표시
-    return _buildResultsList();
-  });
-}
-```
-
-**평가**: ✅ 우수
-- 5가지 UI 상태 명확히 구분 (design-spec 준수)
-- Obx 범위 최소화
-- 조건 분기 순서 올바름
-
-**박스 카드 구현**:
-```dart
-Widget _buildBoxCard(dynamic box) {  // ⚠️ dynamic 타입
-  return SketchCard(
-    body: Column(
-      children: [
-        Text(box.name),  // ✅ 실제 데이터 바인딩
-        Text(box.region),  // ✅ 실제 데이터 바인딩
-        if (box.description != null) Text(box.description!),
-        if (box.memberCount != null) Text('${box.memberCount}명'),
-      ],
-    ),
-    footer: SketchButton(
-      text: '가입',
-      onPressed: () => controller.joinBox(box.id),  // ✅ 구현됨
-    ),
-  );
-}
-```
-
-**평가**: ✅ 기능 구현 완료
-- 실제 데이터 바인딩 확인
-- joinBox 메서드 연결 확인
-
-**⚠️ 개선 필요**: `dynamic box` → `BoxModel box`로 타입 명시
-
----
-
-### 5. Design System 컴포넌트 활용 ✅
-
-**사용 컴포넌트**:
-- ✅ SketchInput: 검색, 이름, 지역, 설명
-- ✅ SketchButton: 가입, 생성, FAB
-- ✅ SketchCard: 박스 카드
-- ✅ SketchModal: 박스 변경 확인
-- ✅ Get.snackbar: 성공/에러 메시지
-
-**평가**: ✅ 우수 (Design System 재사용)
-
----
-
-### 6. 에러 처리 ✅
-
-**BoxSearchController - searchBoxes**:
-```dart
-try {
-  final boxes = await _repository.searchBoxes(keyword.value.trim());
-  searchResults.value = boxes;
-} on NetworkException catch (e) {
-  errorMessage.value = e.message;
-  searchResults.clear();
-  Get.snackbar(
-    '오류',
-    e.message,
-    snackPosition: SnackPosition.BOTTOM,
-    backgroundColor: SketchDesignTokens.error.withValues(alpha: 0.1),
-    colorText: SketchDesignTokens.error,
-    duration: const Duration(seconds: 3),
-  );
-} catch (e) {
-  errorMessage.value = '일시적인 문제가 발생했습니다';
-  searchResults.clear();
-  Get.snackbar(/* ... */);
-} finally {
-  isLoading.value = false;
-}
-```
-
-**평가**: ✅ 우수
-- NetworkException 명시적 처리
-- 일반 예외 catch 처리
-- errorMessage 업데이트 (UI 상태 변경)
-- 스낵바로 사용자 피드백
-- finally로 로딩 종료
-
----
-
-### 7. mobile-design-spec.md 준수 검증 ✅
-
-#### 레이아웃 계층
-- ✅ Scaffold → AppBar + Body + FAB
-- ✅ SafeArea 사용
-- ✅ Column → SketchInput + Expanded(검색 결과)
-- ✅ FloatingActionButton: SketchButton (primary)
-
-#### 색상 팔레트
-- ✅ SketchDesignTokens.error (에러 색상)
-- ✅ SketchDesignTokens.success (성공 색상)
-- ✅ SketchDesignTokens.base500 (아이콘 색상)
-- ✅ SketchDesignTokens.base700 (보조 텍스트)
-
-#### 타이포그래피
-- ✅ fontSizeLg (18px) — 카드 제목
-- ✅ fontSizeBase (16px) — 입력 필드, 본문
-- ✅ fontSizeSm (14px) — 지역, 설명
-- ✅ FontWeight.bold — 카드 제목
-
-#### 스페이싱
-- ✅ EdgeInsets.all(16) — 화면 패딩
-- ✅ SizedBox(height: 16) — 위젯 간 간격
-- ✅ margin: EdgeInsets.only(bottom: 12) — 카드 간격
-
----
-
-### 8. const 최적화 ✅
-
-**BoxSearchView**:
-```dart
-const SizedBox(height: 16),
-const Icon(Icons.search, size: 64, color: SketchDesignTokens.base300),
-const Center(child: CircularProgressIndicator()),
-```
-
-**평가**: ✅ 우수
-- 정적 위젯 const 사용
-- Obx 내부는 const 불가 (정상)
+**검증**: ✅ **FIXED**
+- orElse로 방어 코드 추가
+- StateError 대신 명확한 Exception 던짐
+- API 실패 시 try-catch로 이동하므로 크래시 방지
 
 ---
 
 ## API Contract 검증 (Mobile ↔ Server)
 
 ### 1. 박스 검색
-- ✅ 엔드포인트: `/boxes/search?keyword=...` (일치)
-- ✅ Response: `{ boxes: BoxModel[] }` (일치)
-- ✅ BoxModel 필드: id, name, region, description, memberCount (일치)
+**Endpoint**: `GET /boxes/search?keyword=...`
+- ✅ Client: `BoxApiClient.searchBoxes(String keyword)` (Line 36-44)
+- ✅ Response: `BoxSearchResponse.fromJson()` → `List<BoxModel>`
+- ✅ BoxModel 필드: id, name, region, description, memberCount, joinedAt
 
 ### 2. 박스 생성
-- ✅ 엔드포인트: `/boxes` (일치)
-- ✅ Request: `{ name, region, description }` (일치)
-- ✅ Response: `{ box, membership, previousBoxId }` (일치)
+**Endpoint**: `POST /boxes`
+- ✅ Client: `BoxApiClient.createBox(CreateBoxRequest)` (Line 54-60)
+- ✅ Request: `{ name, region, description }`
+- ✅ Response: `BoxCreateResponse` → `{ box, membership, previousBoxId }`
 
 ### 3. 박스 가입
-- ✅ 엔드포인트: `/boxes/:boxId/join` (일치)
+**Endpoint**: `POST /boxes/:boxId/join`
+- ✅ Client: `BoxApiClient.joinBox(int boxId)` (Line 70-73)
 - ⚠️ Response: Server는 `{ membership, previousBoxId }` 반환하지만, Mobile은 `membership`만 파싱
+
+**검증**: ✅ API Contract 유지됨 (previousBoxId 정보 손실은 UX 개선 기회이지만 기능 동작에 문제 없음)
 
 ---
 
-## Quality Scores
+## Design Spec 준수 검증
+
+### 레이아웃 계층
+- ✅ Scaffold → AppBar + Body + FAB
+- ✅ SafeArea 사용
+- ✅ Column → SketchInput + Expanded(검색 결과)
+- ✅ FloatingActionButton: SketchButton (primary)
+
+### 색상 팔레트 (사용 예정이었지만 import 누락)
+- ⚠️ SketchDesignTokens.error (에러 색상) — import 누락
+- ⚠️ SketchDesignTokens.success (성공 색상) — controller에서 사용, import 정상
+- ⚠️ SketchDesignTokens.base500 (아이콘 색상) — import 누락
+- ⚠️ SketchDesignTokens.base700 (보조 텍스트) — import 누락
+
+### 타이포그래피
+- ⚠️ fontSizeLg (18px) — 카드 제목 — import 누락
+- ⚠️ fontSizeBase (16px) — 입력 필드, 본문 — import 누락
+- ⚠️ fontSizeSm (14px) — 지역, 설명 — import 누락
+- ⚠️ fontSizeXs (12px) — 멤버 수 — import 누락
+
+**검증**: ⚠️ design-spec.md 준수하려고 했으나 import 누락으로 에러 발생
+
+---
+
+## const 최적화 검증
+
+**box_search_view.dart**:
+```dart
+const SizedBox(height: 16),                                    // ✅
+const Icon(Icons.search, size: 64, ...),                       // ⚠️ color에 SketchDesignTokens 사용 (const 불가)
+const Center(child: CircularProgressIndicator()),             // ✅
+const SizedBox(height: 8),                                    // ✅
+const EdgeInsets.all(16),                                     // ✅
+const EdgeInsets.only(bottom: 12),                            // ✅
+```
+
+**평가**: ✅ const 최적화 적절히 적용 (SketchDesignTokens는 static const이므로 const 생성자 사용 가능)
+
+---
+
+## Rebase 후 Import 경로 변경 확인
+
+### Before (packages/api 사용)
+```dart
+import 'package:api/api.dart';  // BoxModel, BoxSearchResponse, etc.
+```
+
+### After (상대 경로)
+```dart
+import '../../../data/models/box/box_model.dart';
+import '../../../data/models/box/box_search_response.dart';
+import '../../../data/clients/box_api_client.dart';
+```
+
+**검증 결과**:
+- ✅ Controller: box_search_controller.dart — import 경로 정상
+- ✅ Repository: box_repository.dart — import 경로 정상
+- ✅ API Client: box_api_client.dart — import 경로 정상
+- ❌ View: box_search_view.dart — core 패키지 import 누락 (SketchDesignTokens)
+
+---
+
+## Quality Scores (Import 수정 전)
 
 | 항목 | 점수 | 평가 |
 |------|------|------|
 | **GetX 패턴** | 9.5/10 | Controller/View/Binding 완벽 분리, .obs 사용 올바름 |
 | **API 모델** | 9.5/10 | Freezed 완벽 활용, json_serializable 통합 |
-| **API Client** | 8.5/10 | JSDoc 충실, previousBoxId 파싱 누락 |
-| **Controller-View 연결** | 9.0/10 | 실제 데이터 바인딩 확인, dynamic 타입 사용 개선 필요 |
-| **Design Spec 준수** | 9.5/10 | 5가지 UI 상태, 색상/타이포/스페이싱 정확 |
+| **API Client** | 9.0/10 | JSDoc 충실, previousBoxId 파싱 누락 |
+| **Controller-View 연결** | 9.0/10 | 실제 데이터 바인딩 확인, orElse 방어 코드 추가 |
+| **Design Spec 준수** | 7.0/10 | ⚠️ import 누락으로 컴파일 에러, 의도는 올바름 |
 | **에러 처리** | 9.5/10 | NetworkException 명시적 처리, 스낵바/모달 적절 |
 | **const 최적화** | 9.0/10 | 정적 위젯 const 사용, Obx 범위 최소화 |
 | **성능** | 9.5/10 | Debounce 300ms, ListView 최적화 |
+| **Import 경로** | 8.5/10 | ⚠️ core 패키지 import 1건 누락 |
 
-**종합 점수**: **9.2/10** (우수)
+**종합 점수**: **8.8/10** (우수, import 수정 후 9.3/10 예상)
 
 ---
 
 ## 최종 승인
 
-### 승인 상태: ✅ **APPROVED** (조건부 권장사항 포함)
+### 승인 상태: ⚠️ **CONDITIONAL APPROVAL**
 
-**필수 조건**: 없음 (기능 구현 완료)
+**필수 조건** (수정 필요):
+1. ❌ **box_search_view.dart — `package:core/core.dart` import 추가** (Critical)
+   - 28건 SketchDesignTokens 에러 해결
+   - 컴파일 성공 필수
 
-**권장 사항**:
-1. 🟠 **box_search_controller.dart:166** — firstWhere에 orElse 추가 (방어 코드)
-2. 🟡 **box_search_view.dart:203** — dynamic → BoxModel 타입 명시
-3. 🟠 **box_api_client.dart:72** — JoinBoxResponse 모델 추가하여 previousBoxId 활용
+**권장 사항** (선택):
+1. 🟡 box_api_client.dart — JoinBoxResponse 모델 추가하여 previousBoxId 활용 (UX 개선)
+2. 🟢 types.ts JSDoc 주석 추가 (문서화)
 
-**승인 후 다음 단계**:
-1. 권장사항 반영 (선택)
-2. Independent Reviewer 검증
-3. 문서 생성 (DONE.md)
+**Rebase 후 확인 사항**:
+- ✅ packages/api 의존성 제거 완료
+- ✅ import 경로 대부분 상대 경로로 변경
+- ✅ 모델/클라이언트 파일 위치 이동 완료
+- ❌ box_search_view.dart import 1건 누락
 
-**선택 사항 (향후)**:
-- 🟢 BoxModel 필드 확장 (createdBy, createdAt, updatedAt)
+---
+
+## 다음 단계
+
+### 즉시 수정 필요
+1. **box_search_view.dart Line 1-6 수정**:
+   ```dart
+   import 'package:core/core.dart';  // ✅ 추가
+   ```
+
+2. **flutter analyze 재실행**:
+   ```bash
+   cd apps/mobile/apps/wowa && flutter analyze
+   ```
+   - 예상: 28건 error 해결 → 13 info + 1 warning 남음 (허용 가능)
+
+### 승인 후
+3. ✅ Mobile 검증 완료
+4. 🔜 Independent Reviewer 검증
+5. 🔜 문서 생성 (DONE.md)
 
 ---
 
 **Reviewer**: CTO
-**Date**: 2026-02-10 (Updated with CodeRabbit Issues)
-**Signature**: ✅ Approved (권장사항 선택적 반영)
+**Date**: 2026-02-10 (Rebase 후 최종 검증)
+**Signature**: ⚠️ Conditional Approval (import 수정 필수)
+
+---
+
+## Appendix: Mobile 아키텍처 변경 이력
+
+### packages/api 패키지 제거 (main 브랜치)
+
+**Before**:
+```
+apps/mobile/
+└── packages/
+    ├── api/                    # ❌ 제거됨
+    │   ├── lib/
+    │   │   ├── api.dart
+    │   │   ├── src/
+    │   │   │   ├── models/
+    │   │   │   └── clients/
+    └── core/
+    └── design_system/
+```
+
+**After**:
+```
+apps/mobile/
+├── packages/
+│   ├── core/
+│   └── design_system/
+└── apps/wowa/
+    └── lib/app/data/
+        ├── models/            # ✅ 모델 이동
+        │   └── box/
+        └── clients/           # ✅ 클라이언트 이동
+            └── box_api_client.dart
+```
+
+**변경 이유**: SDK 패키지는 재사용 가능한 기능만, 앱 전용 기능은 앱 내부에서 관리 (CLAUDE.md SDK Convention 준수)
