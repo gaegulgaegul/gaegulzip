@@ -442,6 +442,125 @@ describe('Box Services', () => {
     });
   });
 
+  describe('searchBoxes with keyword (통합 검색)', () => {
+    it('should return empty array for empty keyword', async () => {
+      const { searchBoxes } = await import('../../../src/modules/box/services');
+
+      const result = await searchBoxes({ keyword: '' });
+
+      expect(result).toEqual([]);
+      expect(db.select).not.toHaveBeenCalled();
+    });
+
+    it('should search boxes by keyword in name (ILIKE OR)', async () => {
+      const { searchBoxes } = await import('../../../src/modules/box/services');
+      const mockBoxes = [
+        { id: 1, name: 'CrossFit Seoul', region: '서울 강남구', description: null, memberCount: 15 },
+      ];
+
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          leftJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue(mockBoxes),
+            }),
+          }),
+        }),
+      } as any);
+
+      const result = await searchBoxes({ keyword: 'CrossFit' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toContain('CrossFit');
+    });
+
+    it('should search boxes by keyword in region (ILIKE OR)', async () => {
+      const { searchBoxes } = await import('../../../src/modules/box/services');
+      const mockBoxes = [
+        { id: 1, name: 'CrossFit Seoul', region: '서울 강남구', description: null, memberCount: 10 },
+        { id: 2, name: 'Busan Box', region: '서울 서초구', description: null, memberCount: 5 },
+      ];
+
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          leftJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue(mockBoxes),
+            }),
+          }),
+        }),
+      } as any);
+
+      const result = await searchBoxes({ keyword: '서울' });
+
+      expect(result).toHaveLength(2);
+    });
+
+    it('should be case insensitive', async () => {
+      const { searchBoxes } = await import('../../../src/modules/box/services');
+      const mockBoxes = [
+        { id: 1, name: 'CrossFit Seoul', region: '서울 강남구', description: null, memberCount: 12 },
+      ];
+
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          leftJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue(mockBoxes),
+            }),
+          }),
+        }),
+      } as any);
+
+      const result = await searchBoxes({ keyword: 'crossfit' });
+
+      expect(result).toHaveLength(1);
+    });
+
+    it('should include memberCount in results', async () => {
+      const { searchBoxes } = await import('../../../src/modules/box/services');
+      const mockBoxes = [
+        { id: 1, name: 'CrossFit Seoul', region: '서울 강남구', description: null, memberCount: 42 },
+      ];
+
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          leftJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue(mockBoxes),
+            }),
+          }),
+        }),
+      } as any);
+
+      const result = await searchBoxes({ keyword: '강남' });
+
+      expect(result[0]).toHaveProperty('memberCount', 42);
+      expect(typeof result[0].memberCount).toBe('number');
+    });
+
+    it('should handle whitespace in keyword (trim)', async () => {
+      const { searchBoxes } = await import('../../../src/modules/box/services');
+      const mockBoxes = [
+        { id: 1, name: 'CrossFit Seoul', region: '서울 강남구', description: null, memberCount: 8 },
+      ];
+
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          leftJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue(mockBoxes),
+            }),
+          }),
+        }),
+      } as any);
+
+      const result = await searchBoxes({ keyword: '  CrossFit  ' });
+
+      expect(result).toHaveLength(1);
+    });
+  });
+
   describe('getCurrentBox', () => {
     it('should return current box when user has membership', async () => {
       const { getCurrentBox } = await import('../../../src/modules/box/services');
@@ -593,6 +712,166 @@ describe('Box Services', () => {
       const result = await getBoxMembers(999);
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('createBoxWithMembership (트랜잭션)', () => {
+    it('should create box and add creator as member in transaction', async () => {
+      const { createBoxWithMembership } = await import('../../../src/modules/box/services');
+      const mockBox = {
+        id: 1,
+        name: 'CrossFit Seoul',
+        region: '서울 강남구',
+        description: 'Best gym',
+        createdBy: 123,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const mockMember = {
+        id: 10,
+        boxId: 1,
+        userId: 123,
+        role: 'member',
+        joinedAt: new Date(),
+      };
+
+      // Mock 트랜잭션
+      const mockTx = {
+        insert: vi.fn().mockReturnValue({
+          values: vi.fn().mockReturnValue({
+            returning: vi.fn()
+              .mockResolvedValueOnce([mockBox])  // 박스 생성
+              .mockResolvedValueOnce([mockMember]), // 멤버 등록
+          }),
+        }),
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([]), // 기존 멤버십 없음
+            }),
+          }),
+        }),
+        delete: vi.fn(),
+      };
+
+      vi.mocked(db.transaction).mockImplementation(async (callback) => {
+        return await callback(mockTx as any);
+      });
+
+      const result = await createBoxWithMembership({
+        name: 'CrossFit Seoul',
+        region: '서울 강남구',
+        description: 'Best gym',
+        createdBy: 123,
+      });
+
+      expect(result.box).toMatchObject({
+        id: 1,
+        name: 'CrossFit Seoul',
+        createdBy: 123,
+      });
+      expect(result.membership).toMatchObject({
+        boxId: 1,
+        userId: 123,
+        role: 'member',
+      });
+      expect(result.previousBoxId).toBeNull();
+      expect(db.transaction).toHaveBeenCalled();
+    });
+
+    it('should remove previous membership when creating new box', async () => {
+      const { createBoxWithMembership } = await import('../../../src/modules/box/services');
+      const existingMembership = { id: 5, boxId: 3, userId: 123, role: 'member' };
+      const mockBox = {
+        id: 10,
+        name: 'New Box',
+        region: '서울 서초구',
+        description: null,
+        createdBy: 123,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const mockMember = {
+        id: 15,
+        boxId: 10,
+        userId: 123,
+        role: 'member',
+        joinedAt: new Date(),
+      };
+
+      const mockTx = {
+        insert: vi.fn().mockReturnValue({
+          values: vi.fn().mockReturnValue({
+            returning: vi.fn()
+              .mockResolvedValueOnce([mockBox])
+              .mockResolvedValueOnce([mockMember]),
+          }),
+        }),
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([existingMembership]), // 기존 멤버십 있음
+            }),
+          }),
+        }),
+        delete: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue(undefined),
+        }),
+      };
+
+      vi.mocked(db.transaction).mockImplementation(async (callback) => {
+        return await callback(mockTx as any);
+      });
+
+      const result = await createBoxWithMembership({
+        name: 'New Box',
+        region: '서울 서초구',
+        createdBy: 123,
+      });
+
+      expect(result.previousBoxId).toBe(3);
+      expect(mockTx.delete).toHaveBeenCalled();
+      expect(result.box.id).toBe(10);
+      expect(result.membership.boxId).toBe(10);
+    });
+
+    it('should return previousBoxId correctly', async () => {
+      const { createBoxWithMembership } = await import('../../../src/modules/box/services');
+      const existingMembership = { id: 7, boxId: 42, userId: 999, role: 'member' };
+      const mockBox = { id: 50, name: 'Test Box', region: 'Test Region', description: null, createdBy: 999, createdAt: new Date(), updatedAt: new Date() };
+      const mockMember = { id: 20, boxId: 50, userId: 999, role: 'member', joinedAt: new Date() };
+
+      const mockTx = {
+        insert: vi.fn().mockReturnValue({
+          values: vi.fn().mockReturnValue({
+            returning: vi.fn()
+              .mockResolvedValueOnce([mockBox])
+              .mockResolvedValueOnce([mockMember]),
+          }),
+        }),
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([existingMembership]),
+            }),
+          }),
+        }),
+        delete: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue(undefined),
+        }),
+      };
+
+      vi.mocked(db.transaction).mockImplementation(async (callback) => {
+        return await callback(mockTx as any);
+      });
+
+      const result = await createBoxWithMembership({
+        name: 'Test Box',
+        region: 'Test Region',
+        createdBy: 999,
+      });
+
+      expect(result.previousBoxId).toBe(42);
     });
   });
 });

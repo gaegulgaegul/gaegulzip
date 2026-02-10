@@ -27,18 +27,17 @@ class BoxRepository {
     }
   }
 
-  /// 박스 검색
+  /// 박스 검색 (통합 키워드)
   ///
-  /// [name] 박스 이름 (선택, 부분 일치)
-  /// [region] 지역 (선택, 부분 일치)
+  /// [keyword] 통합 검색 키워드 (박스 이름 또는 지역)
   ///
   /// Returns: [List<BoxModel>] 검색된 박스 목록
   ///
   /// Throws:
   ///   - [NetworkException] 네트워크 오류
-  Future<List<BoxModel>> searchBoxes({String? name, String? region}) async {
+  Future<List<BoxModel>> searchBoxes(String keyword) async {
     try {
-      return await _apiClient.searchBoxes(name: name, region: region);
+      return await _apiClient.searchBoxes(keyword);
     } on DioException catch (e) {
       throw _handleDioException(e);
     }
@@ -46,21 +45,35 @@ class BoxRepository {
 
   /// 박스 생성
   ///
-  /// [request] 박스 생성 요청
+  /// [name] 박스 이름
+  /// [region] 박스 지역
+  /// [description] 박스 설명 (선택)
   ///
-  /// Returns: [BoxModel] 생성된 박스
+  /// Returns: [BoxCreateResponse] 생성된 박스 + 멤버십 정보
   ///
   /// Throws:
   ///   - [NetworkException] 네트워크 오류
-  ///   - [Exception] 이미 박스에 소속된 경우 (409)
-  Future<BoxModel> createBox(CreateBoxRequest request) async {
+  ///   - [BusinessException] 이미 박스에 소속된 경우 (409)
+  Future<BoxCreateResponse> createBox({
+    required String name,
+    required String region,
+    String? description,
+  }) async {
     try {
+      final request = CreateBoxRequest(
+        name: name,
+        region: region,
+        description: description,
+      );
       return await _apiClient.createBox(request);
     } on DioException catch (e) {
+      if (e.response?.statusCode == 400) {
+        throw NetworkException(message: '입력 정보를 확인해주세요');
+      }
       if (e.response?.statusCode == 409) {
         throw BusinessException(
           code: 'already_joined',
-          message: '이미 박스에 소속되어 있습니다. 먼저 기존 박스를 탈퇴해주세요.',
+          message: '이미 박스에 소속되어 있습니다.',
         );
       }
       throw _handleDioException(e);
@@ -71,19 +84,22 @@ class BoxRepository {
   ///
   /// [boxId] 가입할 박스 ID
   ///
-  /// Returns: 가입 결과 (membership 정보)
+  /// Returns: [MembershipModel] 생성된 멤버십
   ///
   /// Throws:
   ///   - [NetworkException] 네트워크 오류
-  ///   - [Exception] 이미 동일 박스에 소속된 경우 (409)
-  Future<Map<String, dynamic>> joinBox(int boxId) async {
+  ///   - [BusinessException] 박스를 찾을 수 없는 경우 (404) / 이미 가입된 경우 (409)
+  Future<MembershipModel> joinBox(int boxId) async {
     try {
       return await _apiClient.joinBox(boxId);
     } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw NetworkException(message: '박스를 찾을 수 없습니다');
+      }
       if (e.response?.statusCode == 409) {
         throw BusinessException(
           code: 'already_joined',
-          message: '이미 해당 박스에 소속되어 있습니다.',
+          message: '이미 가입된 박스입니다',
         );
       }
       throw _handleDioException(e);
@@ -146,7 +162,10 @@ class BoxRepository {
     }
 
     if (e.response?.statusCode != null && e.response!.statusCode! >= 500) {
-      return Exception('일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요');
+      return NetworkException(
+        message: '일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요',
+        statusCode: e.response!.statusCode,
+      );
     }
 
     return NetworkException(

@@ -12,7 +12,7 @@ class BoxCreateView extends GetView<BoxCreateController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('새 박스 만들기')),
+      appBar: _buildAppBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -21,54 +21,87 @@ class BoxCreateView extends GetView<BoxCreateController> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // 이름 입력
-                      Obx(() => SketchInput(
-                            label: '박스 이름',
-                            hint: '크로스핏 박스 이름',
-                            controller: controller.nameController,
-                            errorText: controller.nameError.value,
-                          )),
+                      _buildNameInput(),
                       const SizedBox(height: 16),
-
-                      // 지역 입력
-                      Obx(() => SketchInput(
-                            label: '지역',
-                            hint: '서울 강남구',
-                            controller: controller.regionController,
-                            errorText: controller.regionError.value,
-                          )),
+                      _buildRegionInput(),
                       const SizedBox(height: 16),
-
-                      // 설명 입력 (선택)
-                      SketchInput(
-                        label: '설명 (선택)',
-                        hint: '박스에 대한 간단한 설명',
-                        controller: controller.descriptionController,
-                        maxLines: 3,
-                      ),
+                      _buildDescriptionInput(),
                     ],
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
-              // 생성 버튼
-              Obx(() => SizedBox(
-                    width: double.infinity,
-                    child: SketchButton(
-                      text: '박스 생성',
-                      style: SketchButtonStyle.primary,
-                      size: SketchButtonSize.large,
-                      onPressed: controller.canSubmit.value && !controller.isLoading.value
-                          ? controller.create
-                          : null,
-                    ),
-                  )),
+              _buildSubmitButton(),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// AppBar
+  AppBar _buildAppBar() {
+    return AppBar(
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Get.back(),
+      ),
+      title: const Text('새 박스 만들기'),
+      centerTitle: true,
+    );
+  }
+
+  /// 박스 이름 입력
+  Widget _buildNameInput() {
+    return Obx(
+      () => SketchInput(
+        controller: controller.nameController,
+        label: '박스 이름',
+        hint: '크로스핏 박스 이름',
+        errorText: controller.nameError.value,
+        maxLength: 50,
+      ),
+    );
+  }
+
+  /// 지역 입력
+  Widget _buildRegionInput() {
+    return Obx(
+      () => SketchInput(
+        controller: controller.regionController,
+        label: '지역',
+        hint: '서울 강남구',
+        errorText: controller.regionError.value,
+        maxLength: 100,
+      ),
+    );
+  }
+
+  /// 설명 입력 (선택)
+  Widget _buildDescriptionInput() {
+    return SketchInput(
+      controller: controller.descriptionController,
+      label: '설명 (선택)',
+      hint: '박스에 대한 간단한 설명',
+      maxLines: 3,
+      maxLength: 1000,
+    );
+  }
+
+  /// 생성 버튼
+  Widget _buildSubmitButton() {
+    return Obx(
+      () => SizedBox(
+        width: double.infinity,
+        child: SketchButton(
+          text: '박스 생성',
+          style: SketchButtonStyle.primary,
+          size: SketchButtonSize.large,
+          onPressed: controller.canSubmit.value && !controller.isLoading.value
+              ? controller.createBox
+              : null,
+          isLoading: controller.isLoading.value,
         ),
       ),
     );

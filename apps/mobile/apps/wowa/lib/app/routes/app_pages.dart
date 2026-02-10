@@ -47,14 +47,14 @@ class AppPages {
       name: Routes.BOX_SEARCH,
       page: () => const BoxSearchView(),
       binding: BoxSearchBinding(),
-      transition: Transition.fadeIn,
+      transition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 300),
     ),
     GetPage(
       name: Routes.BOX_CREATE,
       page: () => const BoxCreateView(),
       binding: BoxCreateBinding(),
-      transition: Transition.downToUp,
+      transition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 300),
     ),
     GetPage(
