@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:qna/qna.dart';
+import 'package:notice/notice.dart';
 
 import '../modules/home/views/home_view.dart';
 import '../modules/home/bindings/home_binding.dart';
@@ -17,9 +19,9 @@ import '../modules/tokens/bindings/tokens_binding.dart';
 import '../modules/sdk_demos/views/sdk_list_view.dart';
 import '../modules/sdk_demos/bindings/sdk_list_binding.dart';
 import '../modules/sdk_demos/views/sdk_qna_demo_view.dart';
-import '../modules/sdk_demos/bindings/sdk_qna_demo_binding.dart';
 import '../modules/sdk_demos/views/sdk_notice_demo_view.dart';
-import '../modules/sdk_demos/bindings/sdk_notice_demo_binding.dart';
+import '../modules/login/views/login_view.dart';
+import '../modules/login/bindings/login_binding.dart';
 import 'app_routes.dart';
 
 /// 앱 페이지 정의
@@ -28,6 +30,14 @@ import 'app_routes.dart';
 class AppPages {
   /// GetPage 리스트
   static final routes = [
+    // 로그인 화면
+    GetPage(
+      name: Routes.LOGIN,
+      page: () => const LoginView(),
+      binding: LoginBinding(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
     GetPage(
       name: Routes.HOME,
       page: () => const HomeView(),
@@ -97,19 +107,19 @@ class AppPages {
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
     ),
-    // QnA SDK 데모
+    // QnA SDK 데모 (실서버 연동)
     GetPage(
       name: Routes.SDK_QNA_DEMO,
       page: () => const SdkQnaDemoView(),
-      binding: SdkQnaDemoBinding(),
+      binding: QnaBinding(appCode: 'demo'),
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
     ),
-    // Notice SDK 데모
+    // Notice SDK 데모 (실서버 연동)
     GetPage(
       name: Routes.SDK_NOTICE_DEMO,
       page: () => const SdkNoticeDemoView(),
-      binding: SdkNoticeDemoBinding(),
+      binding: NoticeBinding(appCode: 'demo'),
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
     ),
