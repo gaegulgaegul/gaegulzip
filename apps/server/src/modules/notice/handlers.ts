@@ -28,9 +28,12 @@ async function getAppCode(appId: number): Promise<string> {
  */
 async function resolveAppCode(req: Request): Promise<string> {
   if (req.user) {
-    return getAppCode((req.user as { userId: number; appId: number }).appId);
+    const { appId } = req.user as { userId: number; appId: number };
+    logger.debug({ appId }, 'Resolving appCode from JWT');
+    return getAppCode(appId);
   }
   const { appCode } = z.object({ appCode: z.string().min(1) }).parse(req.query);
+  logger.debug({ appCode }, 'Using appCode from query param');
   return appCode;
 }
 
