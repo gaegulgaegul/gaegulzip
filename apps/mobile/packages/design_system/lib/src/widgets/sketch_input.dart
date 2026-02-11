@@ -251,6 +251,7 @@ class _SketchInputState extends State<SketchInput> {
             vertical: SketchDesignTokens.spacingSm,
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 접두사 아이콘
               if (widget.prefixIcon != null) ...[
