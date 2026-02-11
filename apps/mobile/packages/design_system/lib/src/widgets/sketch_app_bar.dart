@@ -177,6 +177,7 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
                     title ?? '',
                     style: TextStyle(
                       fontFamily: SketchDesignTokens.fontFamilyHand,
+                      fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                       fontSize: SketchDesignTokens.fontSizeLg,
                       fontWeight: FontWeight.w600,
                       color: effectiveFgColor,

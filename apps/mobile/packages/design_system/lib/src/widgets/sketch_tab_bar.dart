@@ -175,6 +175,7 @@ class SketchTabBar extends StatelessWidget {
                 tab.label,
                 style: TextStyle(
                   fontFamily: SketchDesignTokens.fontFamilyHand,
+                  fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                   fontSize: 14,
                   color: color,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,

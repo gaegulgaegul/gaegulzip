@@ -175,6 +175,7 @@ class _SketchChipState extends State<SketchChip> {
                 widget.label,
                 style: TextStyle(
                   fontFamily: SketchDesignTokens.fontFamilyHand,
+                  fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                   fontSize: SketchDesignTokens.fontSizeSm,
                   fontWeight: FontWeight.w500,
                   color: colorSpec.labelColor,

@@ -221,6 +221,7 @@ class SketchAvatar extends StatelessWidget {
           initials!,
           style: TextStyle(
             fontFamily: SketchDesignTokens.fontFamilyHand,
+            fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
             fontSize: config.fontSize,
             color: effectiveTextColor,
             fontWeight: FontWeight.w600,

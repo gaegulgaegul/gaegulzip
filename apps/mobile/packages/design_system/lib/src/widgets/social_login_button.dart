@@ -1,3 +1,4 @@
+import 'package:core/sketch_design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -103,6 +104,7 @@ class SocialLoginButton extends StatelessWidget {
         Text(
           text ?? spec.defaultText,
           style: TextStyle(
+            fontFamily: SketchDesignTokens.fontFamilySans,
             fontSize: sizeSpec.fontSize,
             fontWeight: FontWeight.w500,
             color: spec.textColor,

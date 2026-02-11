@@ -157,6 +157,7 @@ class _SketchLinkState extends State<SketchLink> {
                 widget.text,
                 style: TextStyle(
                   fontFamily: SketchDesignTokens.fontFamilyHand,
+                  fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                   fontSize: effectiveFontSize,
                   color: textColor,
                   decoration: TextDecoration.underline,
