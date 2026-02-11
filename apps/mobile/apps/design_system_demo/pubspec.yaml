@@ -33,9 +33,12 @@ flutter:
     - .env
     - assets/fonts/
   fonts:
-    - family: PatrickHand
+    - family: Loranthus
       fonts:
-        - asset: assets/fonts/PatrickHand-Regular.ttf
+        - asset: assets/fonts/Loranthus.ttf
+    - family: KyoboHandwriting2019
+      fonts:
+        - asset: assets/fonts/KyoboHandwriting2019.ttf
     - family: JetBrainsMono
       fonts:
         - asset: assets/fonts/JetBrainsMono-Regular.ttf
