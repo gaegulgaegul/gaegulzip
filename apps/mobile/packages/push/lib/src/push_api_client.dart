@@ -20,7 +20,7 @@ class PushApiClient {
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<void> registerDevice(DeviceTokenRequest request) async {
     await _dio.post(
-      '/api/push/devices',
+      '/push/devices',
       data: request.toJson(),
     );
   }
@@ -51,7 +51,7 @@ class PushApiClient {
     }
 
     final response = await _dio.get(
-      '/api/push/notifications/me',
+      '/push/notifications/me',
       queryParameters: queryParams,
     );
     return NotificationListResponse.fromJson(response.data);
@@ -65,7 +65,7 @@ class PushApiClient {
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<UnreadCountResponse> getUnreadCount() async {
     final response = await _dio.get(
-      '/api/push/notifications/unread-count',
+      '/push/notifications/unread-count',
     );
     return UnreadCountResponse.fromJson(response.data);
   }
@@ -78,7 +78,7 @@ class PushApiClient {
   ///   - [DioException] 네트워크 오류, HTTP 오류 (404: 알림 없음)
   Future<void> markAsRead(int notificationId) async {
     await _dio.patch(
-      '/api/push/notifications/$notificationId/read',
+      '/push/notifications/$notificationId/read',
     );
   }
 }
