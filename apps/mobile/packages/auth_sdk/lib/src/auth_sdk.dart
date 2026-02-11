@@ -96,12 +96,12 @@ class AuthSdk {
 
       // AuthApiService 등록
       if (!Get.isRegistered<AuthApiService>()) {
-        Get.lazyPut<AuthApiService>(() => AuthApiService());
+        Get.lazyPut<AuthApiService>(() => AuthApiService(), fenix: true);
       }
 
       // AuthRepository 등록
       if (!Get.isRegistered<AuthRepository>()) {
-        Get.lazyPut<AuthRepository>(() => AuthRepository());
+        Get.lazyPut<AuthRepository>(() => AuthRepository(), fenix: true);
       }
 
       // AuthInterceptor 등록 (중복 방지)
@@ -111,8 +111,10 @@ class AuthSdk {
         dio.interceptors.add(AuthInterceptor());
       }
 
-      // AuthStateService 초기화
-      await Get.putAsync(() => AuthStateService().init());
+      // AuthStateService 초기화 (중복 등록 방지)
+      if (!Get.isRegistered<AuthStateService>()) {
+        await Get.putAsync(() => AuthStateService().init());
+      }
 
       // 소셜 로그인 프로바이더 등록 (LoginBinding에서 이동)
       _registerProviders(config);
