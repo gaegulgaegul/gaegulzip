@@ -41,14 +41,13 @@ class BoxCreateView extends GetView<BoxCreateController> {
   }
 
   /// AppBar
-  AppBar _buildAppBar() {
-    return AppBar(
+  PreferredSizeWidget _buildAppBar() {
+    return SketchAppBar(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => Get.back(),
       ),
-      title: const Text('새 박스 만들기'),
-      centerTitle: true,
+      title: '새 박스 만들기',
     );
   }
 

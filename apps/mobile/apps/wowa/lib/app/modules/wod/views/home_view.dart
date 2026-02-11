@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../../../data/models/wod/wod_model.dart';
 import '../../../data/models/wod/movement.dart';
@@ -48,16 +49,20 @@ class HomeView extends GetView<HomeController> {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
         child: Row(
           children: [
-            const Icon(Icons.fitness_center, size: 20),
+            const Icon(Icons.fitness_center, size: 20, color: SketchDesignTokens.base700),
             const SizedBox(width: 8),
             Text(
               box.name,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: SketchDesignTokens.fontSizeLg,
+                fontFamily: SketchDesignTokens.fontFamilyHand,
+                color: SketchDesignTokens.base900,
+              ),
             ),
             const Spacer(),
             Text(
               box.region,
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              style: const TextStyle(color: SketchDesignTokens.base700, fontSize: SketchDesignTokens.fontSizeSm),
             ),
           ],
         ),
@@ -72,8 +77,9 @@ class HomeView extends GetView<HomeController> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
+              SketchIconButton(
+                icon: Icons.chevron_left,
+                tooltip: '이전 날짜',
                 onPressed: controller.previousDay,
               ),
               GestureDetector(
@@ -83,17 +89,21 @@ class HomeView extends GetView<HomeController> {
                     Text(
                       controller.formattedDate,
                       style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
+                        fontSize: SketchDesignTokens.fontSizeXl,
+                        fontFamily: SketchDesignTokens.fontFamilyHand,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       '${controller.dayOfWeek}요일${controller.isToday ? ' (오늘)' : ''}',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      style: const TextStyle(color: SketchDesignTokens.base700, fontSize: SketchDesignTokens.fontSizeSm),
                     ),
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
+              SketchIconButton(
+                icon: Icons.chevron_right,
+                tooltip: '다음 날짜',
                 onPressed: controller.isToday ? null : controller.nextDay,
               ),
             ],
@@ -108,7 +118,11 @@ class HomeView extends GetView<HomeController> {
         return const Center(
           child: Padding(
             padding: EdgeInsets.all(32),
-            child: CircularProgressIndicator(),
+            child: SketchProgressBar(
+              style: SketchProgressBarStyle.circular,
+              value: null,
+              size: 48,
+            ),
           ),
         );
       }
@@ -119,7 +133,7 @@ class HomeView extends GetView<HomeController> {
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.event_busy, size: 48, color: Colors.grey[400]),
+                const Icon(Icons.event_busy, size: 48, color: SketchDesignTokens.base300),
                 const SizedBox(height: 12),
                 const Text('WOD가 아직 등록되지 않았습니다'),
                 const SizedBox(height: 16),
@@ -148,9 +162,9 @@ class HomeView extends GetView<HomeController> {
               const SizedBox(height: 12),
               Text(
                 'Personal WODs (${controller.personalWods.length})',
-                style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
+                style: const TextStyle(
+                    color: SketchDesignTokens.base700,
+                    fontSize: SketchDesignTokens.fontSizeSm,
                     fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 8),
@@ -173,28 +187,16 @@ class HomeView extends GetView<HomeController> {
           header: Row(
             children: [
               if (isBase)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[100],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text('BASE',
-                      style:
-                          TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                const SketchChip(
+                  label: 'BASE',
+                  selected: true,
+                  fillColor: SketchDesignTokens.info,
                 ),
               if (!isBase)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[100],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text('PERSONAL',
-                      style:
-                          TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                const SketchChip(
+                  label: 'PERSONAL',
+                  selected: true,
+                  fillColor: SketchDesignTokens.warning,
                 ),
               const SizedBox(width: 8),
               Text(wod.programData.type,

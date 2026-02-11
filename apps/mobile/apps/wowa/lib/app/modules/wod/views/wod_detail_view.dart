@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../../../data/models/wod/wod_model.dart';
 import '../../../data/models/wod/movement.dart';
@@ -16,11 +17,15 @@ class WodDetailView extends GetView<WodDetailController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('WOD 상세')),
+      appBar: const SketchAppBar(title: 'WOD 상세'),
       body: SafeArea(
         child: Obx(() {
           if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+                child: SketchProgressBar(
+                    style: SketchProgressBarStyle.circular,
+                    value: null,
+                    size: 48));
           }
 
           return SingleChildScrollView(
@@ -61,14 +66,10 @@ class WodDetailView extends GetView<WodDetailController> {
     return SketchCard(
       header: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.blue[100],
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: const Text('BASE WOD',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          const SketchChip(
+            label: 'BASE WOD',
+            selected: true,
+            fillColor: SketchDesignTokens.info,
           ),
           const SizedBox(width: 8),
           Text(wod.programData.type,
@@ -94,7 +95,7 @@ class WodDetailView extends GetView<WodDetailController> {
                 if (pd.timeCap != null) '${pd.timeCap}분',
                 if (pd.rounds != null) '${pd.rounds}라운드',
               ].join(' / '),
-              style: TextStyle(color: Colors.grey[600]),
+              style: const TextStyle(color: SketchDesignTokens.base700),
             ),
           ),
 
@@ -107,7 +108,7 @@ class WodDetailView extends GetView<WodDetailController> {
         // 자유 텍스트
         if (wod.rawText != null && wod.rawText!.isNotEmpty) ...[
           const SizedBox(height: 8),
-          Text(wod.rawText!, style: TextStyle(color: Colors.grey[700])),
+          Text(wod.rawText!, style: const TextStyle(color: SketchDesignTokens.base700)),
         ],
       ],
     );
@@ -120,7 +121,7 @@ class WodDetailView extends GetView<WodDetailController> {
       child: SketchCard(
         body: Row(
           children: [
-            Icon(Icons.notification_important, color: Colors.orange[700]),
+            const Icon(Icons.notification_important, color: SketchDesignTokens.warning),
             const SizedBox(width: 12),
             const Expanded(
               child: Column(
@@ -147,7 +148,11 @@ class WodDetailView extends GetView<WodDetailController> {
       children: [
         Text(
           'Personal WODs (${controller.personalWods.length})',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: SketchDesignTokens.fontSizeLg,
+            fontFamily: SketchDesignTokens.fontFamilyHand,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 8),
         ...controller.personalWods.map((wod) => Padding(
@@ -155,22 +160,16 @@ class WodDetailView extends GetView<WodDetailController> {
               child: SketchCard(
                 header: Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.orange[100],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text('PERSONAL',
-                          style: TextStyle(
-                              fontSize: 11, fontWeight: FontWeight.bold)),
+                    const SketchChip(
+                      label: 'PERSONAL',
+                      selected: true,
+                      fillColor: SketchDesignTokens.warning,
                     ),
                     if (wod.registeredBy != null) ...[
                       const SizedBox(width: 8),
                       Text(wod.registeredBy!,
-                          style: TextStyle(
-                              color: Colors.grey[600], fontSize: 12)),
+                          style: const TextStyle(
+                              color: SketchDesignTokens.base700, fontSize: SketchDesignTokens.fontSizeXs)),
                     ],
                   ],
                 ),

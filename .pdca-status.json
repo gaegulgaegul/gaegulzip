@@ -1,5 +1,19 @@
 {
   "features": {
+    "wowa-design": {
+      "phase": "check",
+      "platform": "mobile",
+      "startedAt": "2026-02-10T00:00:00.000Z",
+      "matchRate": 94,
+      "documents": {
+        "plan": "docs/wowa/wowa-design/user-story.md",
+        "design-mobile-spec": "docs/wowa/wowa-design/mobile-design-spec.md",
+        "design-mobile": "docs/wowa/wowa-design/mobile-brief.md",
+        "work-plan-mobile": "docs/wowa/wowa-design/mobile-work-plan.md",
+        "analysis": "docs/wowa/wowa-design/analysis.md",
+        "review-mobile": "docs/wowa/wowa-design/mobile-cto-review.md"
+      }
+    },
     "wowa-box": {
       "phase": "check",
       "platform": "fullstack",

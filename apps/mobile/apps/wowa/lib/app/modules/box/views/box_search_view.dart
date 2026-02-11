@@ -31,14 +31,13 @@ class BoxSearchView extends GetView<BoxSearchController> {
   }
 
   /// AppBar
-  AppBar _buildAppBar() {
-    return AppBar(
+  PreferredSizeWidget _buildAppBar() {
+    return SketchAppBar(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => Get.back(),
       ),
-      title: const Text('박스 찾기'),
-      centerTitle: true,
+      title: '박스 찾기',
     );
   }
 
@@ -75,7 +74,11 @@ class BoxSearchView extends GetView<BoxSearchController> {
       // 1. 로딩 상태
       if (controller.isLoading.value) {
         return const Center(
-          child: CircularProgressIndicator(),
+          child: SketchProgressBar(
+            style: SketchProgressBarStyle.circular,
+            value: null,
+            size: 48,
+          ),
         );
       }
 
