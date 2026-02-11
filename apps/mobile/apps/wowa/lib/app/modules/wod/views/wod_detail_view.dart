@@ -148,7 +148,11 @@ class WodDetailView extends GetView<WodDetailController> {
       children: [
         Text(
           'Personal WODs (${controller.personalWods.length})',
-          style: const TextStyle(fontSize: SketchDesignTokens.fontSizeLg, fontFamily: SketchDesignTokens.fontFamilyHand, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: SketchDesignTokens.fontSizeLg,
+            fontFamily: SketchDesignTokens.fontFamilyHand,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 8),
         ...controller.personalWods.map((wod) => Padding(

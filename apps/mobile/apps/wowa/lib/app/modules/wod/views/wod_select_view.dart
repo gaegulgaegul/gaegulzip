@@ -51,6 +51,7 @@ class WodSelectView extends GetView<WodSelectController> {
       child: SketchCard(
         borderColor: SketchDesignTokens.warning,
         strokeWidth: SketchDesignTokens.strokeBold,
+        // TODO: SketchDesignTokens에 warningBg 토큰 추가 후 교체
         fillColor: const Color(0xFFFFF8E1),
         body: const Row(
           children: [

@@ -140,7 +140,11 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     Widget appBarContent = Container(
-      padding: EdgeInsets.only(top: statusBarHeight, left: 8, right: 8),
+      padding: EdgeInsets.only(
+        top: statusBarHeight,
+        left: SketchDesignTokens.spacingSm,
+        right: SketchDesignTokens.spacingSm,
+      ),
       decoration: BoxDecoration(
         color: effectiveBgColor,
         boxShadow: showShadow

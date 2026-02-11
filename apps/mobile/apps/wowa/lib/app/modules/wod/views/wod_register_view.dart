@@ -61,8 +61,14 @@ class WodRegisterView extends GetView<WodRegisterController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('운동 타입',
-            style: TextStyle(fontSize: SketchDesignTokens.fontSizeBase, fontFamily: SketchDesignTokens.fontFamilyHand, fontWeight: FontWeight.bold)),
+        const Text(
+          '운동 타입',
+          style: TextStyle(
+            fontSize: SketchDesignTokens.fontSizeBase,
+            fontFamily: SketchDesignTokens.fontFamilyHand,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 8),
         Obx(() => Wrap(
               spacing: 8,
@@ -142,9 +148,14 @@ class WodRegisterView extends GetView<WodRegisterController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('운동 목록',
-                    style:
-                        TextStyle(fontSize: SketchDesignTokens.fontSizeBase, fontFamily: SketchDesignTokens.fontFamilyHand, fontWeight: FontWeight.bold)),
+                const Text(
+                  '운동 목록',
+                  style: TextStyle(
+                    fontSize: SketchDesignTokens.fontSizeBase,
+                    fontFamily: SketchDesignTokens.fontFamilyHand,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 SketchButton(
                   text: '+ 운동 추가',
                   style: SketchButtonStyle.outline,
