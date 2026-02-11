@@ -43,46 +43,52 @@ class QnaSubmitView extends GetView<QnaController> {
   /// Body 빌드
   Widget _buildBody() {
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 8),
+      child: Column(
+        children: [
+          // 스크롤 가능한 입력 영역
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
 
-            // 안내 문구
-            const Text(
-              '궁금한 점을 남겨주세요. 빠르게 답변드리겠습니다.',
-              style: TextStyle(
-                fontSize: 14,
-                color: SketchDesignTokens.base700,
-                height: 1.5,
+                  // 안내 문구
+                  const Text(
+                    '궁금한 점을 남겨주세요. 빠르게 답변드리겠습니다.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: SketchDesignTokens.base700,
+                      height: 1.5,
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // 제목 입력 필드
+                  _buildTitleInput(),
+
+                  const SizedBox(height: 24),
+
+                  // 본문 입력 필드
+                  _buildBodyInput(),
+
+                  const SizedBox(height: 12),
+
+                  // 글자 수 카운터
+                  _buildCharCounter(),
+                ],
               ),
             ),
+          ),
 
-            const SizedBox(height: 24),
-
-            // 제목 입력 필드
-            _buildTitleInput(),
-
-            const SizedBox(height: 24),
-
-            // 본문 입력 필드
-            _buildBodyInput(),
-
-            const SizedBox(height: 12),
-
-            // 글자 수 카운터
-            _buildCharCounter(),
-
-            const SizedBox(height: 32),
-
-            // 제출 버튼
-            _buildSubmitButton(),
-
-            const SizedBox(height: 16),
-          ],
-        ),
+          // 하단 고정 제출 버튼
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+            child: _buildSubmitButton(),
+          ),
+        ],
       ),
     );
   }
@@ -97,7 +103,6 @@ class QnaSubmitView extends GetView<QnaController> {
           errorText: controller.titleError.value.isEmpty
               ? null
               : controller.titleError.value,
-          prefixIcon: const Icon(Icons.edit, size: 20),
         ));
   }
 
@@ -113,7 +118,6 @@ class QnaSubmitView extends GetView<QnaController> {
           errorText: controller.bodyError.value.isEmpty
               ? null
               : controller.bodyError.value,
-          prefixIcon: const Icon(Icons.description, size: 20),
         ));
   }
 
@@ -145,10 +149,10 @@ class QnaSubmitView extends GetView<QnaController> {
   /// 제출 버튼 빌드
   Widget _buildSubmitButton() {
     return Obx(() => SketchButton(
-          text: '질문 제출',
-          icon: const Icon(Icons.send, size: 16),
+          text: '등록',
           size: SketchButtonSize.large,
           style: SketchButtonStyle.primary,
+          width: double.infinity,
           isLoading: controller.isSubmitting.value,
           onPressed:
               controller.isSubmitEnabled ? controller.submitQuestion : null,

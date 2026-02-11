@@ -57,6 +57,11 @@ class QnaRepository {
   ///
   /// Returns: 변환된 예외 (NetworkException 또는 Exception)
   Exception _mapDioError(DioException e) {
+    Logger.error(
+      'QnA: API 오류 - type=${e.type}, status=${e.response?.statusCode}, data=${e.response?.data}',
+      error: e,
+    );
+
     // 네트워크 연결 오류
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
