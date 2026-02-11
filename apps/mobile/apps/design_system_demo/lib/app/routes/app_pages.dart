@@ -20,8 +20,6 @@ import '../modules/sdk_demos/views/sdk_list_view.dart';
 import '../modules/sdk_demos/bindings/sdk_list_binding.dart';
 import '../modules/sdk_demos/views/sdk_qna_demo_view.dart';
 import '../modules/sdk_demos/views/sdk_notice_demo_view.dart';
-import '../modules/login/views/login_view.dart';
-import '../modules/login/bindings/login_binding.dart';
 import 'app_routes.dart';
 
 /// 앱 페이지 정의
@@ -30,14 +28,6 @@ import 'app_routes.dart';
 class AppPages {
   /// GetPage 리스트
   static final routes = [
-    // 로그인 화면
-    GetPage(
-      name: Routes.LOGIN,
-      page: () => const LoginView(),
-      binding: LoginBinding(),
-      transition: Transition.fadeIn,
-      transitionDuration: const Duration(milliseconds: 300),
-    ),
     GetPage(
       name: Routes.HOME,
       page: () => const HomeView(),

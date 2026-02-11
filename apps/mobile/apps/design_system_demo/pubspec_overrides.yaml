@@ -1,7 +1,5 @@
-# melos_managed_dependency_overrides: core,design_system,notice,qna,auth_sdk
+# melos_managed_dependency_overrides: core,design_system,notice,qna
 dependency_overrides:
-  auth_sdk:
-    path: ../../packages/auth_sdk
   core:
     path: ../../packages/core
   design_system:

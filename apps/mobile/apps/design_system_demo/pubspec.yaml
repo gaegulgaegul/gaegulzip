@@ -18,8 +18,7 @@ dependencies:
     path: ../../packages/qna
   notice:
     path: ../../packages/notice
-  auth_sdk:
-    path: ../../packages/auth_sdk
+  dio: ^5.4.0
   flutter_dotenv: ^5.2.1
   lucide_icons_flutter: ^1.1.0
 

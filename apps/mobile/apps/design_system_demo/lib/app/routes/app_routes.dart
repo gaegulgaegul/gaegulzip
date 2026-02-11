@@ -2,9 +2,6 @@
 ///
 /// 모든 네비게이션에서 사용할 라우트 상수들
 abstract class Routes {
-  /// 로그인 화면
-  static const LOGIN = '/login';
-
   /// 홈 화면
   static const HOME = '/';
 
