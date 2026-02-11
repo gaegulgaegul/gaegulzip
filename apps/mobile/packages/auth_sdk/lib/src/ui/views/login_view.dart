@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../controllers/login_controller.dart';
 import '../../auth_sdk.dart';
@@ -75,9 +76,11 @@ class LoginView extends GetView<LoginController> {
 
                 // 둘러보기 버튼 (조건부 렌더링)
                 if (AuthSdk.config.showBrowseButton)
-                  TextButton(
+                  SketchButton(
+                    text: '둘러보기',
+                    style: SketchButtonStyle.outline,
+                    size: SketchButtonSize.medium,
                     onPressed: () => Get.toNamed(AuthSdk.config.homeRoute),
-                    child: const Text('둘러보기'),
                   ),
               ],
             ),
@@ -92,20 +95,20 @@ class LoginView extends GetView<LoginController> {
     return const Text(
       '로그인',
       style: TextStyle(
-        fontSize: 30,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
+        fontSize: SketchDesignTokens.fontSize3Xl,
+        fontFamily: SketchDesignTokens.fontFamilyHand,
+        color: SketchDesignTokens.base900,
       ),
     );
   }
 
   /// 부제목 위젯
   Widget _buildSubtitle() {
-    return Text(
+    return const Text(
       '소셜 계정으로 간편하게 시작하세요',
       style: TextStyle(
-        fontSize: 14,
-        color: Colors.grey.shade600,
+        fontSize: SketchDesignTokens.fontSizeSm,
+        color: SketchDesignTokens.base700,
       ),
     );
   }

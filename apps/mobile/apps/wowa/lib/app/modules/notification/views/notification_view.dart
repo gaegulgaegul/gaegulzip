@@ -16,21 +16,13 @@ class NotificationView extends GetView<NotificationController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: SketchDesignTokens.white,
-      appBar: AppBar(
+      appBar: SketchAppBar(
         backgroundColor: SketchDesignTokens.white,
-        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           onPressed: () => Get.back(),
         ),
-        title: const Text(
-          '알림',
-          style: TextStyle(
-            fontSize: SketchDesignTokens.fontSize2Xl,
-            fontWeight: FontWeight.w500,
-            color: SketchDesignTokens.base900,
-          ),
-        ),
+        title: '알림',
       ),
       body: RefreshIndicator(
         color: SketchDesignTokens.accentPrimary,

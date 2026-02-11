@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../controllers/settings_controller.dart';
 
@@ -12,11 +13,17 @@ class SettingsView extends GetView<SettingsController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('설정')),
+      appBar: const SketchAppBar(title: '설정'),
       body: SafeArea(
         child: Obx(() {
           if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: SketchProgressBar(
+                style: SketchProgressBarStyle.circular,
+                value: null,
+                size: 48,
+              ),
+            );
           }
 
           return SingleChildScrollView(
@@ -56,7 +63,7 @@ class SettingsView extends GetView<SettingsController> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.fitness_center, size: 20),
+                      const Icon(Icons.fitness_center, size: 20, color: SketchDesignTokens.base700),
                       const SizedBox(width: 8),
                       Text(box.name,
                           style: const TextStyle(
@@ -65,7 +72,7 @@ class SettingsView extends GetView<SettingsController> {
                   ),
                   const SizedBox(height: 4),
                   Text(box.region,
-                      style: TextStyle(color: Colors.grey[600])),
+                      style: const TextStyle(color: SketchDesignTokens.base700)),
                 ],
               )
             : const Text('가입된 박스가 없습니다'),
@@ -145,7 +152,7 @@ class SettingsView extends GetView<SettingsController> {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Icon(icon, size: 24, color: Colors.grey[700]),
+                Icon(icon, size: 24, color: SketchDesignTokens.base700),
                 if (badge != null)
                   Positioned(
                     right: -8,
@@ -162,12 +169,12 @@ class SettingsView extends GetView<SettingsController> {
                   Text(title,
                       style: const TextStyle(fontWeight: FontWeight.w500)),
                   Text(subtitle,
-                      style: TextStyle(
-                          color: Colors.grey[500], fontSize: 12)),
+                      style: const TextStyle(
+                          color: SketchDesignTokens.base500, fontSize: SketchDesignTokens.fontSizeXs)),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right),
+            const Icon(Icons.chevron_right, color: SketchDesignTokens.base500),
           ],
         ),
       ),

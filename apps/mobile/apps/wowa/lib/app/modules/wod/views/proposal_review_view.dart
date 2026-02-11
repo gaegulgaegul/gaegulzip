@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../../../data/models/wod/wod_model.dart';
 import '../../../data/models/wod/movement.dart';
@@ -15,11 +16,15 @@ class ProposalReviewView extends GetView<ProposalReviewController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('제안 검토')),
+      appBar: const SketchAppBar(title: '제안 검토'),
       body: SafeArea(
         child: Obx(() {
           if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+                child: SketchProgressBar(
+                    style: SketchProgressBarStyle.circular,
+                    value: null,
+                    size: 48));
           }
 
           return Column(
@@ -95,23 +100,13 @@ class ProposalReviewView extends GetView<ProposalReviewController> {
 
     final pd = wod.programData;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: SketchCard(
-        header: Row(
+    return SketchCard(
+      fillColor: color,
+      header: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: labelColor,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(title,
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.bold)),
+            SketchChip(
+              label: title,
+              selected: true,
             ),
             const SizedBox(width: 8),
             Text(pd.type,
@@ -129,7 +124,7 @@ class ProposalReviewView extends GetView<ProposalReviewController> {
                     if (pd.timeCap != null) '${pd.timeCap}분',
                     if (pd.rounds != null) '${pd.rounds}라운드',
                   ].join(' / '),
-                  style: TextStyle(color: Colors.grey[600]),
+                  style: const TextStyle(color: SketchDesignTokens.base700),
                 ),
               ),
             ...pd.movements.map((m) => Padding(
@@ -138,7 +133,6 @@ class ProposalReviewView extends GetView<ProposalReviewController> {
                 )),
           ],
         ),
-      ),
     );
   }
 

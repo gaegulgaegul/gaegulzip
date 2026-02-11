@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:push/push.dart';
 import 'package:auth_sdk/auth_sdk.dart';
 import 'package:notice/notice.dart';
+import 'package:design_system/design_system.dart';
 import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 
@@ -125,7 +126,24 @@ class MyApp extends StatelessWidget {
       getPages: AppPages.routes,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        // TODO: Sketch 디자인 토큰 기반 ColorScheme으로 마이그레이션 필요
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        scaffoldBackgroundColor: SketchDesignTokens.background,
+        extensions: const [
+          SketchThemeExtension(
+            fillColor: SketchDesignTokens.background,
+          ),
+        ],
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: SketchDesignTokens.backgroundDark,
+        extensions: [
+          SketchThemeExtension.dark(),
+        ],
       ),
     );
   }
