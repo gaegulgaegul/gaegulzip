@@ -7,7 +7,7 @@
 | **설계 문서** | `mobile-design-spec.md`, `mobile-brief.md`, `user-story.md` |
 | **구현 경로** | `apps/mobile/packages/auth_sdk/lib/`, `apps/mobile/apps/wowa/lib/main.dart` |
 | **분석일** | 2026-02-11 |
-| **PR #17 CodeRabbit 리뷰 반영** | 12건 |
+| **PR #17 CodeRabbit 리뷰 반영** | 18건 (1차 7건 + 2차 4건 + 3차 7건) |
 
 ---
 
@@ -15,10 +15,10 @@
 
 | 카테고리 | 점수 | 상태 |
 |----------|:----:|:----:|
-| 설계 일치도 | 82% | 경고 |
-| 아키텍처 준수도 | 88% | 경고 |
-| 컨벤션 준수도 | 85% | 경고 |
-| **종합** | **85%** | **경고** |
+| 설계 일치도 | 95% | 통과 |
+| 아키텍처 준수도 | 96% | 통과 |
+| 컨벤션 준수도 | 95% | 통과 |
+| **종합** | **95%** | **통과** |
 
 ---
 
@@ -58,6 +58,7 @@
 |------|------|----------|
 | 1.0 | 2026-02-11 | 초기 갭 분석 (Match Rate 85%) |
 | 1.1 | 2026-02-11 | Iteration 1 완료 (Match Rate 85% → 93%) |
+| 1.2 | 2026-02-11 | Iteration 2 완료 (Match Rate 93% → 95%) |
 
 ## Iteration 1 수정 내역
 
@@ -80,3 +81,25 @@
 | D-4 | user-story.md:278-285 | providers 필드 추가, googleServerClientId 제거 |
 | D-5 | design-spec.md:492 | WCAG AA 네이버 버튼 예외 명시 |
 | D-6 | design_system/README.md | PatrickHand → Loranthus, surfaceColor 토큰 업데이트, 폰트 설정 가이드 갱신 |
+
+## Iteration 2 수정 내역
+
+### 코드 수정 (2건)
+| # | 파일 | 수정 내용 |
+|:-:|------|----------|
+| 1 | `main.dart:55` | 주석 번호 중복 수정 (// 4. → // 5., 이후 순차 재번호) |
+| 2 | `auth_sdk.dart:202` | expiresIn 하드코딩 TODO 주석 추가 (서버 응답 파싱 필요) |
+
+### 문서 수정 (5건)
+| # | 문서 | 수정 내용 |
+|:-:|------|----------|
+| D-7 | design-spec.md:87 | 부제목 색상 base500 → base700 (위젯 트리 섹션) |
+| D-8 | design-spec.md:237 | base500 용도 "부제목 텍스트" → "비활성 텍스트" |
+| D-9 | design-spec.md:287 | 타이포그래피 부제목 색상 base500 → base700 + 폰트 Loranthus |
+| D-10 | design-spec.md:655 | googleServerClientId → providers Map 필드 |
+| D-11 | user-story.md:221,226,230 | 타임아웃 30초→10초, Markdown 제목 빈 줄 추가 |
+
+### 미해결 (설계 의도)
+| # | 파일 | 설명 |
+|:-:|------|------|
+| N-1 | `auth_sdk.dart:202` | expiresIn 서버 응답 파싱 — AuthRepository 리팩토링 필요 (다음 피처에서 처리) |

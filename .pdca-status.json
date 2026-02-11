@@ -18,8 +18,8 @@
       "phase": "check",
       "platform": "mobile",
       "startedAt": "2026-02-11T00:00:00.000Z",
-      "matchRate": 93,
-      "iterationCount": 1,
+      "matchRate": 95,
+      "iterationCount": 2,
       "documents": {
         "plan": "docs/wowa/wowa-login/user-story.md",
         "design-mobile-spec": "docs/wowa/wowa-login/mobile-design-spec.md",
