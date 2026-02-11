@@ -10,6 +10,11 @@ class NoticeListController extends GetxController {
   /// API 서비스
   late final NoticeApiService _apiService;
 
+  /// 앱 식별 코드 (JWT 없이 API 호출 시 사용)
+  ///
+  /// NoticeBinding에서 설정합니다. null이면 JWT 인증 사용.
+  String? appCode;
+
   /// 공지사항 목록
   final notices = <NoticeModel>[].obs;
 
@@ -54,10 +59,12 @@ class NoticeListController extends GetxController {
           page: 1,
           limit: 100, // 고정 공지는 최대 100개로 제한
           pinnedOnly: true,
+          appCode: appCode,
         ),
         _apiService.getNotices(
           page: _currentPage,
           limit: _pageSize,
+          appCode: appCode,
         ),
       ]);
 
@@ -99,6 +106,7 @@ class NoticeListController extends GetxController {
       final response = await _apiService.getNotices(
         page: nextPage,
         limit: _pageSize,
+        appCode: appCode,
       );
 
       _currentPage = nextPage;

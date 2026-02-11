@@ -9,6 +9,9 @@ class NoticeDetailController extends GetxController {
   /// API 서비스
   late final NoticeApiService _apiService;
 
+  /// 앱 식별 코드 (JWT 없이 API 호출 시 사용)
+  String? appCode;
+
   /// 공지사항 상세 데이터
   final notice = Rxn<NoticeModel>();
 
@@ -44,7 +47,7 @@ class NoticeDetailController extends GetxController {
     errorMessage.value = '';
 
     try {
-      final response = await _apiService.getNoticeDetail(noticeId);
+      final response = await _apiService.getNoticeDetail(noticeId, appCode: appCode);
       notice.value = response;
 
       // 목록 컨트롤러에 읽음 상태 반영 (있을 경우만)
