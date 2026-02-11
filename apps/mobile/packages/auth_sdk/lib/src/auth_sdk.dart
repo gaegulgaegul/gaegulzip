@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:core/core.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' show KakaoSdk;
 import 'config/auth_sdk_config.dart';
+export 'config/auth_sdk_config.dart' show SocialProvider, ProviderConfig;
 import 'services/auth_api_service.dart';
 import 'services/auth_state_service.dart';
 import 'interceptors/auth_interceptor.dart';
@@ -13,28 +14,6 @@ import 'providers/naver_login_provider.dart';
 import 'providers/google_login_provider.dart';
 import 'providers/apple_login_provider.dart';
 import 'models/login_response.dart';
-
-/// 소셜 로그인 프로바이더 열거형
-enum SocialProvider {
-  kakao,
-  naver,
-  google,
-  apple,
-}
-
-/// 프로바이더별 설정
-class ProviderConfig {
-  /// 클라이언트 ID (네이티브 SDK 설정용)
-  final String? clientId;
-
-  /// 클라이언트 시크릿 (iOS 앱 전용)
-  final String? clientSecret;
-
-  const ProviderConfig({
-    this.clientId,
-    this.clientSecret,
-  });
-}
 
 /// Auth SDK - 재사용 가능한 소셜 로그인 패키지
 ///
@@ -86,58 +65,64 @@ class AuthSdk {
       throw Exception('AuthSdk는 이미 초기화되었습니다');
     }
 
-    _config = config;
+    try {
+      _config = config;
 
-    // 카카오 SDK 초기화
-    final kakaoConfig = config.providers[SocialProvider.kakao];
-    if (kakaoConfig?.clientId != null && kakaoConfig!.clientId!.isNotEmpty) {
-      KakaoSdk.init(nativeAppKey: kakaoConfig.clientId!);
+      // 카카오 SDK 초기화
+      final kakaoConfig = config.providers[SocialProvider.kakao];
+      if (kakaoConfig?.clientId != null && kakaoConfig!.clientId!.isNotEmpty) {
+        KakaoSdk.init(nativeAppKey: kakaoConfig.clientId!);
+      }
+
+      // SecureStorageService 초기화 (필요 시)
+      if (config.secureStorage != null) {
+        Get.put<SecureStorageService>(config.secureStorage!);
+      } else if (!Get.isRegistered<SecureStorageService>()) {
+        Get.put<SecureStorageService>(SecureStorageService());
+      }
+
+      // Dio 초기화 (필요 시)
+      if (!Get.isRegistered<Dio>()) {
+        final dio = Dio(BaseOptions(
+          baseUrl: config.apiBaseUrl,
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ));
+        Get.put<Dio>(dio);
+      }
+
+      // AuthApiService 등록
+      if (!Get.isRegistered<AuthApiService>()) {
+        Get.lazyPut<AuthApiService>(() => AuthApiService());
+      }
+
+      // AuthRepository 등록
+      if (!Get.isRegistered<AuthRepository>()) {
+        Get.lazyPut<AuthRepository>(() => AuthRepository());
+      }
+
+      // AuthInterceptor 등록 (중복 방지)
+      final dio = Get.find<Dio>();
+      final hasAuthInterceptor = dio.interceptors.any((i) => i is AuthInterceptor);
+      if (!hasAuthInterceptor) {
+        dio.interceptors.add(AuthInterceptor());
+      }
+
+      // AuthStateService 초기화
+      await Get.putAsync(() => AuthStateService().init());
+
+      // 소셜 로그인 프로바이더 등록 (LoginBinding에서 이동)
+      _registerProviders(config);
+
+      _initialized = true;
+    } catch (e) {
+      _config = null;
+      _initialized = false;
+      rethrow;
     }
-
-    // SecureStorageService 초기화 (필요 시)
-    if (config.secureStorage != null) {
-      Get.put<SecureStorageService>(config.secureStorage!);
-    } else if (!Get.isRegistered<SecureStorageService>()) {
-      Get.put<SecureStorageService>(SecureStorageService());
-    }
-
-    // Dio 초기화 (필요 시)
-    if (!Get.isRegistered<Dio>()) {
-      final dio = Dio(BaseOptions(
-        baseUrl: config.apiBaseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      ));
-      Get.put<Dio>(dio);
-    }
-
-    // AuthApiService 등록
-    if (!Get.isRegistered<AuthApiService>()) {
-      Get.lazyPut<AuthApiService>(() => AuthApiService());
-    }
-
-    // AuthRepository 등록
-    if (!Get.isRegistered<AuthRepository>()) {
-      Get.lazyPut<AuthRepository>(() => AuthRepository());
-    }
-
-    // AuthInterceptor 등록 (중복 방지)
-    final dio = Get.find<Dio>();
-    final hasAuthInterceptor = dio.interceptors.any((i) => i is AuthInterceptor);
-    if (!hasAuthInterceptor) {
-      dio.interceptors.add(AuthInterceptor());
-    }
-
-    // AuthStateService 초기화
-    await Get.putAsync(() => AuthStateService().init());
-
-    // 소셜 로그인 프로바이더 등록 (LoginBinding에서 이동)
-    _registerProviders(config);
-
-    _initialized = true;
   }
 
   /// 소셜 로그인 프로바이더 등록 (tag로 구분)
@@ -295,10 +280,5 @@ class AuthSdk {
   }
 
   /// 앱 코드 반환 (내부 사용)
-  static String get appCode {
-    if (_config == null) {
-      throw Exception('AuthSdk.initialize()를 먼저 호출하세요');
-    }
-    return _config!.appCode;
-  }
+  static String get appCode => config.appCode;
 }

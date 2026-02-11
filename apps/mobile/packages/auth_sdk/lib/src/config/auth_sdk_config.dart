@@ -1,5 +1,26 @@
-import '../auth_sdk.dart';
 import 'package:core/core.dart';
+
+/// 소셜 로그인 프로바이더 열거형
+enum SocialProvider {
+  kakao,
+  naver,
+  google,
+  apple,
+}
+
+/// 프로바이더별 설정
+class ProviderConfig {
+  /// 클라이언트 ID (네이티브 SDK 설정용)
+  final String? clientId;
+
+  /// 클라이언트 시크릿 (iOS 앱 전용)
+  final String? clientSecret;
+
+  const ProviderConfig({
+    this.clientId,
+    this.clientSecret,
+  });
+}
 
 /// Auth SDK 설정 클래스
 ///
