@@ -63,6 +63,7 @@
 ## Iteration 1 수정 내역
 
 ### 코드 수정 (6건)
+
 | # | 파일 | 수정 내용 |
 |:-:|------|----------|
 | 1 | `main.dart:29-40` | 환경변수 null 검증 추가 (KAKAO, GOOGLE) |
@@ -73,6 +74,7 @@
 | 6 | `main.dart` | Logger.warn 메서드명 수정 |
 
 ### 문서 수정 (6건)
+
 | # | 문서 | 수정 내용 |
 |:-:|------|----------|
 | D-1 | design-spec.md:608 | AuthSdk.init() → AuthSdk.initialize(AuthSdkConfig) |
@@ -85,12 +87,14 @@
 ## Iteration 2 수정 내역
 
 ### 코드 수정 (2건)
+
 | # | 파일 | 수정 내용 |
 |:-:|------|----------|
 | 1 | `main.dart:55` | 주석 번호 중복 수정 (// 4. → // 5., 이후 순차 재번호) |
 | 2 | `auth_sdk.dart:202` | expiresIn 하드코딩 TODO 주석 추가 (서버 응답 파싱 필요) |
 
 ### 문서 수정 (5건)
+
 | # | 문서 | 수정 내용 |
 |:-:|------|----------|
 | D-7 | design-spec.md:87 | 부제목 색상 base500 → base700 (위젯 트리 섹션) |
@@ -99,7 +103,8 @@
 | D-10 | design-spec.md:655 | googleServerClientId → providers Map 필드 |
 | D-11 | user-story.md:221,226,230 | 타임아웃 30초→10초, Markdown 제목 빈 줄 추가 |
 
-### 미해결 (설계 의도)
-| # | 파일 | 설명 |
-|:-:|------|------|
-| N-1 | `auth_sdk.dart:202` | expiresIn 서버 응답 파싱 — AuthRepository 리팩토링 필요 (다음 피처에서 처리) |
+### 미해결 → 해결
+
+| # | 파일 | 설명 | 상태 |
+|:-:|------|------|:----:|
+| N-1 | `auth_sdk.dart` | expiresIn 서버 응답 파싱 — AuthRepository → LoginResponse 반환으로 해결 | ✅ |
