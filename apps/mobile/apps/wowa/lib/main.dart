@@ -26,7 +26,17 @@ Future<void> main() async {
     throw Exception('API_BASE_URL이 .env 파일에 설정되지 않았습니다');
   }
 
-  // 3. AuthSdk 초기화 (AuthSdkConfig 객체로 전달)
+  // 3. 소셜 로그인 환경변수 검증
+  final kakaoAppKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
+  final googleClientId = dotenv.env['GOOGLE_SERVER_CLIENT_ID'];
+  if (kakaoAppKey == null || kakaoAppKey.isEmpty) {
+    Logger.warn('KAKAO_NATIVE_APP_KEY가 .env에 설정되지 않았습니다. 카카오 로그인이 동작하지 않습니다.');
+  }
+  if (googleClientId == null || googleClientId.isEmpty) {
+    Logger.warn('GOOGLE_SERVER_CLIENT_ID가 .env에 설정되지 않았습니다. 구글 로그인이 동작하지 않습니다.');
+  }
+
+  // 4. AuthSdk 초기화 (AuthSdkConfig 객체로 전달)
   await AuthSdk.initialize(
     AuthSdkConfig(
       appCode: 'wowa',
@@ -34,9 +44,9 @@ Future<void> main() async {
       homeRoute: Routes.HOME,
       showBrowseButton: true,
       providers: {
-        SocialProvider.kakao: ProviderConfig(clientId: dotenv.env['KAKAO_NATIVE_APP_KEY']),
+        SocialProvider.kakao: ProviderConfig(clientId: kakaoAppKey),
         SocialProvider.naver: const ProviderConfig(),
-        SocialProvider.google: ProviderConfig(clientId: dotenv.env['GOOGLE_SERVER_CLIENT_ID']),
+        SocialProvider.google: ProviderConfig(clientId: googleClientId),
         SocialProvider.apple: const ProviderConfig(),
       },
     ),
@@ -139,7 +149,7 @@ class MyApp extends StatelessWidget {
     final backgroundColor =
         isDark ? SketchDesignTokens.base900 : SketchDesignTokens.base100;
     final surfaceColor =
-        isDark ? const Color(0xFF2A2A2A) : SketchDesignTokens.white;
+        isDark ? SketchDesignTokens.surfaceDark : SketchDesignTokens.white;
     final textColor =
         isDark ? SketchDesignTokens.white : SketchDesignTokens.base900;
 
