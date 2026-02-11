@@ -14,6 +14,20 @@
         "review-mobile": "docs/wowa/wowa-design/mobile-cto-review.md"
       }
     },
+    "wowa-login": {
+      "phase": "check",
+      "platform": "mobile",
+      "startedAt": "2026-02-11T00:00:00.000Z",
+      "matchRate": 93,
+      "iterationCount": 1,
+      "documents": {
+        "plan": "docs/wowa/wowa-login/user-story.md",
+        "design-mobile-spec": "docs/wowa/wowa-login/mobile-design-spec.md",
+        "design-mobile": "docs/wowa/wowa-login/mobile-brief.md",
+        "work-plan-mobile": "docs/wowa/wowa-login/mobile-work-plan.md",
+        "analysis": "docs/wowa/wowa-login/analysis.md"
+      }
+    },
     "wowa-box": {
       "phase": "check",
       "platform": "fullstack",
