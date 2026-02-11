@@ -110,6 +110,9 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: PatrickHand
+    - family: Loranthus
       fonts:
-        - asset: packages/design_system/assets/fonts/PatrickHand-Regular.ttf
+        - asset: assets/fonts/Loranthus.ttf
+    - family: KyoboHandwriting2019
+      fonts:
+        - asset: assets/fonts/KyoboHandwriting2019.ttf

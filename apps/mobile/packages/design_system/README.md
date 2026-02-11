@@ -96,7 +96,12 @@ final sketchTheme = SketchThemeExtension.of(context);
 ## 폰트 설정
 
 폰트 파일은 `design_system/assets/fonts/`에 포함되어 있습니다.
-Flutter에서 패키지 폰트를 사용하려면 **앱의 pubspec.yaml에 재선언**이 필요합니다.
+앱에서 plain name(`'PatrickHand'`)으로 사용하려면 **폰트 파일을 앱 로컬에 복사하고 pubspec.yaml에 선언**해야 합니다.
+
+```bash
+# 폰트 파일 복사
+cp packages/design_system/assets/fonts/PatrickHand-Regular.ttf apps/[앱이름]/assets/fonts/
+```
 
 ```yaml
 # apps/[앱이름]/pubspec.yaml
@@ -104,11 +109,12 @@ flutter:
   fonts:
     - family: PatrickHand
       fonts:
-        - asset: packages/design_system/assets/fonts/PatrickHand-Regular.ttf
+        - asset: assets/fonts/PatrickHand-Regular.ttf
 ```
 
-> `_buildTheme()`에서 `fontFamily: SketchDesignTokens.fontFamilyHand`를 설정해도
-> 이 선언이 없으면 시스템 기본 폰트로 폴백됩니다.
+> `packages/design_system/assets/fonts/...` 경로로 선언하면 빌드 에러가 발생합니다.
+> 반드시 로컬 `assets/fonts/`에 복사 후 로컬 경로로 참조하세요.
+>
 > 폰트 변경은 핫 리로드로 반영되지 않으므로 **핫 리스타트**가 필요합니다.
 
 ## 다크모드 텍스트 색상
