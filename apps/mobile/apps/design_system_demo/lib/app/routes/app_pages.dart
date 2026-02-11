@@ -14,6 +14,12 @@ import '../modules/colors/views/color_palette_view.dart';
 import '../modules/colors/bindings/color_palette_binding.dart';
 import '../modules/tokens/views/tokens_view.dart';
 import '../modules/tokens/bindings/tokens_binding.dart';
+import '../modules/sdk_demos/views/sdk_list_view.dart';
+import '../modules/sdk_demos/bindings/sdk_list_binding.dart';
+import '../modules/sdk_demos/views/sdk_qna_demo_view.dart';
+import '../modules/sdk_demos/bindings/sdk_qna_demo_binding.dart';
+import '../modules/sdk_demos/views/sdk_notice_demo_view.dart';
+import '../modules/sdk_demos/bindings/sdk_notice_demo_binding.dart';
 import 'app_routes.dart';
 
 /// 앱 페이지 정의
@@ -80,6 +86,30 @@ class AppPages {
       name: Routes.TOKENS,
       page: () => const TokensView(),
       binding: TokensBinding(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    // SDK 데모 목록
+    GetPage(
+      name: Routes.SDK_DEMOS,
+      page: () => const SdkListView(),
+      binding: SdkListBinding(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    // QnA SDK 데모
+    GetPage(
+      name: Routes.SDK_QNA_DEMO,
+      page: () => const SdkQnaDemoView(),
+      binding: SdkQnaDemoBinding(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    // Notice SDK 데모
+    GetPage(
+      name: Routes.SDK_NOTICE_DEMO,
+      page: () => const SdkNoticeDemoView(),
+      binding: SdkNoticeDemoBinding(),
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
     ),

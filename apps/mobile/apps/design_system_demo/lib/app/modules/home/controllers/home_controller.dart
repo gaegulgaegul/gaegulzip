@@ -70,6 +70,13 @@ class HomeController extends GetxController {
       route: Routes.TOKENS,
       description: 'Spacing, Stroke, Shadow 토큰',
     ),
+    CategoryItem(
+      name: 'SDK Demos',
+      icon: LucideIcons.package,
+      route: Routes.SDK_DEMOS,
+      itemCount: 2,
+      description: 'QnA 및 Notice SDK 데모',
+    ),
   ];
 
   /// 카테고리로 네비게이션

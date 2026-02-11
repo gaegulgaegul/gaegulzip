@@ -25,4 +25,13 @@ abstract class Routes {
 
   /// 디자인 토큰
   static const TOKENS = '/tokens';
+
+  /// SDK 데모 목록
+  static const SDK_DEMOS = '/sdk-demos';
+
+  /// QnA SDK 데모
+  static const SDK_QNA_DEMO = '/sdk-demos/qna';
+
+  /// Notice SDK 데모
+  static const SDK_NOTICE_DEMO = '/sdk-demos/notice';
 }
