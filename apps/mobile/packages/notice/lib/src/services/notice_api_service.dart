@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:core/core.dart';
 import '../models/notice_model.dart';
 import '../models/notice_list_response.dart';
 import '../models/unread_count_response.dart';
@@ -46,6 +47,8 @@ class NoticeApiService {
       queryParameters['appCode'] = appCode;
     }
 
+    Logger.debug('Notice: GET /notices 요청 - page=$page, limit=$limit, pinnedOnly=$pinnedOnly');
+
     final response = await _dio.get(
       '/notices',
       queryParameters: queryParameters,
@@ -68,6 +71,8 @@ class NoticeApiService {
       queryParameters['appCode'] = appCode;
     }
 
+    Logger.debug('Notice: GET /notices/$id 요청');
+
     final response = await _dio.get(
       '/notices/$id',
       queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
@@ -89,6 +94,8 @@ class NoticeApiService {
     if (appCode != null) {
       queryParameters['appCode'] = appCode;
     }
+
+    Logger.debug('Notice: GET /notices/unread-count 요청');
 
     final response = await _dio.get(
       '/notices/unread-count',
