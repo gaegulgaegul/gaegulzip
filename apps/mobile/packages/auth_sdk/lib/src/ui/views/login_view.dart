@@ -24,12 +24,12 @@ class LoginView extends GetView<LoginController> {
                 const SizedBox(height: 64),
 
                 // 타이틀
-                _buildTitle(),
+                _buildTitle(context),
 
                 const SizedBox(height: 8),
 
                 // 부제목
-                _buildSubtitle(),
+                _buildSubtitle(context),
 
                 const SizedBox(height: 48),
 
@@ -91,24 +91,26 @@ class LoginView extends GetView<LoginController> {
   }
 
   /// 타이틀 위젯
-  Widget _buildTitle() {
-    return const Text(
+  Widget _buildTitle(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Text(
       '로그인',
       style: TextStyle(
         fontSize: SketchDesignTokens.fontSize3Xl,
         fontFamily: SketchDesignTokens.fontFamilyHand,
-        color: SketchDesignTokens.base900,
+        color: isDark ? SketchDesignTokens.white : SketchDesignTokens.base900,
       ),
     );
   }
 
   /// 부제목 위젯
-  Widget _buildSubtitle() {
-    return const Text(
+  Widget _buildSubtitle(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Text(
       '소셜 계정으로 간편하게 시작하세요',
       style: TextStyle(
         fontSize: SketchDesignTokens.fontSizeSm,
-        color: SketchDesignTokens.base700,
+        color: isDark ? SketchDesignTokens.base400 : SketchDesignTokens.base700,
       ),
     );
   }

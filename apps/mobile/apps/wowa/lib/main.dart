@@ -115,36 +115,53 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 인증 상태에 따라 초기 라우트 결정
-    final authService = AuthSdk.authState;
-    final initialRoute =
-        authService.isAuthenticated ? Routes.HOME : Routes.LOGIN;
+    // TODO: 다크모드 확인 후 원복 — 로그인 화면 강제 이동
+    final initialRoute = Routes.LOGIN;
 
     return GetMaterialApp(
       title: 'Wowa App',
       initialRoute: initialRoute,
       getPages: AppPages.routes,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        // TODO: Sketch 디자인 토큰 기반 ColorScheme으로 마이그레이션 필요
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        scaffoldBackgroundColor: SketchDesignTokens.background,
-        extensions: const [
-          SketchThemeExtension(
-            fillColor: SketchDesignTokens.background,
-          ),
-        ],
+      theme: _buildTheme(
+        Brightness.light,
+        const SketchThemeExtension(fillColor: SketchDesignTokens.background),
       ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
+      darkTheme: _buildTheme(Brightness.dark, SketchThemeExtension.dark()),
+    );
+  }
+
+  /// 스케치 스타일 테마 빌드
+  ThemeData _buildTheme(Brightness brightness, SketchThemeExtension ext) {
+    final isDark = brightness == Brightness.dark;
+    final backgroundColor =
+        isDark ? SketchDesignTokens.base900 : SketchDesignTokens.base100;
+    final surfaceColor =
+        isDark ? const Color(0xFF2A2A2A) : SketchDesignTokens.white;
+    final textColor =
+        isDark ? SketchDesignTokens.white : SketchDesignTokens.base900;
+
+    return ThemeData(
+      brightness: brightness,
+      fontFamily: SketchDesignTokens.fontFamilyHand,
+      scaffoldBackgroundColor: backgroundColor,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: SketchDesignTokens.accentPrimary,
+        brightness: brightness,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: surfaceColor,
+        foregroundColor: textColor,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          fontFamily: SketchDesignTokens.fontFamilyHand,
+          fontSize: SketchDesignTokens.fontSizeXl,
+          fontWeight: FontWeight.bold,
+          color: textColor,
         ),
-        scaffoldBackgroundColor: SketchDesignTokens.backgroundDark,
-        extensions: [
-          SketchThemeExtension.dark(),
-        ],
       ),
+      extensions: [ext],
     );
   }
 }
