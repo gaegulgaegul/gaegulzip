@@ -9,7 +9,7 @@ import '../../auth_sdk.dart';
 ///
 /// 카카오, 네이버, 애플, 구글 소셜 로그인 버튼을 제공합니다.
 class LoginView extends GetView<LoginController> {
-  const LoginView({Key? key}) : super(key: key);
+  const LoginView({super.key});
 
   @override
   Widget build(BuildContext context) {
