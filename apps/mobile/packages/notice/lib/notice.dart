@@ -20,5 +20,8 @@ export 'src/views/notice_detail_view.dart';
 export 'src/widgets/notice_list_card.dart';
 export 'src/widgets/unread_notice_badge.dart';
 
+// 바인딩
+export 'src/bindings/notice_binding.dart';
+
 // 라우트
 export 'src/routes/notice_routes.dart';
