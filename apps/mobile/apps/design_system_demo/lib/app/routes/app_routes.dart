@@ -34,4 +34,7 @@ abstract class Routes {
 
   /// Notice SDK 데모
   static const SDK_NOTICE_DEMO = '/sdk-demos/notice';
+
+  /// 공지사항 상세 (Notice SDK 내부에서 사용)
+  static const NOTICE_DETAIL = '/notice/detail';
 }

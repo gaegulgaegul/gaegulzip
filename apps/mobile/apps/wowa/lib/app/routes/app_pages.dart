@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:qna/qna.dart';
 import 'package:notice/notice.dart';
-import 'package:auth_sdk/auth_sdk.dart' show LoginView, LoginBinding;
+import 'package:auth_sdk/auth_sdk.dart' show AuthSdk, LoginView, LoginBinding;
 import '../modules/box/views/box_search_view.dart';
 import '../modules/box/bindings/box_search_binding.dart';
 import '../modules/box/views/box_create_view.dart';
@@ -102,7 +102,9 @@ class AppPages {
       name: Routes.NOTICE_LIST,
       page: () => const NoticeListView(),
       binding: BindingsBuilder(() {
-        Get.lazyPut<NoticeListController>(() => NoticeListController());
+        Get.lazyPut<NoticeListController>(
+          () => NoticeListController()..appCode = AuthSdk.appCode,
+        );
       }),
       transition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 300),
@@ -111,7 +113,9 @@ class AppPages {
       name: Routes.NOTICE_DETAIL,
       page: () => const NoticeDetailView(),
       binding: BindingsBuilder(() {
-        Get.lazyPut<NoticeDetailController>(() => NoticeDetailController());
+        Get.lazyPut<NoticeDetailController>(
+          () => NoticeDetailController()..appCode = AuthSdk.appCode,
+        );
       }),
       transition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 300),

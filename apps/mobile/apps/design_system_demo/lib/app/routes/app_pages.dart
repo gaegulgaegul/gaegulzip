@@ -113,5 +113,17 @@ class AppPages {
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
     ),
+    // 공지사항 상세 (Notice SDK 내부 네비게이션용)
+    GetPage(
+      name: Routes.NOTICE_DETAIL,
+      page: () => const NoticeDetailView(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<NoticeDetailController>(
+          () => NoticeDetailController()..appCode = 'demo',
+        );
+      }),
+      transition: Transition.cupertino,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
   ];
 }
