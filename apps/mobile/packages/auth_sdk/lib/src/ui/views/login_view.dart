@@ -98,6 +98,7 @@ class LoginView extends GetView<LoginController> {
       style: TextStyle(
         fontSize: SketchDesignTokens.fontSize3Xl,
         fontFamily: SketchDesignTokens.fontFamilyHand,
+        fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
         color: isDark ? SketchDesignTokens.white : SketchDesignTokens.base900,
       ),
     );
@@ -109,6 +110,8 @@ class LoginView extends GetView<LoginController> {
     return Text(
       '소셜 계정으로 간편하게 시작하세요',
       style: TextStyle(
+        fontFamily: SketchDesignTokens.fontFamilyHand,
+        fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
         fontSize: SketchDesignTokens.fontSizeSm,
         color: isDark ? SketchDesignTokens.base400 : SketchDesignTokens.base700,
       ),
