@@ -1,8 +1,16 @@
 /// Auth SDK - 재사용 가능한 소셜 로그인 패키지
 ///
 /// 카카오, 네이버, 구글, 애플 소셜 로그인을 지원하며,
-/// 인증 상태 관리, 토큰 자동 갱신, API 통신을 제공합니다.
+/// 인증 상태 관리, 토큰 자동 갱신, API 통신, 로그인 화면을 제공합니다.
 library auth_sdk;
+
+// 설정
+export 'src/config/auth_sdk_config.dart';
+
+// UI 컴포넌트
+export 'src/ui/controllers/login_controller.dart';
+export 'src/ui/views/login_view.dart';
+export 'src/ui/bindings/login_binding.dart';
 
 // 프로바이더
 export 'src/providers/social_login_provider.dart';
@@ -30,7 +38,7 @@ export 'src/models/user_model.dart';
 
 // 위젯 (design_system에서 재export)
 export 'package:design_system/design_system.dart'
-    show SocialLoginButton, SocialLoginPlatform, AppleSignInStyle;
+    show SocialLoginButton, SocialLoginPlatform, AppleSignInStyle, SocialLoginButtonSize;
 
 // SDK 메인 클래스
 export 'src/auth_sdk.dart';

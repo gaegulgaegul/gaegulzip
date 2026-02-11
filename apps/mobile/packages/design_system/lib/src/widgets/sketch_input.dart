@@ -226,6 +226,7 @@ class _SketchInputState extends State<SketchInput> {
             widget.label!,
             style: TextStyle(
               fontFamily: SketchDesignTokens.fontFamilyHand,
+              fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
               fontSize: SketchDesignTokens.fontSizeSm,
               fontWeight: FontWeight.w500,
               color: hasError ? SketchDesignTokens.error : SketchDesignTokens.base900,
@@ -285,6 +286,7 @@ class _SketchInputState extends State<SketchInput> {
                   style: widget.style ??
                       TextStyle(
                         fontFamily: SketchDesignTokens.fontFamilyHand,
+                        fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                         fontSize: SketchDesignTokens.fontSizeBase,
                         color: colorSpec.textColor,
                       ),
@@ -292,6 +294,7 @@ class _SketchInputState extends State<SketchInput> {
                     hintText: widget.hint,
                     hintStyle: TextStyle(
                       fontFamily: SketchDesignTokens.fontFamilyHand,
+                      fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                       color: colorSpec.hintColor,
                       fontSize: SketchDesignTokens.fontSizeBase,
                     ),
@@ -325,6 +328,7 @@ class _SketchInputState extends State<SketchInput> {
             widget.errorText ?? widget.helperText!,
             style: TextStyle(
               fontFamily: SketchDesignTokens.fontFamilyHand,
+              fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
               fontSize: SketchDesignTokens.fontSizeXs,
               color: hasError ? SketchDesignTokens.error : SketchDesignTokens.base600,
             ),

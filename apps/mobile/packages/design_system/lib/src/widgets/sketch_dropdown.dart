@@ -196,6 +196,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                                   item.toString(),
                                   style: TextStyle(
                                     fontFamily: SketchDesignTokens.fontFamilyHand,
+                                    fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                                     fontSize: SketchDesignTokens.fontSizeBase,
                                     color: SketchDesignTokens.base900,
                                     fontWeight: isSelected
@@ -262,6 +263,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                                   widget.value.toString(),
                                   style: const TextStyle(
                                     fontFamily: SketchDesignTokens.fontFamilyHand,
+                                    fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                                     fontSize: SketchDesignTokens.fontSizeBase,
                                     color: SketchDesignTokens.base900,
                                   ),
@@ -270,6 +272,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                               widget.hint ?? '',
                               style: const TextStyle(
                                 fontFamily: SketchDesignTokens.fontFamilyHand,
+                                fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                                 fontSize: SketchDesignTokens.fontSizeBase,
                                 color: SketchDesignTokens.base500,
                               ),

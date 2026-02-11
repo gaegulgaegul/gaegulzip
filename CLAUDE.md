@@ -85,6 +85,7 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 | GetX Controller, Binding, 상태 관리 | `.claude/guide/mobile/getx_best_practices.md` |
 | 위젯 개발, const 생성자, 성능 최적화 | `.claude/guide/mobile/flutter_best_practices.md` |
 | UI 컴포넌트, Frame0 스케치 스타일 테마 | `.claude/guide/mobile/design_system.md` |
+| 디자인 시스템 연동 (테마, 폰트, 다크모드) | `apps/mobile/packages/design_system/README.md` |
 | 주석 작성 (한글 정책) | `.claude/guide/mobile/comments.md` |
 | 에러 처리 (Controller/View) | `.claude/guide/mobile/error_handling.md` |
 | 자주 쓰는 위젯, 레이아웃 패턴 | `.claude/guide/mobile/common_widgets.md` |

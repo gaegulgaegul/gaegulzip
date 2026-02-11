@@ -183,6 +183,7 @@ class _SketchNumberInputState extends State<SketchNumberInput> {
             widget.label!,
             style: const TextStyle(
               fontFamily: SketchDesignTokens.fontFamilyHand,
+              fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
               fontSize: SketchDesignTokens.fontSizeSm,
               color: SketchDesignTokens.textSecondary,
             ),

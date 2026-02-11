@@ -194,6 +194,7 @@ class _SketchButtonState extends State<SketchButton> {
             widget.text!,
             style: TextStyle(
               fontFamily: SketchDesignTokens.fontFamilyHand,
+              fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
               color: colorSpec.textColor,
               fontSize: sizeSpec.fontSize,
               fontWeight: FontWeight.w400,
@@ -220,6 +221,7 @@ class _SketchButtonState extends State<SketchButton> {
         widget.text!,
         style: TextStyle(
           fontFamily: SketchDesignTokens.fontFamilyHand,
+          fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
           color: colorSpec.textColor,
           fontSize: sizeSpec.fontSize,
           fontWeight: FontWeight.w400,

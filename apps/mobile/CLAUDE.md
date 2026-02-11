@@ -80,7 +80,7 @@ core (foundation — no internal dependencies)
 
 - **Flutter**: `const` 생성자 적극 사용, 위젯 소형화, 리빌드 최소화
 - **GetX**: 화면/기능당 1 controller, binding으로 DI, named routes
-- **Design System**: `SketchContainer`, `SketchButton` 등 Frame0 컴포넌트 사용
+- **Design System**: `SketchContainer`, `SketchButton` 등 Frame0 컴포넌트 사용 → 연동 가이드: `packages/design_system/README.md`
 - **주석**: **모든 주석 한글**, 기술 용어(API, JSON 등)만 영어
 
 ## Development Workflow

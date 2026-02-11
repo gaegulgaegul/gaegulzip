@@ -212,6 +212,7 @@ class _SketchRadioState<T> extends State<SketchRadio<T>> with SingleTickerProvid
                 widget.label!,
                 style: TextStyle(
                   fontFamily: SketchDesignTokens.fontFamilyHand,
+                  fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                   fontSize: SketchDesignTokens.fontSizeBase,
                   color: _isDisabled
                       ? SketchDesignTokens.textDisabled

@@ -26,34 +26,48 @@ Future<void> main() async {
     throw Exception('API_BASE_URL이 .env 파일에 설정되지 않았습니다');
   }
 
-  // 3. AuthSdk 초기화
+  // 3. 소셜 로그인 환경변수 검증
+  final kakaoAppKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
+  final googleClientId = dotenv.env['GOOGLE_SERVER_CLIENT_ID'];
+  if (kakaoAppKey == null || kakaoAppKey.isEmpty) {
+    Logger.warn('KAKAO_NATIVE_APP_KEY가 .env에 설정되지 않았습니다. 카카오 로그인이 동작하지 않습니다.');
+  }
+  if (googleClientId == null || googleClientId.isEmpty) {
+    Logger.warn('GOOGLE_SERVER_CLIENT_ID가 .env에 설정되지 않았습니다. 구글 로그인이 동작하지 않습니다.');
+  }
+
+  // 4. AuthSdk 초기화 (AuthSdkConfig 객체로 전달)
   await AuthSdk.initialize(
-    appCode: 'wowa',
-    apiBaseUrl: apiBaseUrl,
-    providers: {
-      SocialProvider.kakao: ProviderConfig(clientId: dotenv.env['KAKAO_NATIVE_APP_KEY']),
-      SocialProvider.naver: const ProviderConfig(),
-      SocialProvider.google: const ProviderConfig(),
-      SocialProvider.apple: const ProviderConfig(),
-    },
+    AuthSdkConfig(
+      appCode: 'wowa',
+      apiBaseUrl: apiBaseUrl,
+      homeRoute: Routes.HOME,
+      showBrowseButton: true,
+      providers: {
+        SocialProvider.kakao: ProviderConfig(clientId: kakaoAppKey),
+        SocialProvider.naver: const ProviderConfig(),
+        SocialProvider.google: ProviderConfig(clientId: googleClientId),
+        SocialProvider.apple: const ProviderConfig(),
+      },
+    ),
   );
 
-  // 4. Firebase 초기화 (AdMob, Push 등 Firebase 의존 서비스보다 먼저)
+  // 5. Firebase 초기화 (AdMob, Push 등 Firebase 의존 서비스보다 먼저)
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 5. AdMob 초기화
+  // 6. AdMob 초기화
   final adMobService = Get.put(AdMobService());
   await adMobService.initialize();
 
-  // 6. PushApiClient 전역 등록 (디바이스 토큰 자동 등록에 필요)
+  // 7. PushApiClient 전역 등록 (디바이스 토큰 자동 등록에 필요)
   Get.put(PushApiClient());
 
-  // 7. NoticeApiService 전역 등록
+  // 8. NoticeApiService 전역 등록
   Get.put<NoticeApiService>(NoticeApiService(), permanent: true);
 
-  // 8. PushService 초기화 (실패해도 앱 계속 실행)
+  // 9. PushService 초기화 (실패해도 앱 계속 실행)
   final pushService = Get.put(PushService(), permanent: true);
   try {
     await pushService.initialize();
@@ -61,7 +75,7 @@ Future<void> main() async {
     Logger.error('PushService 초기화 실패, 푸시 알림 없이 계속 진행', error: e);
   }
 
-  // 9. 포그라운드 알림 핸들러 (인앱 스낵바 표시)
+  // 10. 포그라운드 알림 핸들러 (인앱 스낵바 표시)
   pushService.onForegroundMessage = (notification) {
     Get.snackbar(
       notification.title.isNotEmpty ? notification.title : '새 알림',
@@ -121,26 +135,46 @@ class MyApp extends StatelessWidget {
       initialRoute: initialRoute,
       getPages: AppPages.routes,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        // TODO: Sketch 디자인 토큰 기반 ColorScheme으로 마이그레이션 필요
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        scaffoldBackgroundColor: SketchDesignTokens.background,
-        extensions: const [
-          SketchThemeExtension(
-            fillColor: SketchDesignTokens.background,
-          ),
-        ],
+      theme: _buildTheme(
+        Brightness.light,
+        const SketchThemeExtension(fillColor: SketchDesignTokens.background),
       ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
+      darkTheme: _buildTheme(Brightness.dark, SketchThemeExtension.dark()),
+    );
+  }
+
+  /// 스케치 스타일 테마 빌드
+  ThemeData _buildTheme(Brightness brightness, SketchThemeExtension ext) {
+    final isDark = brightness == Brightness.dark;
+    final backgroundColor =
+        isDark ? SketchDesignTokens.base900 : SketchDesignTokens.base100;
+    final surfaceColor =
+        isDark ? SketchDesignTokens.surfaceDark : SketchDesignTokens.white;
+    final textColor =
+        isDark ? SketchDesignTokens.white : SketchDesignTokens.base900;
+
+    return ThemeData(
+      brightness: brightness,
+      fontFamily: SketchDesignTokens.fontFamilyHand,
+      scaffoldBackgroundColor: backgroundColor,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: SketchDesignTokens.accentPrimary,
+        brightness: brightness,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: surfaceColor,
+        foregroundColor: textColor,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          fontFamily: SketchDesignTokens.fontFamilyHand,
+          fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
+          fontSize: SketchDesignTokens.fontSizeXl,
+          fontWeight: FontWeight.bold,
+          color: textColor,
         ),
-        scaffoldBackgroundColor: SketchDesignTokens.backgroundDark,
-        extensions: [
-          SketchThemeExtension.dark(),
-        ],
       ),
+      extensions: [ext],
     );
   }
 }
