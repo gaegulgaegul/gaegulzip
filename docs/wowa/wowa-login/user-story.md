@@ -279,10 +279,10 @@
 | 데이터 | 타입 | 필수 | 설명 |
 |--------|------|------|------|
 | appCode | 문자열 | ✅ | 앱 식별 코드 (예: "wowa") |
+| apiBaseUrl | 문자열 | ✅ | 서버 API 기본 URL |
 | homeRoute | 문자열 | ❌ | 로그인 성공 후 이동할 라우트 (기본값: '/home') |
 | showBrowseButton | 불리언 | ❌ | 둘러보기 버튼 표시 여부 (기본값: false) |
-| apiBaseUrl | 문자열 | ✅ | 서버 API 기본 URL |
-| googleServerClientId | 문자열 | ❌ | 구글 로그인용 서버 클라이언트 ID |
+| providers | Map\<SocialProvider, ProviderConfig\> | ✅ | 소셜 프로바이더별 설정 맵. 각 ProviderConfig는 clientId(선택), clientSecret(선택) 포함 |
 
 ### 로그인 요청 (SDK → 서버)
 | 데이터 | 타입 | 필수 | 설명 |

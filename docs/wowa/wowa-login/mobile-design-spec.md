@@ -29,7 +29,7 @@ Scaffold
                 │
                 ├── Text (부제목 - "소셜 계정으로 간편하게 시작하세요")
                 │   ├── fontSize: 14px
-                │   └── color: base500 (#8E8E8E)
+                │   └── color: base700 (#5E5E5E) (다크모드: base400)
                 │
                 ├── SizedBox(height: 48)
                 │
@@ -273,7 +273,7 @@ SketchModal
 ### 텍스트 스타일
 
 **Title (타이틀 - "로그인")**
-- fontFamily: Roboto (기본) 또는 PatrickHand (Hand 폰트)
+- fontFamily: Loranthus (SketchDesignTokens.fontFamilyHand)
 - fontSize: 30px (SketchDesignTokens.fontSize3Xl)
 - fontWeight: FontWeight.bold (700)
 - height: 1.25 (tight)
@@ -489,7 +489,7 @@ SketchModal
 - **타이틀**: base900(#343434) / 흰색(#FFFFFF) = 11.82:1 (AAA 등급)
 - **부제목**: base500(#8E8E8E) / 흰색(#FFFFFF) = 3.95:1 (AA 등급)
 
-모든 텍스트가 WCAG AA 기준(4.5:1) 이상을 충족합니다.
+네이버 버튼(3.76:1)을 제외한 모든 텍스트가 WCAG AA 기준(4.5:1) 이상을 충족합니다. 네이버 버튼은 대형 텍스트 AA 기준(3:1)은 충족하며, 공식 브랜드 가이드라인을 따릅니다.
 
 ### 의미 전달
 
@@ -605,12 +605,19 @@ SketchModal
 // app/main.dart
 void main() {
   // AuthSdk 초기화
-  AuthSdk.init(
-    appCode: 'wowa',
-    apiBaseUrl: 'https://api.gaegulzip.com',
-    homeRoute: '/home',  // 로그인 성공 후 이동 라우트
-    showBrowseButton: true,  // 둘러보기 버튼 표시
-    googleServerClientId: 'your-google-client-id',
+  await AuthSdk.initialize(
+    AuthSdkConfig(
+      appCode: 'wowa',
+      apiBaseUrl: 'https://api.gaegulzip.com',
+      homeRoute: '/home',
+      showBrowseButton: true,
+      providers: {
+        SocialProvider.kakao: ProviderConfig(clientId: 'your-kakao-key'),
+        SocialProvider.naver: const ProviderConfig(),
+        SocialProvider.google: ProviderConfig(clientId: 'your-google-client-id'),
+        SocialProvider.apple: const ProviderConfig(),
+      },
+    ),
   );
 
   runApp(MyApp());

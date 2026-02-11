@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
     final backgroundColor =
         isDark ? SketchDesignTokens.base900 : SketchDesignTokens.base100;
     final surfaceColor =
-        isDark ? const Color(0xFF2A2A2A) : SketchDesignTokens.white;
+        isDark ? SketchDesignTokens.surfaceDark : SketchDesignTokens.white;
     final textColor =
         isDark ? SketchDesignTokens.white : SketchDesignTokens.base900;
 
@@ -77,10 +77,10 @@ class MyApp extends StatelessWidget {
 | 항목 | Light | Dark |
 |------|-------|------|
 | scaffoldBackground | `base100` (#F7F7F7) | `base900` (#343434) |
-| surfaceColor | `white` (#FFFFFF) | `Color(0xFF2A2A2A)` |
+| surfaceColor | `white` (#FFFFFF) | `surfaceDark` (#23273A) |
 | textColor | `base900` (#343434) | `white` (#FFFFFF) |
 | seedColor | `accentPrimary` (#2196F3) | 동일 |
-| fontFamily | `fontFamilyHand` (PatrickHand) | 동일 |
+| fontFamily | `fontFamilyHand` (Loranthus) | 동일 |
 
 ### SketchThemeExtension
 
@@ -96,21 +96,27 @@ final sketchTheme = SketchThemeExtension.of(context);
 ## 폰트 설정
 
 폰트 파일은 `design_system/assets/fonts/`에 포함되어 있습니다.
-앱에서 plain name(`'PatrickHand'`)으로 사용하려면 **폰트 파일을 앱 로컬에 복사하고 pubspec.yaml에 선언**해야 합니다.
+앱에서 plain name으로 사용하려면 **폰트 파일을 앱 로컬에 복사하고 pubspec.yaml에 선언**해야 합니다.
 
 ```bash
 # 폰트 파일 복사
-cp packages/design_system/assets/fonts/PatrickHand-Regular.ttf apps/[앱이름]/assets/fonts/
+cp packages/design_system/assets/fonts/Loranthus.ttf apps/[앱이름]/assets/fonts/
+cp packages/design_system/assets/fonts/KyoboHandwriting2019.ttf apps/[앱이름]/assets/fonts/
 ```
 
 ```yaml
 # apps/[앱이름]/pubspec.yaml
 flutter:
   fonts:
-    - family: PatrickHand
+    - family: Loranthus
       fonts:
-        - asset: assets/fonts/PatrickHand-Regular.ttf
+        - asset: assets/fonts/Loranthus.ttf
+    - family: KyoboHandwriting2019
+      fonts:
+        - asset: assets/fonts/KyoboHandwriting2019.ttf
 ```
+
+> `KyoboHandwriting2019`는 한글 손글씨 폴백 폰트입니다.
 
 > `packages/design_system/assets/fonts/...` 경로로 선언하면 빌드 에러가 발생합니다.
 > 반드시 로컬 `assets/fonts/`에 복사 후 로컬 경로로 참조하세요.
