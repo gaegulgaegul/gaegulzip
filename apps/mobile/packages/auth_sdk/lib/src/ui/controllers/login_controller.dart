@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
-import 'package:auth_sdk/auth_sdk.dart';
-import '../../../routes/app_routes.dart';
+import '../../auth_sdk.dart';
 
 /// 로그인 화면 컨트롤러
 ///
@@ -70,10 +69,10 @@ class LoginController extends GetxController {
       loadingState.value = true;
 
       // 2. AuthSdk를 통한 소셜 로그인
-      final loginResponse = await AuthSdk.login(provider);
+      await AuthSdk.login(provider);
 
-      // 3. 성공 - 메인 화면으로 이동 (스낵바 없이 즉시 이동)
-      Get.offAllNamed(Routes.HOME);
+      // 3. 성공 - SDK 설정의 homeRoute로 이동
+      Get.offAllNamed(AuthSdk.config.homeRoute);
     } on AuthException catch (e) {
       // 인증 오류
       Logger.error('AuthException [${e.code}]: ${e.message}', error: e);

@@ -25,16 +25,20 @@ Future<void> main() async {
     throw Exception('API_BASE_URL이 .env 파일에 설정되지 않았습니다');
   }
 
-  // 3. AuthSdk 초기화
+  // 3. AuthSdk 초기화 (AuthSdkConfig 객체로 전달)
   await AuthSdk.initialize(
-    appCode: 'wowa',
-    apiBaseUrl: apiBaseUrl,
-    providers: {
-      SocialProvider.kakao: ProviderConfig(clientId: dotenv.env['KAKAO_NATIVE_APP_KEY']),
-      SocialProvider.naver: const ProviderConfig(),
-      SocialProvider.google: const ProviderConfig(),
-      SocialProvider.apple: const ProviderConfig(),
-    },
+    AuthSdkConfig(
+      appCode: 'wowa',
+      apiBaseUrl: apiBaseUrl,
+      homeRoute: Routes.HOME,
+      showBrowseButton: true,
+      providers: {
+        SocialProvider.kakao: ProviderConfig(clientId: dotenv.env['KAKAO_NATIVE_APP_KEY']),
+        SocialProvider.naver: const ProviderConfig(),
+        SocialProvider.google: ProviderConfig(clientId: dotenv.env['GOOGLE_SERVER_CLIENT_ID']),
+        SocialProvider.apple: const ProviderConfig(),
+      },
+    ),
   );
 
   // 4. Firebase 초기화 (AdMob, Push 등 Firebase 의존 서비스보다 먼저)

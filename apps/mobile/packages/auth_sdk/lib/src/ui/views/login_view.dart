@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:design_system/design_system.dart';
-import '../../../routes/app_routes.dart';
 import '../controllers/login_controller.dart';
+import '../../auth_sdk.dart';
 
 /// 로그인 화면
 ///
@@ -73,11 +73,12 @@ class LoginView extends GetView<LoginController> {
 
                 const Spacer(),
 
-                // 둘러보기 버튼
-                TextButton(
-                  onPressed: () => Get.toNamed(Routes.HOME),
-                  child: const Text('둘러보기'),
-                ),
+                // 둘러보기 버튼 (조건부 렌더링)
+                if (AuthSdk.config.showBrowseButton)
+                  TextButton(
+                    onPressed: () => Get.toNamed(AuthSdk.config.homeRoute),
+                    child: const Text('둘러보기'),
+                  ),
               ],
             ),
           ),
