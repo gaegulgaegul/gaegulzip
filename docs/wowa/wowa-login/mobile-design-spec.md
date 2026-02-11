@@ -84,7 +84,7 @@ Scaffold
 **Text (부제목)**
 - 텍스트: "소셜 계정으로 간편하게 시작하세요"
 - fontSize: 14px (SketchDesignTokens.fontSizeSm)
-- color: SketchDesignTokens.base500 (#8E8E8E)
+- color: SketchDesignTokens.base700 (#5E5E5E) (다크모드: base400)
 - 정렬: 중앙
 
 **SocialLoginButton (카카오)**
@@ -235,7 +235,7 @@ SketchModal
 - **base700**: `#5E5E5E` - 어두운 회색
   - 용도: 모달 본문 텍스트, 아웃라인 버튼 텍스트
 - **base500**: `#8E8E8E` - 중간 회색
-  - 용도: 부제목 텍스트
+  - 용도: 비활성 텍스트
 - **base300**: `#DCDCDC` - 밝은 회색
   - 용도: 구글 버튼 테두리, 모달 테두리, 아웃라인 버튼 테두리
 - **base100**: `#F7F7F7` - 거의 흰색
@@ -280,11 +280,11 @@ SketchModal
 - color: SketchDesignTokens.base900 (#343434)
 
 **Subtitle (부제목)**
-- fontFamily: Roboto
+- fontFamily: Loranthus (SketchDesignTokens.fontFamilyHand)
 - fontSize: 14px (SketchDesignTokens.fontSizeSm)
 - fontWeight: FontWeight.w400 (regular)
 - height: 1.5 (normal)
-- color: SketchDesignTokens.base500 (#8E8E8E)
+- color: SketchDesignTokens.base700 (#5E5E5E) (다크모드: base400)
 
 **Button Label (버튼 텍스트)**
 - fontFamily: Roboto
@@ -652,7 +652,7 @@ class AppRoutes {
 | apiBaseUrl | String | ✅ | - | 서버 API 기본 URL |
 | homeRoute | String | ❌ | '/home' | 로그인 성공 후 이동 라우트 |
 | showBrowseButton | bool | ❌ | false | 둘러보기 버튼 표시 여부 |
-| googleServerClientId | String | ❌ | null | 구글 로그인용 서버 클라이언트 ID |
+| providers | Map\<SocialProvider, ProviderConfig\> | ✅ | - | 소셜 프로바이더별 설정 맵 |
 
 ## 상태 관리 (GetX)
 
