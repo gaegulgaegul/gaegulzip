@@ -294,8 +294,14 @@ class SketchDesignTokens {
   // 폰트 패밀리 (Frame0 Default Fonts)
   // ============================================================================
 
-  /// Hand 폰트 — Sketch 테마의 기본 손글씨 폰트
-  static const String fontFamilyHand = 'PatrickHand';
+  /// Hand 폰트 — Sketch 테마의 기본 손글씨 폰트 (라틴/그리스/키릴)
+  static const String fontFamilyHand = 'Loranthus';
+
+  /// Hand 한글 폰트 — 한글 11,172자 지원 손글씨 폰트
+  static const String fontFamilyHandKr = 'KyoboHandwriting2019';
+
+  /// Hand 폰트 폴백 — 한글 글리프용 폴백 리스트
+  static const List<String> fontFamilyHandFallback = ['KyoboHandwriting2019'];
 
   /// Sans 폰트 — Solid 테마의 기본 산세리프 폰트
   static const String fontFamilySans = 'Roboto';

@@ -203,6 +203,7 @@ class SketchBottomNavigationBar extends StatelessWidget {
                     item.label,
                     style: TextStyle(
                       fontFamily: SketchDesignTokens.fontFamilyHand,
+                      fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                       fontSize: 12,
                       color: color,
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,

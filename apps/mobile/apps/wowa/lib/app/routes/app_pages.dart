@@ -1,8 +1,7 @@
 import 'package:get/get.dart';
 import 'package:qna/qna.dart';
 import 'package:notice/notice.dart';
-import '../modules/login/views/login_view.dart';
-import '../modules/login/bindings/login_binding.dart';
+import 'package:auth_sdk/auth_sdk.dart' show LoginView, LoginBinding;
 import '../modules/box/views/box_search_view.dart';
 import '../modules/box/bindings/box_search_binding.dart';
 import '../modules/box/views/box_create_view.dart';
