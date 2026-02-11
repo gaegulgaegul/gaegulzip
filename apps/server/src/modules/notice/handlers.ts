@@ -1,4 +1,5 @@
-import { RequestHandler } from 'express';
+import { Request, RequestHandler } from 'express';
+import { z } from 'zod';
 import { db } from '../../config/database';
 import { notices, noticeReads } from './schema';
 import { listNoticesSchema, createNoticeSchema, updateNoticeSchema, pinNoticeSchema, noticeIdSchema } from './validators';
@@ -22,6 +23,18 @@ async function getAppCode(appId: number): Promise<string> {
 }
 
 /**
+ * GET 요청에서 appCode를 결정합니다.
+ * JWT 인증이 있으면 JWT의 appId → appCode, 없으면 query param의 appCode를 사용합니다.
+ */
+async function resolveAppCode(req: Request): Promise<string> {
+  if (req.user) {
+    return getAppCode((req.user as { userId: number; appId: number }).appId);
+  }
+  const { appCode } = z.object({ appCode: z.string().min(1) }).parse(req.query);
+  return appCode;
+}
+
+/**
  * 공지사항 목록 조회 (사용자)
  * @param req - Express 요청 객체 (query: { page?, limit?, category?, pinnedOnly? })
  * @param res - Express 응답 객체
@@ -34,9 +47,9 @@ export const listNotices: RequestHandler = async (req, res) => {
 
   logger.debug({ page, limit, category, pinnedOnly }, 'Listing notices');
 
-  // 2. JWT에서 userId, appId 추출 (인증 미들웨어에서 req.user에 주입)
-  const { userId, appId } = (req as AuthenticatedRequest).user;
-  const appCode = await getAppCode(appId);
+  // 2. appCode 결정 (JWT 또는 query param)
+  const appCode = await resolveAppCode(req);
+  const userId = (req.user as { userId: number; appId: number } | undefined)?.userId;
 
   // 3. 조건 구성
   const conditions = [
@@ -58,9 +71,9 @@ export const listNotices: RequestHandler = async (req, res) => {
     .from(notices)
     .where(and(...conditions));
 
-  // 5. 목록 조회 (LEFT JOIN notice_reads)
+  // 5. 목록 조회
   const offset = (page - 1) * limit;
-  const items = await db
+  const baseQuery = db
     .select({
       id: notices.id,
       title: notices.title,
@@ -68,24 +81,41 @@ export const listNotices: RequestHandler = async (req, res) => {
       isPinned: notices.isPinned,
       viewCount: notices.viewCount,
       createdAt: notices.createdAt,
-      isRead: sql<boolean>`${noticeReads.id} IS NOT NULL`,
     })
     .from(notices)
-    .leftJoin(
-      noticeReads,
-      and(
-        eq(notices.id, noticeReads.noticeId),
-        eq(noticeReads.userId, userId)
-      )
-    )
     .where(and(...conditions))
     .orderBy(desc(notices.isPinned), desc(notices.createdAt))
     .limit(limit)
     .offset(offset);
 
-  // 6. 응답 구성
-  const response: NoticeListResponse = {
-    items: items.map(item => ({
+  let summaryItems: NoticeSummary[];
+
+  if (userId) {
+    // 인증된 사용자: LEFT JOIN으로 읽음 추적
+    const rows = await db
+      .select({
+        id: notices.id,
+        title: notices.title,
+        category: notices.category,
+        isPinned: notices.isPinned,
+        viewCount: notices.viewCount,
+        createdAt: notices.createdAt,
+        isRead: sql<boolean>`${noticeReads.id} IS NOT NULL`,
+      })
+      .from(notices)
+      .leftJoin(
+        noticeReads,
+        and(
+          eq(notices.id, noticeReads.noticeId),
+          eq(noticeReads.userId, userId)
+        )
+      )
+      .where(and(...conditions))
+      .orderBy(desc(notices.isPinned), desc(notices.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    summaryItems = rows.map(item => ({
       id: item.id,
       title: item.title,
       category: item.category,
@@ -93,11 +123,29 @@ export const listNotices: RequestHandler = async (req, res) => {
       isRead: item.isRead ?? false,
       viewCount: item.viewCount,
       createdAt: item.createdAt.toISOString(),
-    })),
+    }));
+  } else {
+    // 비인증 사용자: 읽음 추적 없음
+    const rows = await baseQuery;
+
+    summaryItems = rows.map(item => ({
+      id: item.id,
+      title: item.title,
+      category: item.category,
+      isPinned: item.isPinned,
+      isRead: false,
+      viewCount: item.viewCount,
+      createdAt: item.createdAt.toISOString(),
+    }));
+  }
+
+  // 6. 응답 구성
+  const response: NoticeListResponse = {
+    items: summaryItems,
     totalCount: Number(totalCount),
     page,
     limit,
-    hasNext: offset + items.length < Number(totalCount),
+    hasNext: offset + summaryItems.length < Number(totalCount),
   };
 
   res.json(response);
@@ -117,9 +165,9 @@ export const getNotice: RequestHandler = async (req, res) => {
 
   logger.debug({ noticeId: id }, 'Getting notice detail');
 
-  // 2. JWT에서 userId, appId 추출
-  const { userId, appId } = (req as AuthenticatedRequest).user;
-  const appCode = await getAppCode(appId);
+  // 2. appCode 결정 (JWT 또는 query param)
+  const appCode = await resolveAppCode(req);
+  const userId = (req.user as { userId: number; appId: number } | undefined)?.userId;
 
   // 3. 공지사항 조회
   const [notice] = await db
@@ -144,26 +192,27 @@ export const getNotice: RequestHandler = async (req, res) => {
     .set({ viewCount: sql`${notices.viewCount} + 1` })
     .where(eq(notices.id, id));
 
-  // 5. 읽음 처리 (중복 무시)
-  await db
-    .insert(noticeReads)
-    .values({
-      noticeId: id,
-      userId,
-    })
-    .onConflictDoNothing();
+  // 5. 읽음 처리 (인증된 사용자만)
+  if (userId) {
+    await db
+      .insert(noticeReads)
+      .values({
+        noticeId: id,
+        userId,
+      })
+      .onConflictDoNothing();
 
-  // 6. 운영 로그
-  noticeProbe.viewed({ noticeId: id, userId });
+    noticeProbe.viewed({ noticeId: id, userId });
+  }
 
-  // 7. 응답
+  // 6. 응답
   const response: NoticeDetail = {
     id: notice.id,
     title: notice.title,
     content: notice.content,
     category: notice.category,
     isPinned: notice.isPinned,
-    viewCount: notice.viewCount + 1, // 증가된 값 반영
+    viewCount: notice.viewCount + 1,
     createdAt: notice.createdAt.toISOString(),
     updatedAt: notice.updatedAt.toISOString(),
   };
@@ -180,11 +229,17 @@ export const getNotice: RequestHandler = async (req, res) => {
 export const getUnreadCount: RequestHandler = async (req, res) => {
   logger.debug('Getting unread count');
 
-  // 1. JWT에서 userId, appId 추출
-  const { userId, appId } = (req as AuthenticatedRequest).user;
-  const appCode = await getAppCode(appId);
+  // 1. appCode 결정 (JWT 또는 query param)
+  const appCode = await resolveAppCode(req);
+  const userId = (req.user as { userId: number; appId: number } | undefined)?.userId;
 
-  // 2. 읽지 않은 공지 개수 조회
+  // 2. 인증되지 않은 사용자는 unreadCount 0 반환
+  if (!userId) {
+    res.json({ unreadCount: 0 } satisfies UnreadCountResponse);
+    return;
+  }
+
+  // 3. 읽지 않은 공지 개수 조회
   const [{ unreadCount }] = await db
     .select({ unreadCount: count() })
     .from(notices)
@@ -199,7 +254,7 @@ export const getUnreadCount: RequestHandler = async (req, res) => {
       and(
         eq(notices.appCode, appCode),
         isNull(notices.deletedAt),
-        isNull(noticeReads.id) // 읽지 않음
+        isNull(noticeReads.id)
       )
     );
 

@@ -10,7 +10,6 @@ import wodRouter from './modules/wod';
 import qnaRouter from './modules/qna';
 import noticeRouter from './modules/notice';
 import noticeAdminRouter from './modules/notice/admin-routes';
-import { authenticate } from './middleware/auth';
 import { adminLogin } from './middleware/admin-auth';
 import { errorHandler } from './middleware/error-handler';
 
@@ -41,7 +40,7 @@ app.use('/push', pushAlertRouter);
 app.use('/boxes', boxRouter);
 app.use('/wods', wodRouter);
 app.use('/qna', qnaRouter);
-app.use('/notices', authenticate, noticeRouter);
+app.use('/notices', noticeRouter);
 app.post('/admin/auth/login', adminLogin);
 app.use('/admin/notices', noticeAdminRouter);
 

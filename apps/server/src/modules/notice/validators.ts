@@ -11,6 +11,7 @@ export const listNoticesSchema = z.object({
     .enum(['true', 'false'])
     .transform((val) => val === 'true')
     .optional(),
+  appCode: z.string().min(1).optional(),
 });
 
 /**
