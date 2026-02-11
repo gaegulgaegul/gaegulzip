@@ -180,8 +180,8 @@ class AuthSdk {
     // 1. 소셜 SDK로 OAuth 인증
     final accessToken = await socialProvider.signIn();
 
-    // 2. 서버 API 호출 (AuthRepository.login은 UserModel 반환)
-    final user = await authRepository.login(
+    // 2. 서버 API 호출 (토큰 + 사용자 정보 포함)
+    final response = await authRepository.login(
       provider: socialProvider.platformName,
       accessToken: accessToken,
     );
@@ -190,25 +190,8 @@ class AuthSdk {
     final authState = Get.find<AuthStateService>();
     authState.onLoginSuccess();
 
-    // 4. Storage에서 토큰 정보 조회
-    final storage = Get.find<SecureStorageService>();
-    final storedAccessToken = await storage.getAccessToken();
-    final storedRefreshToken = await storage.getRefreshToken();
-
-    if (storedAccessToken == null || storedRefreshToken == null) {
-      throw Exception('로그인 후 토큰 저장 실패');
-    }
-
-    // 5. LoginResponse 객체 반환
-    // TODO: expiresIn을 서버 응답에서 파싱하여 전달 (현재 AuthRepository.login이 UserModel만 반환)
-    return LoginResponse(
-      accessToken: storedAccessToken,
-      refreshToken: storedRefreshToken,
-      tokenType: 'Bearer',
-      expiresIn: 1800,
-      user: user,
-      token: storedAccessToken,
-    );
+    // 4. 서버 응답 반환
+    return response;
   }
 
   /// 로그아웃

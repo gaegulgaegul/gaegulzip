@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:core/core.dart';
 import '../services/auth_api_service.dart';
-import '../models/user_model.dart';
+import '../models/login_response.dart';
 
 /// 인증 Repository
 ///
@@ -16,13 +16,13 @@ class AuthRepository {
   /// [provider] 소셜 플랫폼
   /// [accessToken] 소셜 SDK에서 획득한 OAuth access token
   ///
-  /// Returns: [UserModel] 로그인한 사용자 정보
+  /// Returns: [LoginResponse] 서버 응답 (토큰, 사용자 정보)
   ///
   /// Throws:
   ///   - [NetworkException] 네트워크 오류
   ///   - [AuthException] 인증 오류 (401, 409 등)
   ///   - [Exception] 기타 서버 오류
-  Future<UserModel> login({
+  Future<LoginResponse> login({
     required String provider,
     required String accessToken,
   }) async {
@@ -42,8 +42,8 @@ class AuthRepository {
         _storageService.saveUserProvider(response.user.provider),
       ]);
 
-      // 3. 사용자 정보 반환
-      return response.user;
+      // 3. 서버 응답 반환
+      return response;
     } on DioException catch (e) {
       // 409 계정 충돌은 login 전용 처리
       if (e.response?.statusCode == 409) {
