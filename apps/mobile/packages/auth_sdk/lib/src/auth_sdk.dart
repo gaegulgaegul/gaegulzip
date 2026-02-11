@@ -200,6 +200,7 @@ class AuthSdk {
     }
 
     // 5. LoginResponse 객체 반환
+    // TODO: expiresIn을 서버 응답에서 파싱하여 전달 (현재 AuthRepository.login이 UserModel만 반환)
     return LoginResponse(
       accessToken: storedAccessToken,
       refreshToken: storedRefreshToken,

@@ -52,22 +52,22 @@ Future<void> main() async {
     ),
   );
 
-  // 4. Firebase 초기화 (AdMob, Push 등 Firebase 의존 서비스보다 먼저)
+  // 5. Firebase 초기화 (AdMob, Push 등 Firebase 의존 서비스보다 먼저)
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 5. AdMob 초기화
+  // 6. AdMob 초기화
   final adMobService = Get.put(AdMobService());
   await adMobService.initialize();
 
-  // 6. PushApiClient 전역 등록 (디바이스 토큰 자동 등록에 필요)
+  // 7. PushApiClient 전역 등록 (디바이스 토큰 자동 등록에 필요)
   Get.put(PushApiClient());
 
-  // 7. NoticeApiService 전역 등록
+  // 8. NoticeApiService 전역 등록
   Get.put<NoticeApiService>(NoticeApiService(), permanent: true);
 
-  // 8. PushService 초기화 (실패해도 앱 계속 실행)
+  // 9. PushService 초기화 (실패해도 앱 계속 실행)
   final pushService = Get.put(PushService(), permanent: true);
   try {
     await pushService.initialize();
@@ -75,7 +75,7 @@ Future<void> main() async {
     Logger.error('PushService 초기화 실패, 푸시 알림 없이 계속 진행', error: e);
   }
 
-  // 9. 포그라운드 알림 핸들러 (인앱 스낵바 표시)
+  // 10. 포그라운드 알림 핸들러 (인앱 스낵바 표시)
   pushService.onForegroundMessage = (notification) {
     Get.snackbar(
       notification.title.isNotEmpty ? notification.title : '새 알림',
