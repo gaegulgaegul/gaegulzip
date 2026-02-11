@@ -115,8 +115,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: 다크모드 확인 후 원복 — 로그인 화면 강제 이동
-    final initialRoute = Routes.LOGIN;
+    // 인증 상태에 따라 초기 라우트 결정
+    final authService = AuthSdk.authState;
+    final initialRoute =
+        authService.isAuthenticated ? Routes.HOME : Routes.LOGIN;
 
     return GetMaterialApp(
       title: 'Wowa App',
@@ -156,6 +158,7 @@ class MyApp extends StatelessWidget {
         centerTitle: true,
         titleTextStyle: TextStyle(
           fontFamily: SketchDesignTokens.fontFamilyHand,
+          fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
           fontSize: SketchDesignTokens.fontSizeXl,
           fontWeight: FontWeight.bold,
           color: textColor,
