@@ -103,7 +103,7 @@ class AppPages {
       page: () => const NoticeListView(),
       binding: BindingsBuilder(() {
         Get.lazyPut<NoticeListController>(
-          () => NoticeListController()..appCode = AuthSdk.appCode,
+          () => NoticeListController(appCode: AuthSdk.appCode),
         );
       }),
       transition: Transition.cupertino,
@@ -114,7 +114,7 @@ class AppPages {
       page: () => const NoticeDetailView(),
       binding: BindingsBuilder(() {
         Get.lazyPut<NoticeDetailController>(
-          () => NoticeDetailController()..appCode = AuthSdk.appCode,
+          () => NoticeDetailController(appCode: AuthSdk.appCode),
         );
       }),
       transition: Transition.cupertino,

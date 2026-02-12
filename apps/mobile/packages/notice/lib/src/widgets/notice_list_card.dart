@@ -47,7 +47,7 @@ class NoticeListCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
-                if (notice.isRead) const SizedBox(width: 8),
+                if (notice.isRead) const SizedBox(width: 8, height: 8),
                 const SizedBox(height: 24),
               ],
             ),
@@ -65,7 +65,7 @@ class NoticeListCard extends StatelessWidget {
                         const Icon(
                           Icons.push_pin,
                           size: 16,
-                          color: Color(0xFFC86947),
+                          color: const Color(0xFFC86947),
                         ),
                         const SizedBox(width: 4),
                       ],

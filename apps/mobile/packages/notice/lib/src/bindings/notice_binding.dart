@@ -20,9 +20,9 @@ class NoticeBinding extends Bindings {
     // API 서비스 (lazyPut - 필요 시 생성)
     Get.lazyPut<NoticeApiService>(() => NoticeApiService());
 
-    // Controller (lazyPut — appCode 주입)
+    // Controller (lazyPut — appCode 생성자 주입)
     Get.lazyPut<NoticeListController>(
-      () => NoticeListController()..appCode = appCode,
+      () => NoticeListController(appCode: appCode),
     );
   }
 }

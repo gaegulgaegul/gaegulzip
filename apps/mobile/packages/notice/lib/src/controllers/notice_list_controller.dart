@@ -13,8 +13,13 @@ class NoticeListController extends GetxController {
 
   /// 앱 식별 코드 (JWT 없이 API 호출 시 사용)
   ///
-  /// NoticeBinding에서 설정합니다. null이면 JWT 인증 사용.
-  String? appCode;
+  /// NoticeBinding 생성자에서 주입됩니다. null이면 JWT 인증 사용.
+  final String? appCode;
+
+  /// 생성자
+  ///
+  /// [appCode] 앱 식별 코드 (선택, null이면 JWT 인증 사용)
+  NoticeListController({this.appCode});
 
   /// 공지사항 목록
   final notices = <NoticeModel>[].obs;

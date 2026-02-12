@@ -44,7 +44,10 @@ class QnaRepository {
       );
 
       // 2. API 호출
-      return await _apiService.submitQuestion(request);
+      Logger.debug('QnA: API 호출 시작 - appCode=$appCode');
+      final response = await _apiService.submitQuestion(request);
+      Logger.debug('QnA: API 호출 성공 - questionId=${response.questionId}');
+      return response;
     } on DioException catch (e) {
       // DioException을 도메인 예외로 변환
       throw _mapDioError(e);
@@ -58,7 +61,7 @@ class QnaRepository {
   /// Returns: 변환된 예외 (NetworkException 또는 Exception)
   Exception _mapDioError(DioException e) {
     Logger.error(
-      'QnA: API 오류 - type=${e.type}, status=${e.response?.statusCode}, data=${e.response?.data}',
+      'QnA: API 오류 - type=${e.type}, status=${e.response?.statusCode}',
       error: e,
     );
 

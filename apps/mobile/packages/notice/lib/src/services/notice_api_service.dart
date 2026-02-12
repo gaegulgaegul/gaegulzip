@@ -47,7 +47,7 @@ class NoticeApiService {
       queryParameters['appCode'] = appCode;
     }
 
-    Logger.debug('Notice: GET /notices 요청 - page=$page, limit=$limit, pinnedOnly=$pinnedOnly');
+    Logger.debug('Notice: GET /notices 요청 - page=$page, limit=$limit, pinnedOnly=$pinnedOnly, appCode=$appCode');
 
     final response = await _dio.get(
       '/notices',
@@ -71,7 +71,7 @@ class NoticeApiService {
       queryParameters['appCode'] = appCode;
     }
 
-    Logger.debug('Notice: GET /notices/$id 요청');
+    Logger.debug('Notice: GET /notices/$id 요청 - appCode=$appCode');
 
     final response = await _dio.get(
       '/notices/$id',
@@ -95,7 +95,7 @@ class NoticeApiService {
       queryParameters['appCode'] = appCode;
     }
 
-    Logger.debug('Notice: GET /notices/unread-count 요청');
+    Logger.debug('Notice: GET /notices/unread-count 요청 - appCode=$appCode');
 
     final response = await _dio.get(
       '/notices/unread-count',

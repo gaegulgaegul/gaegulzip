@@ -14,7 +14,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 1. 환경변수 로드
-  await dotenv.load(fileName: ".env");
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    Logger.warn('환경변수 파일(.env) 로드 실패: $e');
+  }
 
   // 2. API_BASE_URL 확인
   final apiBaseUrl = dotenv.env['API_BASE_URL'];

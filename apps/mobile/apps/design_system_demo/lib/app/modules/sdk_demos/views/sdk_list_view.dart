@@ -48,7 +48,6 @@ class SdkListView extends GetView<SdkListController> {
 
   /// SDK 항목 카드
   Widget _buildSdkItemCard(SdkItem item) {
-    // TODO(human): SDK 아이템 카드의 레이아웃을 구현하세요
     return SketchCard(
       onTap: () => controller.navigateToSdk(item.route),
       elevation: 1,

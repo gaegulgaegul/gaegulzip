@@ -119,7 +119,7 @@ class AppPages {
       page: () => const NoticeDetailView(),
       binding: BindingsBuilder(() {
         Get.lazyPut<NoticeDetailController>(
-          () => NoticeDetailController()..appCode = 'demo',
+          () => NoticeDetailController(appCode: 'demo'),
         );
       }),
       transition: Transition.cupertino,

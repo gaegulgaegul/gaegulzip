@@ -11,7 +11,12 @@ class NoticeDetailController extends GetxController {
   late final NoticeApiService _apiService;
 
   /// 앱 식별 코드 (JWT 없이 API 호출 시 사용)
-  String? appCode;
+  final String? appCode;
+
+  /// 생성자
+  ///
+  /// [appCode] 앱 식별 코드 (선택, null이면 JWT 인증 사용)
+  NoticeDetailController({this.appCode});
 
   /// 공지사항 상세 데이터
   final notice = Rxn<NoticeModel>();
