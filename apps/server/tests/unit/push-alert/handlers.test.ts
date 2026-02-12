@@ -41,7 +41,7 @@ import {
 import { findAppByCode } from '../../../src/modules/auth/services';
 import * as fcm from '../../../src/modules/push-alert/fcm';
 import * as pushProbe from '../../../src/modules/push-alert/push.probe';
-import { NotFoundException, BusinessException } from '../../../src/utils/errors';
+import { NotFoundException, BusinessException, UnauthorizedException } from '../../../src/utils/errors';
 
 // Mock all dependencies
 vi.mock('../../../src/modules/push-alert/validators', () => ({
@@ -664,7 +664,7 @@ describe('deactivateByToken handler', () => {
     vi.clearAllMocks();
   });
 
-  it('should deactivate device by token and return 204', async () => {
+  it('should return 204 when token is successfully deactivated', async () => {
     vi.mocked(deactivateByTokenSchema.parse).mockReturnValue({
       token: 'test_fcm_token_123',
     });
@@ -673,7 +673,7 @@ describe('deactivateByToken handler', () => {
     await deactivateByToken(req as Request, res as Response);
 
     expect(deactivateByTokenSchema.parse).toHaveBeenCalledWith(req.body);
-    expect(deactivateDeviceByToken).toHaveBeenCalledWith('test_fcm_token_123', 1);
+    expect(deactivateDeviceByToken).toHaveBeenCalledWith('test_fcm_token_123', 1, 1);
     expect(pushProbe.deviceDeactivatedByToken).toHaveBeenCalledWith({
       userId: 1,
       appId: 1,
@@ -683,7 +683,7 @@ describe('deactivateByToken handler', () => {
     expect(res.send).toHaveBeenCalled();
   });
 
-  it('should return 204 even if token does not exist (idempotent)', async () => {
+  it('should return 204 when token does not exist (idempotent)', async () => {
     vi.mocked(deactivateByTokenSchema.parse).mockReturnValue({
       token: 'non_existent_token',
     });
@@ -691,17 +691,17 @@ describe('deactivateByToken handler', () => {
 
     await deactivateByToken(req as Request, res as Response);
 
-    expect(deactivateDeviceByToken).toHaveBeenCalledWith('non_existent_token', 1);
+    expect(deactivateDeviceByToken).toHaveBeenCalledWith('non_existent_token', 1, 1);
     expect(res.status).toHaveBeenCalledWith(204);
   });
 
-  it('should throw UnauthorizedException if not authenticated', async () => {
+  it('should throw UnauthorizedException when user is not authenticated', async () => {
     req.user = undefined;
 
-    await expect(deactivateByToken(req as Request, res as Response)).rejects.toThrow();
+    await expect(deactivateByToken(req as Request, res as Response)).rejects.toThrow(UnauthorizedException);
   });
 
-  it('should throw ValidationException if token is missing', async () => {
+  it('should throw ValidationException when token is missing', async () => {
     vi.mocked(deactivateByTokenSchema.parse).mockImplementation(() => {
       throw new Error('Token is required');
     });
@@ -709,7 +709,7 @@ describe('deactivateByToken handler', () => {
     await expect(deactivateByToken(req as Request, res as Response)).rejects.toThrow();
   });
 
-  it('should throw ValidationException if token is too long', async () => {
+  it('should throw ValidationException when token exceeds maximum length', async () => {
     const longToken = 'a'.repeat(501);
     req.body = { token: longToken };
     vi.mocked(deactivateByTokenSchema.parse).mockImplementation(() => {
