@@ -20,6 +20,14 @@ router.post('/devices', authenticate, handlers.registerDevice);
 router.get('/devices', authenticate, handlers.listDevices);
 
 /**
+ * 토큰으로 디바이스 비활성화 (인증 필요)
+ * @route DELETE /push/devices/by-token
+ * @body { token: string }
+ * @returns 204: No Content
+ */
+router.delete('/devices/by-token', authenticate, handlers.deactivateByToken);
+
+/**
  * 디바이스 토큰 비활성화 (인증 필요)
  * @route DELETE /push/devices/:id
  * @returns 204: No Content

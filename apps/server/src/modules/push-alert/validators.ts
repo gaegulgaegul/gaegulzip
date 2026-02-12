@@ -18,6 +18,15 @@ export const registerDeviceSchema = z.object({
 export type RegisterDeviceRequest = z.infer<typeof registerDeviceSchema>;
 
 /**
+ * 토큰으로 디바이스 비활성화 요청 스키마
+ */
+export const deactivateByTokenSchema = z.object({
+  token: z.string().min(1, 'Token is required').max(500, 'Token is too long'),
+});
+
+export type DeactivateByTokenRequest = z.infer<typeof deactivateByTokenSchema>;
+
+/**
  * 푸시 발송 요청 스키마 (복잡한 조건 검증)
  */
 export const sendPushSchema = z

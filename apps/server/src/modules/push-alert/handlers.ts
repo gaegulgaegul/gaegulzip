@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { registerDeviceSchema, sendPushSchema, listAlertsSchema, listMyNotificationsSchema, getAlertQuerySchema } from './validators';
+import { registerDeviceSchema, deactivateByTokenSchema, sendPushSchema, listAlertsSchema, listMyNotificationsSchema, getAlertQuerySchema } from './validators';
 import {
   upsertDevice,
   findDevicesByUserId,
@@ -122,6 +122,31 @@ export const deactivateDevice = async (req: Request, res: Response) => {
     deviceId: id,
     userId,
     appId,
+  });
+
+  res.status(204).send();
+};
+
+/**
+ * 토큰으로 디바이스 비활성화 핸들러 (인증 필요)
+ * @param req - Express 요청 객체 (body: { token }, user: { userId, appId })
+ * @param res - Express 응답 객체
+ * @returns 204: No Content
+ */
+export const deactivateByToken = async (req: Request, res: Response) => {
+  const { token } = deactivateByTokenSchema.parse(req.body);
+  const { userId, appId } = getAuthUser(req);
+
+  logger.debug({ userId, appId, tokenPrefix: token.slice(0, 20) }, 'Deactivating device by token');
+
+  // 토큰으로 비활성화 (이미 services.ts에 존재)
+  await deactivateDeviceByToken(token, appId);
+
+  // 로그 (비활성화된 디바이스가 없어도 204 반환)
+  pushProbe.deviceDeactivatedByToken({
+    userId,
+    appId,
+    tokenPrefix: token.slice(0, 20),
   });
 
   res.status(204).send();

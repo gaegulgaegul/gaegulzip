@@ -4,6 +4,7 @@ import {
   registerDevice,
   listDevices,
   deactivateDevice,
+  deactivateByToken,
   sendPush,
   listAlerts,
   getAlert,
@@ -13,6 +14,7 @@ import {
 } from '../../../src/modules/push-alert/handlers';
 import {
   registerDeviceSchema,
+  deactivateByTokenSchema,
   sendPushSchema,
   listAlertsSchema,
   listMyNotificationsSchema,
@@ -44,6 +46,9 @@ import { NotFoundException, BusinessException } from '../../../src/utils/errors'
 // Mock all dependencies
 vi.mock('../../../src/modules/push-alert/validators', () => ({
   registerDeviceSchema: {
+    parse: vi.fn(),
+  },
+  deactivateByTokenSchema: {
     parse: vi.fn(),
   },
   sendPushSchema: {
@@ -92,6 +97,7 @@ vi.mock('../../../src/modules/push-alert/fcm', () => ({
 vi.mock('../../../src/modules/push-alert/push.probe', () => ({
   deviceRegistered: vi.fn(),
   deviceDeactivated: vi.fn(),
+  deviceDeactivatedByToken: vi.fn(),
   pushSent: vi.fn(),
   pushFailed: vi.fn(),
   invalidTokenDetected: vi.fn(),
@@ -637,5 +643,79 @@ describe('markAsRead handler', () => {
     vi.mocked(markNotificationAsRead).mockResolvedValue(false);
 
     await expect(markAsRead(req as Request, res as Response)).rejects.toThrow(NotFoundException);
+  });
+});
+
+describe('deactivateByToken handler', () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+
+  beforeEach(() => {
+    req = {
+      body: {
+        token: 'test_fcm_token_123',
+      },
+      user: { userId: 1, appId: 1 },
+    };
+    res = {
+      status: vi.fn().mockReturnThis(),
+      send: vi.fn(),
+    };
+    vi.clearAllMocks();
+  });
+
+  it('should deactivate device by token and return 204', async () => {
+    vi.mocked(deactivateByTokenSchema.parse).mockReturnValue({
+      token: 'test_fcm_token_123',
+    });
+    vi.mocked(deactivateDeviceByToken).mockResolvedValue(undefined);
+
+    await deactivateByToken(req as Request, res as Response);
+
+    expect(deactivateByTokenSchema.parse).toHaveBeenCalledWith(req.body);
+    expect(deactivateDeviceByToken).toHaveBeenCalledWith('test_fcm_token_123', 1);
+    expect(pushProbe.deviceDeactivatedByToken).toHaveBeenCalledWith({
+      userId: 1,
+      appId: 1,
+      tokenPrefix: 'test_fcm_token_123'.slice(0, 20),
+    });
+    expect(res.status).toHaveBeenCalledWith(204);
+    expect(res.send).toHaveBeenCalled();
+  });
+
+  it('should return 204 even if token does not exist (idempotent)', async () => {
+    vi.mocked(deactivateByTokenSchema.parse).mockReturnValue({
+      token: 'non_existent_token',
+    });
+    vi.mocked(deactivateDeviceByToken).mockResolvedValue(undefined);
+
+    await deactivateByToken(req as Request, res as Response);
+
+    expect(deactivateDeviceByToken).toHaveBeenCalledWith('non_existent_token', 1);
+    expect(res.status).toHaveBeenCalledWith(204);
+  });
+
+  it('should throw UnauthorizedException if not authenticated', async () => {
+    req.user = undefined;
+
+    await expect(deactivateByToken(req as Request, res as Response)).rejects.toThrow();
+  });
+
+  it('should throw ValidationException if token is missing', async () => {
+    vi.mocked(deactivateByTokenSchema.parse).mockImplementation(() => {
+      throw new Error('Token is required');
+    });
+
+    await expect(deactivateByToken(req as Request, res as Response)).rejects.toThrow();
+  });
+
+  it('should throw ValidationException if token is too long', async () => {
+    const longToken = 'a'.repeat(501);
+    req.body = { token: longToken };
+    vi.mocked(deactivateByTokenSchema.parse).mockImplementation(() => {
+      throw new Error('Token is too long');
+    });
+
+    await expect(deactivateByToken(req as Request, res as Response)).rejects.toThrow();
   });
 });
