@@ -73,7 +73,6 @@ export const createGitHubIssue = async (
         repo: params.repo,
         error: message,
         statusCode: status,
-        responseData: error.response?.data,
       });
 
       // HTTP 상태코드별 처리
@@ -90,7 +89,7 @@ export const createGitHubIssue = async (
       }
 
       if (status === 429) {
-        qnaProbe.rateLimitWarning({
+        qnaProbe.rateLimitExceeded({
           owner: params.owner,
           repo: params.repo,
           message,

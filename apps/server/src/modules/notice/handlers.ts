@@ -23,6 +23,16 @@ async function getAppCode(appId: number): Promise<string> {
 }
 
 /**
+ * 인증된 요청에서 authorId, appId, appCode를 추출합니다.
+ * authenticate 미들웨어를 거친 요청에서만 사용 가능합니다.
+ */
+async function getAuthPayload(req: Request): Promise<{ authorId: number; appId: number; appCode: string }> {
+  const { userId: authorId, appId } = (req as AuthenticatedRequest).user;
+  const appCode = await getAppCode(appId);
+  return { authorId, appId, appCode };
+}
+
+/**
  * GET 요청에서 appCode를 결정합니다.
  * JWT 인증이 있으면 JWT의 appId → appCode, 없으면 query param의 appCode를 사용합니다.
  */
@@ -282,9 +292,8 @@ export const createNotice: RequestHandler = async (req, res) => {
 
   logger.debug({ title: data.title }, 'Creating notice');
 
-  // 3. JWT에서 userId (authorId), appId 추출
-  const { userId: authorId, appId } = (req as AuthenticatedRequest).user;
-  const appCode = await getAppCode(appId);
+  // 3. JWT에서 authorId, appCode 추출
+  const { authorId, appCode } = await getAuthPayload(req);
 
   // 4. 공지사항 생성
   const [notice] = await db
@@ -335,9 +344,8 @@ export const updateNotice: RequestHandler = async (req, res) => {
 
   logger.debug({ noticeId: id, data }, 'Updating notice');
 
-  // 4. JWT에서 appId 추출
-  const { userId: authorId, appId } = (req as AuthenticatedRequest).user;
-  const appCode = await getAppCode(appId);
+  // 4. JWT에서 authorId, appCode 추출
+  const { authorId, appCode } = await getAuthPayload(req);
 
   // 5. 기존 notice 조회 (appCode 일치 확인)
   const [existingNotice] = await db
@@ -399,9 +407,8 @@ export const deleteNotice: RequestHandler = async (req, res) => {
 
   logger.debug({ noticeId: id }, 'Deleting notice');
 
-  // 3. JWT에서 appId 추출
-  const { userId: authorId, appId } = (req as AuthenticatedRequest).user;
-  const appCode = await getAppCode(appId);
+  // 3. JWT에서 authorId, appCode 추출
+  const { authorId, appCode } = await getAuthPayload(req);
 
   // 4. 기존 notice 조회 (appCode 일치 확인)
   const [existingNotice] = await db
@@ -450,9 +457,8 @@ export const pinNotice: RequestHandler = async (req, res) => {
 
   logger.debug({ noticeId: id, isPinned }, 'Toggling notice pin');
 
-  // 4. JWT에서 appId 추출
-  const { userId: authorId, appId } = (req as AuthenticatedRequest).user;
-  const appCode = await getAppCode(appId);
+  // 4. JWT에서 authorId, appCode 추출
+  const { authorId, appCode } = await getAuthPayload(req);
 
   // 5. 기존 notice 조회 (appCode 일치 확인)
   const [existingNotice] = await db

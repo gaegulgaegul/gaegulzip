@@ -3,6 +3,7 @@ import { authenticate } from '../../middleware/auth';
 import { optionalAuthenticate } from '../../middleware/optional-auth';
 import * as handlers from './handlers';
 
+/** 공지사항 API 라우터 (CRUD + 고정/해제 + 읽지 않은 개수) */
 const router = Router();
 
 // --- GET: 인증 선택적 (appCode query param 사용) ---

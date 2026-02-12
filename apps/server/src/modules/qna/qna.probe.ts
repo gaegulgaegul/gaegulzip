@@ -22,10 +22,10 @@ export const questionSubmitted = (data: {
 };
 
 /**
- * GitHub API Rate Limit 경고 (WARN)
+ * GitHub API Rate Limit 초과 (WARN)
  * @param data - 레포 소유자, 레포 이름, 에러 메시지
  */
-export const rateLimitWarning = (data: {
+export const rateLimitExceeded = (data: {
   owner: string;
   repo: string;
   message: string;
@@ -49,7 +49,6 @@ export const githubApiError = (data: {
   repo: string;
   error: string;
   statusCode: number;
-  responseData?: unknown;
 }) => {
   logger.error(
     {
@@ -57,7 +56,6 @@ export const githubApiError = (data: {
       repo: data.repo,
       error: data.error,
       statusCode: data.statusCode,
-      responseData: data.responseData,
     },
     'GitHub API error occurred'
   );
