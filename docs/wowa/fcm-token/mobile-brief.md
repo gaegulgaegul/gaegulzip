@@ -1009,6 +1009,31 @@ Future<String?> _getDeviceId() async {
 - 권한 상태 표시 (허용/거부)
 - 권한 거부 시 "설정에서 활성화" 버튼 → 시스템 설정 앱 이동
 
+### 4. 권한 재허용 감지 및 토큰 등록
+
+**현재**: 권한 거부 후 변경 감지 안 함 (사용자가 설정에서 수동으로 권한 활성화 시에도 앱에서 자동 반응 없음)
+
+**개선**:
+- `AppLifecycleState` 감지: `resumed` 상태로 전환 시 권한 재확인
+- PushService에 `checkAndRegisterIfPermissionGranted()` 메서드 추가
+- 앱이 포그라운드로 돌아올 때마다 권한 상태 확인 후 필요하면 자동 등록
+
+```dart
+// main.dart 또는 App 레벨 위젯에서
+appLifecycleListener = AppLifecycleListener(
+  onResume: () async {
+    // 앱이 포그라운드로 돌아왔을 때
+    final pushService = Get.find<PushService>();
+    if (await pushService.hasPermission()) {
+      // 권한이 새로 허용된 경우 토큰 자동 등록
+      await pushService.registerDeviceTokenToServer();
+    }
+  },
+);
+```
+
+**효과**: 사용자가 설정에서 권한을 재허용한 후 앱으로 돌아오면 자동으로 FCM 토큰이 등록됨 (수동 조작 불필요)
+
 ---
 
 ## 요약

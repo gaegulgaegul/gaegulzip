@@ -57,8 +57,10 @@ Future<void> _handleSocialLogin({...}) async {
     // 1. 기존: AuthSdk를 통한 소셜 로그인
     final loginResponse = await AuthSdk.login(provider);
 
-    // 2. 신규: FCM 토큰 등록 (백그라운드 자동 처리)
-    await _registerFcmToken(); // 조용한 실패 정책
+    // 2. 신규: FCM 토큰 등록 (비동기, 논블로킹 처리)
+    // AuthSdkConfig.onPostLogin 콜백으로 변경됨 (formerly blocking _registerFcmToken 호출)
+    // 실패해도 홈 이동에 영향 없음 (조용한 실패 정책)
+    await _registerFcmToken(); // await 유지하지만 타임아웃/실패 시 Exception throw 안 함
 
     // 3. 기존: 홈 화면으로 이동
     Get.offAllNamed(Routes.HOME);
@@ -69,6 +71,11 @@ Future<void> _handleSocialLogin({...}) async {
   }
 }
 ```
+
+**설계 변경 히스토리:**
+- **기존**: `_registerFcmToken()`이 blocking 콜백으로 작동 (로그인 성공 후 토큰 등록 완료까지 대기)
+- **현재**: `AuthSdkConfig.onPostLogin` 콜백으로 변경 (비동기, 타임아웃/실패 시에도 홈 이동 지연 없음)
+- **효과**: 로그인 후 홈 화면 이동이 FCM 토큰 등록 결과에 영향받지 않음
 
 ---
 
@@ -611,10 +618,56 @@ Logger.error('FCM 토큰 등록 실패: 네트워크 오류')
 - 사용자는 네트워크 오류를 모름
 - 앱 정상 동작
 
-**백그라운드 재시도:**
-- 다음 앱 실행 시 `PushService`가 자동으로 토큰 등록 재시도
-- 재시도 성공 시: 로그만 기록
-- 재시도 실패 시: 조용히 실패
+**타임아웃 처리 (조용한 실패 패턴):**
+
+FCM 토큰 등록은 `PushService`의 조용한 실패 정책을 따릅니다:
+
+```dart
+// PushService.registerDeviceTokenToServer()
+Future<bool> registerDeviceTokenToServer() async {
+  try {
+    // 1. API 호출 (타임아웃 없음, Dio 기본 타임아웃 사용)
+    // Dio의 기본 타임아웃: 30초
+    // 30초 이상 걸리면 DioException throw
+    await apiClient.registerDevice(
+      DeviceTokenRequest(
+        token: token,
+        platform: platform,
+        deviceId: deviceId,
+      ),
+    );
+
+    Logger.info('FCM 토큰 서버 등록 성공');
+    return true;
+  } on DioException catch (e) {
+    // 네트워크 타임아웃, 연결 오류, HTTP 오류 모두 catch
+    Logger.error('FCM 토큰 등록 실패 (네트워크 오류)', error: e);
+    return false; // 예외 throw 안 함, 조용히 실패
+  } catch (e, stackTrace) {
+    Logger.error('FCM 토큰 등록 실패 (예외)', error: e, stackTrace: stackTrace);
+    return false;
+  }
+}
+```
+
+**백그라운드 재시도 메커니즘:**
+
+1. **첫 로그인**: `LoginController._registerFcmToken()` 호출
+   - 성공: 등록 완료
+   - 실패 (타임아웃 포함): 조용히 실패, 홈 화면 이동
+
+2. **토큰 갱신**: `PushService.onTokenRefresh` 리스너에서 자동 호출
+   - 성공: 새 토큰 자동 등록
+   - 실패: 다음 앱 실행 시 재시도
+
+3. **다음 앱 실행**: `PushService.initialize()`에서 자동 재시도
+   - 이전에 등록되지 않은 토큰이 있으면 자동 재등록 시도
+   - `main.dart`의 `ever(pushService.deviceToken, ...)` 콜백에서 감지 후 등록
+
+**결과:**
+- 타임아웃 발생 시에도 사용자는 앱 사용 가능 (홈 화면 즉시 이동)
+- 네트워크 복구 시 다음 토큰 갱신 또는 다음 앱 실행 시 자동 재시도
+- 재시도 횟수 제한 없음 (매 앱 실행 시 확인)
 
 ---
 

@@ -46,13 +46,26 @@
 
 ### [INFO] 토큰 등록 중복 리스너
 
-- `main.dart`의 `ever(pushService.deviceToken)` 콜백
-- `PushService`의 `onTokenRefresh` 리스너 내 `registerDeviceTokenToServer()`
+**위치:**
+- `main.dart`의 `ever(pushService.deviceToken, ...)` 콜백 (Line ~152)
+- `PushService.onTokenRefresh` 리스너 내 `registerDeviceTokenToServer()` 호출 (push_service.dart:65-69)
 
-토큰 갱신 시 서버에 2회 등록 요청 발생 가능. Upsert 방식이므로 기능적 문제 없으나, 불필요한 네트워크 트래픽 발생. 중복 리스너 중 하나를 제거 권장.
+**문제:**
+토큰 갱신 시 서버에 2회 등록 요청 발생 가능. Upsert 방식이므로 기능적 문제 없으나, 불필요한 네트워크 트래픽 발생.
+
+**권장 조치:**
+PushService의 `onTokenRefresh` 리스너는 `deviceToken.value` 업데이트만 수행하고, `main.dart`의 `ever()` + 인증 상태 워처로 서버 등록을 통일합니다. 이미 코드에서 이렇게 수정 완료됨. `PushService.registerDeviceTokenToServer()` 호출은 `main.dart`의 `ever()` 콜백과 `LoginController._registerFcmToken()`에서만 수행하도록 정리 권장.
 
 ---
 
 ## 결론
 
 설계 문서의 모든 요구사항이 구현에 정확히 반영됨. Match Rate **100%**로 `/pdca report` 진행 가능.
+
+**발견된 경미한 이슈:**
+- [INFO] 토큰 등록 중복 리스너 (위 참조) — Upsert 방식으로 기능적 문제 없으나, 네트워크 트래픽 최적화를 위해 `PushService.onTokenRefresh` 내부의 `registerDeviceTokenToServer()` 호출 제거 검토 권장.
+
+**권장 후속 조치:**
+1. `PushService.onTokenRefresh` 리스너에서 `registerDeviceTokenToServer()` 호출 제거 (deviceToken.value 업데이트만 수행)
+2. 서버 등록은 `main.dart`의 `ever(pushService.deviceToken, ...)` 콜백과 `LoginController._registerFcmToken()`에서만 수행하도록 통일
+3. 최종 테스트: 자동 로그인, 토큰 갱신, 로그아웃 시나리오에서 서버 요청 횟수 검증
