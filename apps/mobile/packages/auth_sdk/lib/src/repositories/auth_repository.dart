@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:core/core.dart';
-import 'package:push/push.dart';
 import '../services/auth_api_service.dart';
 import '../models/login_response.dart';
 
@@ -11,6 +10,9 @@ import '../models/login_response.dart';
 class AuthRepository {
   final AuthApiService _apiService = Get.find<AuthApiService>();
   final SecureStorageService _storageService = Get.find<SecureStorageService>();
+
+  /// 로그아웃 전 콜백 (앱 레이어에서 주입)
+  Future<void> Function()? onPreLogout;
 
   /// 소셜 로그인 처리
   ///
@@ -111,12 +113,11 @@ class AuthRepository {
     } catch (_) {
       // 서버 로그아웃 실패해도 로컬 데이터는 삭제
     } finally {
-      // FCM 토큰 비활성화 (조용한 실패)
+      // 로그아웃 콜백 실행 (조용한 실패)
       try {
-        final pushService = Get.find<PushService>();
-        await pushService.deactivateDeviceTokenOnServer();
+        await onPreLogout?.call();
       } catch (_) {
-        // PushService가 없거나 실패해도 무시
+        // 콜백 실패해도 무시
       }
 
       await _storageService.clearAll();

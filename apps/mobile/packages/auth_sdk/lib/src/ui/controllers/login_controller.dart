@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../../auth_sdk.dart';
-import 'package:push/push.dart';
 
 /// 로그인 화면 컨트롤러
 ///
@@ -72,8 +71,12 @@ class LoginController extends GetxController {
       // 2. AuthSdk를 통한 소셜 로그인
       await AuthSdk.login(provider);
 
-      // 3. FCM 토큰 서버 등록 (실패해도 홈 이동에 영향 없음)
-      await _registerFcmToken();
+      // 3. 로그인 성공 콜백 (실패해도 홈 이동에 영향 없음)
+      try {
+        await AuthSdk.config.onPostLogin?.call();
+      } catch (e) {
+        Logger.error('로그인 성공 콜백 실행 중 예외', error: e);
+      }
 
       // 4. 성공 - SDK 설정의 homeRoute로 이동
       Get.offAllNamed(AuthSdk.config.homeRoute);
@@ -107,22 +110,8 @@ class LoginController extends GetxController {
       Logger.error('로그인 중 예기치 않은 오류', error: e);
       _showErrorSnackbar('로그인 오류', '로그인 중 오류가 발생했습니다');
     } finally {
-      // 6. 로딩 종료
+      // 5. 로딩 종료
       loadingState.value = false;
-    }
-  }
-
-  // ===== FCM 토큰 등록 =====
-
-  /// FCM 토큰을 서버에 등록 (백그라운드)
-  ///
-  /// PushService가 없거나 등록 실패 시 조용히 실패합니다.
-  Future<void> _registerFcmToken() async {
-    try {
-      final pushService = Get.find<PushService>();
-      await pushService.registerDeviceTokenToServer();
-    } catch (e) {
-      Logger.error('FCM 토큰 등록 중 예외', error: e);
     }
   }
 
