@@ -1,6 +1,10 @@
-# melos_managed_dependency_overrides: core,design_system
+# melos_managed_dependency_overrides: core,design_system,notice,qna
 dependency_overrides:
   core:
     path: ../../packages/core
   design_system:
     path: ../../packages/design_system
+  notice:
+    path: ../../packages/notice
+  qna:
+    path: ../../packages/qna

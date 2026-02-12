@@ -1,7 +1,10 @@
 import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
+import 'package:notice/notice.dart';
 
 import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
@@ -10,7 +13,32 @@ import 'app/routes/app_routes.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 테마 컨트롤러 초기화
+  // 1. 환경변수 로드
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    Logger.warn('환경변수 파일(.env) 로드 실패: $e');
+  }
+
+  // 2. API_BASE_URL 확인
+  final apiBaseUrl = dotenv.env['API_BASE_URL'];
+  if (apiBaseUrl == null || apiBaseUrl.isEmpty) {
+    throw Exception('API_BASE_URL이 .env 파일에 설정되지 않았습니다');
+  }
+
+  // 3. Dio 직접 등록 (JWT 인증 없이 동작)
+  final dio = Dio(BaseOptions(
+    baseUrl: apiBaseUrl,
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+    headers: {'Content-Type': 'application/json'},
+  ));
+  Get.put<Dio>(dio, permanent: true);
+
+  // 4. NoticeApiService 전역 등록
+  Get.put<NoticeApiService>(NoticeApiService(), permanent: true);
+
+  // 5. 테마 컨트롤러 초기화
   Get.put(SketchThemeController());
 
   runApp(const MyApp());
@@ -38,9 +66,6 @@ class MyApp extends StatelessWidget {
   }
 
   /// 스케치 스타일 테마 빌드
-  ///
-  /// PatrickHand 폰트를 기본으로 설정하고,
-  /// 스케치 느낌의 배경색과 앱바 스타일을 적용합니다.
   ThemeData _buildTheme(Brightness brightness, SketchThemeExtension ext) {
     final isDark = brightness == Brightness.dark;
     final backgroundColor = isDark

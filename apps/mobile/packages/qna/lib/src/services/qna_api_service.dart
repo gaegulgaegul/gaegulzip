@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:core/core.dart';
 import '../models/qna_submit_request.dart';
 import '../models/qna_submit_response.dart';
 
@@ -19,12 +20,15 @@ class QnaApiService {
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<QnaSubmitResponse> submitQuestion(QnaSubmitRequest request) async {
     try {
+      Logger.debug('QnA: POST /qna/questions 요청');
       final response = await _dio.post(
-        '/api/qna/questions',
+        '/qna/questions',
         data: request.toJson(),
       );
+      Logger.debug('QnA: POST /qna/questions 응답 - status=${response.statusCode}');
       return QnaSubmitResponse.fromJson(response.data);
-    } on DioException {
+    } on DioException catch (e) {
+      Logger.warn('QnA: POST /qna/questions 실패 - ${e.type} ${e.response?.statusCode}');
       // DioException을 그대로 throw (Repository에서 처리)
       rethrow;
     }

@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:qna/qna.dart';
+import 'package:notice/notice.dart';
 
 import '../modules/home/views/home_view.dart';
 import '../modules/home/bindings/home_binding.dart';
@@ -14,6 +16,10 @@ import '../modules/colors/views/color_palette_view.dart';
 import '../modules/colors/bindings/color_palette_binding.dart';
 import '../modules/tokens/views/tokens_view.dart';
 import '../modules/tokens/bindings/tokens_binding.dart';
+import '../modules/sdk_demos/views/sdk_list_view.dart';
+import '../modules/sdk_demos/bindings/sdk_list_binding.dart';
+import '../modules/sdk_demos/views/sdk_qna_demo_view.dart';
+import '../modules/sdk_demos/views/sdk_notice_demo_view.dart';
 import 'app_routes.dart';
 
 /// 앱 페이지 정의
@@ -81,6 +87,42 @@ class AppPages {
       page: () => const TokensView(),
       binding: TokensBinding(),
       transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    // SDK 데모 목록
+    GetPage(
+      name: Routes.SDK_DEMOS,
+      page: () => const SdkListView(),
+      binding: SdkListBinding(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    // QnA SDK 데모 (실서버 연동)
+    GetPage(
+      name: Routes.SDK_QNA_DEMO,
+      page: () => const SdkQnaDemoView(),
+      binding: QnaBinding(appCode: 'demo'),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    // Notice SDK 데모 (실서버 연동)
+    GetPage(
+      name: Routes.SDK_NOTICE_DEMO,
+      page: () => const SdkNoticeDemoView(),
+      binding: NoticeBinding(appCode: 'demo'),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    // 공지사항 상세 (Notice SDK 내부 네비게이션용)
+    GetPage(
+      name: Routes.NOTICE_DETAIL,
+      page: () => const NoticeDetailView(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<NoticeDetailController>(
+          () => NoticeDetailController(appCode: 'demo'),
+        );
+      }),
+      transition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 300),
     ),
   ];

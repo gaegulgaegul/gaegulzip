@@ -321,10 +321,6 @@ class _SketchCloseButtonState extends State<_SketchCloseButton> {
           child: Container(
             decoration: BoxDecoration(
               color: _isPressed ? SketchDesignTokens.base200 : Colors.transparent,
-              border: Border.all(
-                color: SketchDesignTokens.base400,
-                width: SketchDesignTokens.strokeStandard,
-              ),
               borderRadius: BorderRadius.circular(4),
             ),
             child: const Center(

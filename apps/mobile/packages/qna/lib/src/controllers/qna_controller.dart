@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:core/core.dart';
@@ -152,6 +153,8 @@ class QnaController extends GetxController {
       // 2. 로딩 시작
       isSubmitting.value = true;
 
+      Logger.debug('QnA: 질문 제출 시작 - title=${titleController.text.substring(0, min(30, titleController.text.length))}');
+
       // 3. API 호출
       await _repository.submitQuestion(
         title: titleController.text.trim(),
@@ -159,13 +162,16 @@ class QnaController extends GetxController {
       );
 
       // 4. 성공 - 성공 모달 표시
+      Logger.info('QnA: 질문 제출 성공');
       _showSuccessModal();
     } on NetworkException catch (e) {
       // 5. 네트워크 오류 - 실패 모달 표시
+      Logger.error('QnA: 질문 제출 실패 - NetworkException', error: e);
       errorMessage.value = e.message;
       _showErrorModal();
     } catch (e) {
       // 6. 기타 오류
+      Logger.error('QnA: 질문 제출 실패 - 예상치 못한 오류', error: e);
       errorMessage.value = '알 수 없는 오류가 발생했습니다';
       _showErrorModal();
     } finally {
@@ -221,7 +227,6 @@ class QnaController extends GetxController {
   /// 실패 모달 표시
   ///
   /// "닫기" 버튼: 모달만 닫기
-  /// "재시도" 버튼: 모달 닫기 → submitQuestion() 재호출
   void _showErrorModal() {
     if (isClosed) return;
     final context = Get.context;
@@ -249,16 +254,8 @@ class QnaController extends GetxController {
       actions: [
         SketchButton(
           text: '닫기',
-          style: SketchButtonStyle.outline,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        SketchButton(
-          text: '재시도',
           style: SketchButtonStyle.primary,
-          onPressed: () {
-            Navigator.of(context).pop(); // 모달 닫기
-            submitQuestion(); // 재시도
-          },
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ],
     );

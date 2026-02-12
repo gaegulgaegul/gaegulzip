@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:core/core.dart';
 import '../models/notice_model.dart';
 import '../services/notice_api_service.dart';
 
@@ -9,6 +10,16 @@ import '../services/notice_api_service.dart';
 class NoticeListController extends GetxController {
   /// API 서비스
   late final NoticeApiService _apiService;
+
+  /// 앱 식별 코드 (JWT 없이 API 호출 시 사용)
+  ///
+  /// NoticeBinding 생성자에서 주입됩니다. null이면 JWT 인증 사용.
+  final String? appCode;
+
+  /// 생성자
+  ///
+  /// [appCode] 앱 식별 코드 (선택, null이면 JWT 인증 사용)
+  NoticeListController({this.appCode});
 
   /// 공지사항 목록
   final notices = <NoticeModel>[].obs;
@@ -47,6 +58,8 @@ class NoticeListController extends GetxController {
     errorMessage.value = '';
     _currentPage = 1;
 
+    Logger.debug('Notice: 목록 조회 시작 - page=$_currentPage');
+
     try {
       // 고정 공지사항과 일반 공지사항을 병렬로 조회
       final results = await Future.wait([
@@ -54,19 +67,24 @@ class NoticeListController extends GetxController {
           page: 1,
           limit: 100, // 고정 공지는 최대 100개로 제한
           pinnedOnly: true,
+          appCode: appCode,
         ),
         _apiService.getNotices(
           page: _currentPage,
           limit: _pageSize,
+          appCode: appCode,
         ),
       ]);
 
-      pinnedNotices.value = results[0].items;
+      pinnedNotices.value = results[0].items.toList();
       final response = results[1];
 
-      notices.value = response.items;
+      notices.value = response.items.toList();
       hasMore.value = response.hasNext;
+
+      Logger.debug('Notice: 목록 조회 성공 - count=${notices.length}, pinned=${pinnedNotices.length}, hasMore=${hasMore.value}');
     } on DioException catch (e) {
+      Logger.error('Notice: 목록 조회 실패 - DioException', error: e);
       errorMessage.value = e.message ?? '네트워크 오류가 발생했습니다';
       Get.snackbar(
         '오류',
@@ -74,6 +92,7 @@ class NoticeListController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
+      Logger.error('Notice: 목록 조회 실패 - 예상치 못한 오류', error: e);
       errorMessage.value = '예상치 못한 오류가 발생했습니다';
       Get.snackbar('오류', errorMessage.value);
     } finally {
@@ -94,23 +113,29 @@ class NoticeListController extends GetxController {
     isLoadingMore.value = true;
 
     final nextPage = _currentPage + 1;
+    Logger.debug('Notice: 추가 로드 시작 - page=$nextPage');
 
     try {
       final response = await _apiService.getNotices(
         page: nextPage,
         limit: _pageSize,
+        appCode: appCode,
       );
 
       _currentPage = nextPage;
       notices.addAll(response.items);
       hasMore.value = response.hasNext;
+
+      Logger.debug('Notice: 추가 로드 성공 - added=${response.items.length}, total=${notices.length}');
     } on DioException catch (e) {
+      Logger.error('Notice: 추가 로드 실패 - DioException', error: e);
       Get.snackbar(
         '오류',
         e.message ?? '추가 데이터를 불러오는 중 오류가 발생했습니다',
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
+      Logger.error('Notice: 추가 로드 실패 - 예상치 못한 오류', error: e);
       Get.snackbar(
         '오류',
         '추가 데이터를 불러오는 중 오류가 발생했습니다',

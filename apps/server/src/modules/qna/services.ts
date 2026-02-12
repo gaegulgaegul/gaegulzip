@@ -6,6 +6,7 @@ import { getOctokitInstance } from './octokit';
 import { createGitHubIssue } from './github';
 import { NotFoundException } from '../../utils/errors';
 import { logger } from '../../utils/logger';
+import * as qnaProbe from './qna.probe';
 import { eq } from 'drizzle-orm';
 
 /**
@@ -85,6 +86,8 @@ const buildIssueBody = (
  * @throws ExternalApiException - GitHub API 호출 실패
  */
 export const createQuestion = async (params: CreateQuestionParams): Promise<CreateQuestionResult> => {
+  logger.debug({ appCode: params.appCode, userId: params.userId }, 'Creating question: starting');
+
   // 0. QnA GitHub 설정 확인
   if (!env.QNA_GITHUB_REPO_OWNER || !env.QNA_GITHUB_REPO_NAME) {
     throw new Error('QnA GitHub configuration is not set. Check QNA_GITHUB_* environment variables.');
@@ -93,8 +96,11 @@ export const createQuestion = async (params: CreateQuestionParams): Promise<Crea
   // 1. 앱 조회
   const [app] = await db.select().from(apps).where(eq(apps.code, params.appCode));
   if (!app) {
+    qnaProbe.configNotFound({ appCode: params.appCode, resource: 'App' });
     throw new NotFoundException('App', params.appCode);
   }
+
+  logger.debug({ appId: app.id, appCode: params.appCode }, 'Creating question: app found');
 
   // 2. Octokit 인스턴스 가져오기
   const octokit = getOctokitInstance();
@@ -107,6 +113,7 @@ export const createQuestion = async (params: CreateQuestionParams): Promise<Crea
   });
 
   // 4. GitHub Issue 생성 (title도 새니타이징)
+  logger.debug({ owner: env.QNA_GITHUB_REPO_OWNER, repo: env.QNA_GITHUB_REPO_NAME, appCode: params.appCode }, 'Creating question: creating GitHub issue');
   const sanitizedTitle = sanitizeInput(params.title);
   const githubResult = await createGitHubIssue(octokit, {
     owner: env.QNA_GITHUB_REPO_OWNER,
@@ -117,6 +124,7 @@ export const createQuestion = async (params: CreateQuestionParams): Promise<Crea
   });
 
   // 5. DB에 질문 이력 저장
+  logger.debug({ appId: app.id, issueNumber: githubResult.issueNumber }, 'Creating question: saving to DB');
   let question;
   try {
     [question] = await db

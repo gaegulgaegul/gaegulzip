@@ -2,6 +2,7 @@ import { Octokit } from '@octokit/rest';
 import { RequestError } from '@octokit/request-error';
 import { ExternalApiException, NotFoundException, BusinessException } from '../../utils/errors';
 import { logger } from '../../utils/logger';
+import * as qnaProbe from './qna.probe';
 
 /**
  * GitHub Issue 생성 파라미터
@@ -45,6 +46,8 @@ export const createGitHubIssue = async (
   params: CreateIssueParams
 ): Promise<CreateIssueResult> => {
   try {
+    logger.debug({ owner: params.owner, repo: params.repo }, 'Creating GitHub issue');
+
     const { data: issue } = await octokit.rest.issues.create({
       owner: params.owner,
       repo: params.repo,
@@ -52,6 +55,8 @@ export const createGitHubIssue = async (
       body: params.body,
       labels: params.labels,
     });
+
+    logger.debug({ issueNumber: issue.number }, 'GitHub issue created successfully');
 
     return {
       issueNumber: issue.number,
@@ -63,16 +68,12 @@ export const createGitHubIssue = async (
       const status = error.status;
       const message = error.message;
 
-      logger.error(
-        {
-          status,
-          message,
-          owner: params.owner,
-          repo: params.repo,
-          error: error.response?.data ?? error,
-        },
-        'GitHub API error'
-      );
+      qnaProbe.githubApiError({
+        owner: params.owner,
+        repo: params.repo,
+        error: message,
+        statusCode: status,
+      });
 
       // HTTP 상태코드별 처리
       if (status === 401 || status === 403) {
@@ -88,6 +89,11 @@ export const createGitHubIssue = async (
       }
 
       if (status === 429) {
+        qnaProbe.rateLimitExceeded({
+          owner: params.owner,
+          repo: params.repo,
+          message,
+        });
         throw new ExternalApiException('GitHub', {
           message: 'GitHub API rate limit exceeded. Please try again later.',
         });

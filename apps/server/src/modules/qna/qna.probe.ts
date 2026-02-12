@@ -22,40 +22,59 @@ export const questionSubmitted = (data: {
 };
 
 /**
- * GitHub API Rate Limit 경고 (WARN)
- * @param data - 앱 코드, 남은 요청 수, 리셋 시각
+ * GitHub API Rate Limit 초과 (WARN)
+ * @param data - 레포 소유자, 레포 이름, 에러 메시지
  */
-export const rateLimitWarning = (data: {
-  appCode: string;
-  remaining: number;
-  resetAt: string;
+export const rateLimitExceeded = (data: {
+  owner: string;
+  repo: string;
+  message: string;
 }) => {
   logger.warn(
     {
-      appCode: data.appCode,
-      remaining: data.remaining,
-      resetAt: data.resetAt,
+      owner: data.owner,
+      repo: data.repo,
+      message: data.message,
     },
-    'GitHub API rate limit approaching'
+    'GitHub API rate limit exceeded'
   );
 };
 
 /**
  * GitHub API 에러 (ERROR)
- * @param data - 앱 코드, 에러 메시지, 상태 코드
+ * @param data - 레포 소유자, 레포 이름, 에러 메시지, 상태 코드, 응답 데이터
  */
 export const githubApiError = (data: {
-  appCode: string;
+  owner: string;
+  repo: string;
   error: string;
   statusCode: number;
 }) => {
   logger.error(
     {
-      appCode: data.appCode,
+      owner: data.owner,
+      repo: data.repo,
       error: data.error,
       statusCode: data.statusCode,
     },
     'GitHub API error occurred'
+  );
+};
+
+/**
+ * QnA 설정 찾기 실패 (WARN)
+ * @param data - 앱 코드, 찾지 못한 리소스 이름
+ */
+export const configNotFound = (data: {
+  appCode: string;
+  resource: string;
+}) => {
+  logger.warn(
+    {
+      appCode: data.appCode,
+      resource: data.resource,
+    },
+    'QnA config not found'
   );
 };
 

@@ -14,6 +14,12 @@ dependencies:
     path: ../../packages/core
   design_system:
     path: ../../packages/design_system
+  qna:
+    path: ../../packages/qna
+  notice:
+    path: ../../packages/notice
+  dio: ^5.4.0
+  flutter_dotenv: ^5.2.1
   lucide_icons_flutter: ^1.1.0
 
 dev_dependencies:
@@ -24,11 +30,15 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - .env
     - assets/fonts/
   fonts:
-    - family: PatrickHand
+    - family: Loranthus
       fonts:
-        - asset: assets/fonts/PatrickHand-Regular.ttf
+        - asset: assets/fonts/Loranthus.ttf
+    - family: KyoboHandwriting2019
+      fonts:
+        - asset: assets/fonts/KyoboHandwriting2019.ttf
     - family: JetBrainsMono
       fonts:
         - asset: assets/fonts/JetBrainsMono-Regular.ttf
