@@ -19,5 +19,5 @@ Map<String, dynamic> _$$DeviceTokenRequestImplToJson(
 ) => <String, dynamic>{
   'token': instance.token,
   'platform': instance.platform,
-  'deviceId': instance.deviceId,
+  if (instance.deviceId case final value?) 'deviceId': value,
 };

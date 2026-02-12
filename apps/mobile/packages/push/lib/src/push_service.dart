@@ -1,10 +1,23 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 import 'package:core/core.dart';
+import 'models/device_token_request.dart';
+import 'push_api_client.dart';
 import 'push_notification.dart';
 import 'push_handler_callback.dart';
+
+/// 디바이스 플랫폼 식별 상수
+class PushPlatform {
+  static const String ios = 'ios';
+  static const String android = 'android';
+
+  /// 현재 플랫폼 문자열 반환
+  static String get current => Platform.isIOS ? ios : android;
+}
 
 /// FCM 푸시 알림 서비스 (앱 독립적 SDK)
 ///
@@ -58,10 +71,10 @@ class PushService extends GetxService {
       // 3. 디바이스 토큰 획득
       await _getDeviceToken();
 
-      // 4. 토큰 갱신 리스너
+      // 4. 토큰 갱신 리스너 (값 업데이트만 — 서버 등록은 ever 콜백에서 처리)
       _subscriptions.add(_messaging.onTokenRefresh.listen((newToken) {
         deviceToken.value = newToken;
-        Logger.info('FCM token refreshed: ${newToken.substring(0, 20)}...');
+        Logger.info('FCM token refreshed: ${newToken.length > 20 ? newToken.substring(0, 20) : newToken}...');
       }));
 
       // 5. 포그라운드 메시지 리스너
@@ -131,7 +144,7 @@ class PushService extends GetxService {
       final token = await _messaging.getToken();
       if (token != null) {
         deviceToken.value = token;
-        Logger.info('FCM device token obtained: ${token.substring(0, 20)}...');
+        Logger.info('FCM device token obtained: ${token.length > 20 ? token.substring(0, 20) : token}...');
       } else {
         Logger.warn('Failed to obtain FCM device token');
       }
@@ -182,6 +195,89 @@ class PushService extends GetxService {
       onTerminatedMessageOpened!(notification);
     } else {
       Logger.warn('No terminated message handler registered');
+    }
+  }
+
+  /// 서버에 디바이스 토큰 등록 (로그인 후 호출)
+  ///
+  /// 토큰이 없거나 에러 발생 시 조용히 실패합니다.
+  /// Upsert 방식이므로 중복 호출해도 안전합니다.
+  ///
+  /// Returns: 등록 성공 여부
+  Future<bool> registerDeviceTokenToServer() async {
+    try {
+      final token = deviceToken.value;
+      if (token == null || token.isEmpty) {
+        Logger.warn('FCM 토큰이 없어 서버 등록을 건너뜁니다');
+        return false;
+      }
+
+      final apiClient = Get.find<PushApiClient>();
+      final platform = PushPlatform.current;
+      final deviceId = await _getDeviceId();
+
+      await apiClient.registerDevice(DeviceTokenRequest(
+        token: token,
+        platform: platform,
+        deviceId: deviceId,
+      ));
+
+      Logger.info('FCM 토큰 서버 등록 성공: ${token.length > 20 ? token.substring(0, 20) : token}...');
+      return true;
+    } on DioException catch (e) {
+      Logger.error('FCM 토큰 서버 등록 실패 (네트워크)', error: e);
+      return false;
+    } catch (e, stackTrace) {
+      Logger.error('FCM 토큰 서버 등록 실패', error: e, stackTrace: stackTrace);
+      return false;
+    }
+  }
+
+  /// 서버에서 디바이스 토큰 비활성화 (로그아웃 시 호출)
+  ///
+  /// 토큰이 없거나 에러 발생 시 조용히 실패합니다.
+  Future<void> deactivateDeviceTokenOnServer() async {
+    try {
+      final token = deviceToken.value;
+      if (token == null || token.isEmpty) {
+        Logger.warn('FCM 토큰이 없어 비활성화를 건너뜁니다');
+        return;
+      }
+
+      final apiClient = Get.find<PushApiClient>();
+      await apiClient.deactivateDeviceByToken(token);
+
+      Logger.info('FCM 토큰 서버 비활성화 성공: ${token.length > 20 ? token.substring(0, 20) : token}...');
+    } on DioException catch (e) {
+      Logger.error('FCM 토큰 서버 비활성화 실패 (네트워크 오류)', error: e);
+    } catch (e, stackTrace) {
+      Logger.error('FCM 토큰 서버 비활성화 실패 (예외)', error: e, stackTrace: stackTrace);
+    }
+  }
+
+  /// 디바이스 고유 ID 획득 (선택적)
+  ///
+  /// iOS: identifierForVendor, Android: Build.ID
+  /// 실패 시 null 반환 (서버에서 deviceId는 optional)
+  Future<String?> _getDeviceId() async {
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        final id = iosInfo.identifierForVendor;
+        Logger.debug('디바이스 ID (iOS identifierForVendor): $id');
+        return id;
+      } else if (Platform.isAndroid) {
+        final androidInfo = await deviceInfo.androidInfo;
+        final id = androidInfo.id;
+        Logger.debug('디바이스 ID (Android Build.ID): $id');
+        return id;
+      }
+      Logger.debug('디바이스 ID: 지원하지 않는 플랫폼');
+      return null;
+    } catch (e) {
+      Logger.warn('디바이스 ID 획득 실패: $e');
+      return null;
     }
   }
 

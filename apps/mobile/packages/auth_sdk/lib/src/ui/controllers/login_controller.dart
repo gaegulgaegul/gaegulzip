@@ -71,7 +71,14 @@ class LoginController extends GetxController {
       // 2. AuthSdk를 통한 소셜 로그인
       await AuthSdk.login(provider);
 
-      // 3. 성공 - SDK 설정의 homeRoute로 이동
+      // 3. 로그인 성공 콜백 (실패해도 홈 이동에 영향 없음)
+      try {
+        await AuthSdk.config.onPostLogin?.call();
+      } catch (e) {
+        Logger.error('로그인 성공 콜백 실행 중 예외', error: e);
+      }
+
+      // 4. 성공 - SDK 설정의 homeRoute로 이동
       Get.offAllNamed(AuthSdk.config.homeRoute);
     } on AuthException catch (e) {
       // 인증 오류
@@ -103,7 +110,7 @@ class LoginController extends GetxController {
       Logger.error('로그인 중 예기치 않은 오류', error: e);
       _showErrorSnackbar('로그인 오류', '로그인 중 오류가 발생했습니다');
     } finally {
-      // 6. 로딩 종료
+      // 5. 로딩 종료
       loadingState.value = false;
     }
   }

@@ -44,6 +44,12 @@ class AuthSdkConfig {
   /// 커스텀 SecureStorage (선택적)
   final SecureStorageService? secureStorage;
 
+  /// 로그인 성공 후 콜백 (예: FCM 토큰 서버 등록)
+  final Future<void> Function()? onPostLogin;
+
+  /// 로그아웃 전 콜백 (예: FCM 토큰 비활성화)
+  final Future<void> Function()? onPreLogout;
+
   const AuthSdkConfig({
     required this.appCode,
     required this.apiBaseUrl,
@@ -51,5 +57,7 @@ class AuthSdkConfig {
     this.homeRoute = '/home',
     this.showBrowseButton = false,
     this.secureStorage,
+    this.onPostLogin,
+    this.onPreLogout,
   });
 }

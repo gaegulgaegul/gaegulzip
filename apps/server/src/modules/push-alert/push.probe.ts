@@ -39,6 +39,26 @@ export const deviceDeactivated = (data: {
 };
 
 /**
+ * 토큰으로 디바이스 비활성화 로그 (로그아웃 시)
+ */
+export const deviceDeactivatedByToken = (data: {
+  userId: number;
+  appId: number;
+  tokenPrefix: string;
+}) => {
+  logger.info(
+    {
+      userId: data.userId,
+      appId: data.appId,
+      tokenPrefix: data.tokenPrefix.length > 20
+        ? data.tokenPrefix.substring(0, 20) + '...'
+        : data.tokenPrefix,
+    },
+    'Device deactivated by token'
+  );
+};
+
+/**
  * 푸시 발송 성공 로그 (INFO)
  */
 export const pushSent = (data: {

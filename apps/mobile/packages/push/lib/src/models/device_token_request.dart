@@ -13,8 +13,8 @@ class DeviceTokenRequest with _$DeviceTokenRequest {
     /// 플랫폼 (ios, android, web)
     required String platform,
 
-    /// 디바이스 고유 ID (선택)
-    String? deviceId,
+    /// 디바이스 고유 ID (선택, null이면 JSON에서 제외)
+    @JsonKey(includeIfNull: false) String? deviceId,
   }) = _DeviceTokenRequest;
 
   factory DeviceTokenRequest.fromJson(Map<String, dynamic> json) =>

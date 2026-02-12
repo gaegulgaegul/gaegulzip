@@ -7,15 +7,29 @@ export const Platform = z.enum(['ios', 'android', 'web']);
 export type Platform = z.infer<typeof Platform>;
 
 /**
+ * 공통 토큰 스키마
+ */
+const tokenSchema = z.string().min(1, 'Token is required').max(500, 'Token is too long');
+
+/**
  * 디바이스 토큰 등록 요청 스키마
  */
 export const registerDeviceSchema = z.object({
-  token: z.string().min(1, 'Token is required').max(500, 'Token is too long'),
+  token: tokenSchema,
   platform: Platform,
   deviceId: z.string().max(255).optional(),
 });
 
 export type RegisterDeviceRequest = z.infer<typeof registerDeviceSchema>;
+
+/**
+ * 토큰으로 디바이스 비활성화 요청 스키마
+ */
+export const deactivateByTokenSchema = z.object({
+  token: tokenSchema,
+});
+
+export type DeactivateByTokenRequest = z.infer<typeof deactivateByTokenSchema>;
 
 /**
  * 푸시 발송 요청 스키마 (복잡한 조건 검증)

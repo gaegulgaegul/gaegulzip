@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:admob/admob.dart';
 import 'package:core/core.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -49,6 +47,10 @@ Future<void> main() async {
         SocialProvider.google: ProviderConfig(clientId: googleClientId),
         SocialProvider.apple: const ProviderConfig(),
       },
+      onPreLogout: () async {
+        final pushService = Get.find<PushService>();
+        await pushService.deactivateDeviceTokenOnServer();
+      },
     ),
   );
 
@@ -67,15 +69,40 @@ Future<void> main() async {
   // 8. NoticeApiService 전역 등록
   Get.put<NoticeApiService>(NoticeApiService(), permanent: true);
 
-  // 9. PushService 초기화 (실패해도 앱 계속 실행)
+  // 9. PushService 생성 + 토큰/인증 워처 등록 (initialize 전에 등록해야 초기 토큰 감지 가능)
   final pushService = Get.put(PushService(), permanent: true);
+
+  // 디바이스 토큰 서버 등록 헬퍼 (인증 + 토큰 조건 확인, 실패해도 앱 계속 실행)
+  Future<void> registerDeviceToken() async {
+    final token = pushService.deviceToken.value;
+    if (token == null || token.isEmpty) return;
+    if (!AuthSdk.authState.isAuthenticated) return;
+
+    try {
+      await pushService.registerDeviceTokenToServer();
+    } catch (e) {
+      Logger.error('디바이스 토큰 서버 등록 실패', error: e);
+    }
+  }
+
+  // 디바이스 토큰 변경 시 서버에 자동 등록
+  ever(pushService.deviceToken, (_) async {
+    await registerDeviceToken();
+  });
+
+  // 인증 상태 변경 시에도 토큰 등록 시도 (로그인 후 토큰 이미 발급된 경우 대응)
+  ever(AuthSdk.authState.status, (status) async {
+    if (status == AuthStatus.authenticated) await registerDeviceToken();
+  });
+
+  // 10. PushService 초기화 (실패해도 앱 계속 실행)
   try {
     await pushService.initialize();
   } catch (e) {
     Logger.error('PushService 초기화 실패, 푸시 알림 없이 계속 진행', error: e);
   }
 
-  // 10. 포그라운드 알림 핸들러 (인앱 스낵바 표시)
+  // 11. 포그라운드 알림 핸들러 (인앱 스낵바 표시)
   pushService.onForegroundMessage = (notification) {
     Get.snackbar(
       notification.title.isNotEmpty ? notification.title : '새 알림',
@@ -91,7 +118,7 @@ Future<void> main() async {
     );
   };
 
-  // 11. 백그라운드/종료 상태 알림 탭 핸들러 (딥링크 이동)
+  // 12. 백그라운드/종료 상태 알림 탭 핸들러 (딥링크 이동)
   void handleDeepLink(PushNotification notification) {
     final screen = notification.data['screen'] as String?;
     if (screen != null && Routes.deepLinkAllowedScreens.contains(screen)) {
@@ -101,21 +128,6 @@ Future<void> main() async {
 
   pushService.onBackgroundMessageOpened = handleDeepLink;
   pushService.onTerminatedMessageOpened = handleDeepLink;
-
-  // 12. 디바이스 토큰 변경 시 서버에 자동 등록
-  final pushApiClient = Get.find<PushApiClient>();
-  ever(pushService.deviceToken, (String? token) async {
-    if (token != null && token.isNotEmpty) {
-      try {
-        await pushApiClient.registerDevice(DeviceTokenRequest(
-          token: token,
-          platform: Platform.isIOS ? 'ios' : 'android',
-        ));
-      } catch (e) {
-        Logger.error('디바이스 토큰 등록 실패', error: e);
-      }
-    }
-  });
 
   runApp(const MyApp());
 }

@@ -11,6 +11,9 @@ class AuthRepository {
   final AuthApiService _apiService = Get.find<AuthApiService>();
   final SecureStorageService _storageService = Get.find<SecureStorageService>();
 
+  /// 로그아웃 전 콜백 (앱 레이어에서 주입)
+  Future<void> Function()? onPreLogout;
+
   /// 소셜 로그인 처리
   ///
   /// [provider] 소셜 플랫폼
@@ -110,6 +113,13 @@ class AuthRepository {
     } catch (_) {
       // 서버 로그아웃 실패해도 로컬 데이터는 삭제
     } finally {
+      // 로그아웃 콜백 실행 (조용한 실패)
+      try {
+        await onPreLogout?.call();
+      } catch (_) {
+        // 콜백 실패해도 무시
+      }
+
       await _storageService.clearAll();
     }
   }

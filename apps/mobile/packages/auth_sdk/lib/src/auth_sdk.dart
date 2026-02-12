@@ -101,7 +101,11 @@ class AuthSdk {
 
       // AuthRepository 등록
       if (!Get.isRegistered<AuthRepository>()) {
-        Get.lazyPut<AuthRepository>(() => AuthRepository(), fenix: true);
+        Get.lazyPut<AuthRepository>(() {
+          final repo = AuthRepository();
+          repo.onPreLogout = config.onPreLogout;
+          return repo;
+        }, fenix: true);
       }
 
       // AuthInterceptor 등록 (중복 방지)
