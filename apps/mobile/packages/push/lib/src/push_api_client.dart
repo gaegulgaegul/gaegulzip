@@ -89,8 +89,8 @@ class PushApiClient {
   /// Throws:
   ///   - [DioException] 네트워크 오류, HTTP 오류
   Future<void> deactivateDeviceByToken(String token) async {
-    await _dio.delete(
-      '/push/devices/by-token',
+    await _dio.post(
+      '/push/devices/deactivate',
       data: {'token': token},
     );
   }
