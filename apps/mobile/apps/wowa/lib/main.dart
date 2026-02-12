@@ -72,21 +72,27 @@ Future<void> main() async {
   // 9. PushService 생성 + 토큰/인증 워처 등록 (initialize 전에 등록해야 초기 토큰 감지 가능)
   final pushService = Get.put(PushService(), permanent: true);
 
-  // 디바이스 토큰 서버 등록 헬퍼 (인증 + 토큰 조건 확인)
+  // 디바이스 토큰 서버 등록 헬퍼 (인증 + 토큰 조건 확인, 실패해도 앱 계속 실행)
   Future<void> registerDeviceToken() async {
     final token = pushService.deviceToken.value;
     if (token == null || token.isEmpty) return;
     if (!AuthSdk.authState.isAuthenticated) return;
 
-    await pushService.registerDeviceTokenToServer();
+    try {
+      await pushService.registerDeviceTokenToServer();
+    } catch (e) {
+      Logger.error('디바이스 토큰 서버 등록 실패', error: e);
+    }
   }
 
   // 디바이스 토큰 변경 시 서버에 자동 등록
-  ever(pushService.deviceToken, (_) => registerDeviceToken());
+  ever(pushService.deviceToken, (_) async {
+    await registerDeviceToken();
+  });
 
   // 인증 상태 변경 시에도 토큰 등록 시도 (로그인 후 토큰 이미 발급된 경우 대응)
-  ever(AuthSdk.authState.status, (status) {
-    if (status == AuthStatus.authenticated) registerDeviceToken();
+  ever(AuthSdk.authState.status, (status) async {
+    if (status == AuthStatus.authenticated) await registerDeviceToken();
   });
 
   // 10. PushService 초기화 (실패해도 앱 계속 실행)
