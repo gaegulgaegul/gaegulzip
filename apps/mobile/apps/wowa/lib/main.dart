@@ -47,10 +47,6 @@ Future<void> main() async {
         SocialProvider.google: ProviderConfig(clientId: googleClientId),
         SocialProvider.apple: const ProviderConfig(),
       },
-      onPostLogin: () async {
-        final pushService = Get.find<PushService>();
-        await pushService.registerDeviceTokenToServer();
-      },
       onPreLogout: () async {
         final pushService = Get.find<PushService>();
         await pushService.deactivateDeviceTokenOnServer();
