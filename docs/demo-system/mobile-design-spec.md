@@ -33,7 +33,7 @@ Scaffold
 
 - **Container** (라운드 카드)
   - decoration:
-    - color: 라이트모드 `Colors.white`, 다크모드 `Color(0xFF2A2A2A)`
+    - color: 라이트모드 `SketchDesignTokens.white`, 다크모드 `SketchDesignTokens.surfaceDark` (또는 `Color(0xFF2A2A2A)`)
     - borderRadius: `BorderRadius.circular(SketchDesignTokens.radiusXl)` (12dp)
   - child: Column (mainAxisAlignment: center)
     - Icon: `LucideIcons.package` (size: 48)
@@ -143,7 +143,7 @@ Scaffold
 **QnA 데모 래핑 전략**:
 - **SDK 원본 수정 금지**: `packages/qna/lib/src/views/qna_submit_view.dart` 파일 수정하지 않음
 - **데모 앱에서 래핑**: 데모 앱에서 `QnaSubmitView`를 직접 렌더링
-- **GetX Binding**: `QnaController`를 데모 앱의 Binding에 등록 (`QnaBinding` 사용)
+- **GetX Binding**: `QnaBinding(appCode: 'demo')`을 라우트에 직접 사용하여 `QnaController`, `QnaRepository`, `QnaApiService`를 자동 등록
 
 **데모 화면 구성**:
 ```dart
@@ -157,11 +157,10 @@ class SdkQnaDemoView extends StatelessWidget {
 }
 ```
 
-**서버 연동 없이 동작하는 방법**:
-- QnaController의 `submitQuestion()` 메서드가 호출될 때:
-  - 모의 성공 응답 시뮬레이션: 2초 딜레이 후 성공 모달 표시
-  - 모의 에러 응답 시뮬레이션: 네트워크 에러 모달 표시 (설정에 따라)
-- **환경 변수로 제어**: `USE_MOCK_DATA=true` 시 모의 데이터 사용
+**실서버 연동**:
+- QnaBinding(appCode: 'demo')을 사용하여 실서버 API와 연동
+- main.dart에서 Dio를 전역 등록하고, .env의 API_BASE_URL을 사용
+- 별도의 Mock Controller 없이 SDK 원본 동작 검증
 
 **QnA SDK UI 요소** (원본 그대로 유지):
 - **제목 입력 필드**: SketchInput (최대 256자)
@@ -226,11 +225,10 @@ class SdkNoticeDemoView extends StatelessWidget {
 }
 ```
 
-**서버 연동 없이 동작하는 방법**:
-- NoticeListController의 `loadNotices()` 메서드가 호출될 때:
-  - 모의 공지사항 데이터 생성 (고정 공지 2개, 일반 공지 10개)
-  - 무한 스크롤 시뮬레이션: 추가 로드 시 더미 데이터 추가
-- **환경 변수로 제어**: `USE_MOCK_DATA=true` 시 모의 데이터 사용
+**실서버 연동**:
+- NoticeBinding(appCode: 'demo')을 사용하여 실서버 API와 연동
+- NoticeApiService가 main.dart에서 전역 등록된 Dio를 사용
+- 실서버에서 공지사항 목록/상세를 조회하여 SDK 원본 동작 검증
 
 **Notice SDK UI 요소** (원본 그대로 유지):
 - **RefreshIndicator**: 아래로 당겨 새로고침
@@ -288,7 +286,8 @@ Scaffold
 
 **라우팅**:
 - NoticeListCard의 onTap 이벤트 → `Get.toNamed('/notice/detail', arguments: noticeId)`
-- SDK 원본 라우팅 유지, 데모 앱 라우팅 테이블에 등록 필요
+- 데모 앱 `app_pages.dart`에서 `Routes.NOTICE_DETAIL` GetPage를 별도 등록
+- `NoticeDetailController(appCode: 'demo')`를 `BindingsBuilder`로 주입 (SDK NoticeBinding과 별도)
 
 ---
 
@@ -373,22 +372,23 @@ static const SDK_NOTICE_DETAIL = '/sdk-demos/notice/detail';
 
 ### 폰트 패밀리
 
-- **fontFamilyHand**: `'PatrickHand'` - 손글씨 스타일 (Sketch 테마 기본)
+- **fontFamilyHand**: `'Loranthus'` - 손글씨 스타일 (Sketch 테마 기본)
+- **fontFamilyHandKr**: `'KyoboHandwriting2019'` - 한글 손글씨 (fallback)
 - **fontFamilySans**: `'Roboto'` - 산세리프 (Solid 테마 기본)
 - **fontFamilyMono**: `'JetBrainsMono'` - 코드, 숫자
 
 ### 폰트 크기 스케일
 
-- **fontSizeXs**: 12px - 작은 라벨, 캡션
-- **fontSizeSm**: 14px - 본문 (작음), 보조 텍스트
-- **fontSizeBase**: 16px - 본문 (기본)
-- **fontSizeLg**: 18px - 큰 본문, 카드 제목
-- **fontSizeXl**: 20px - 작은 헤딩
-- **fontSize2Xl**: 24px - 중간 헤딩
-- **fontSize3Xl**: 30px - 큰 헤딩
-- **fontSize4Xl**: 36px - 매우 큰 헤딩
-- **fontSize5Xl**: 48px - 타이틀
-- **fontSize6Xl**: 60px - 히어로 타이틀
+- **fontSizeXs**: 12dp - 작은 라벨, 캡션
+- **fontSizeSm**: 14dp - 본문 (작음), 보조 텍스트
+- **fontSizeBase**: 16dp - 본문 (기본)
+- **fontSizeLg**: 18dp - 큰 본문, 카드 제목
+- **fontSizeXl**: 20dp - 작은 헤딩
+- **fontSize2Xl**: 24dp - 중간 헤딩
+- **fontSize3Xl**: 30dp - 큰 헤딩
+- **fontSize4Xl**: 36dp - 매우 큰 헤딩
+- **fontSize5Xl**: 48dp - 타이틀
+- **fontSize6Xl**: 60dp - 히어로 타이틀
 
 ### 타이포그래피 사용 예시
 
@@ -672,10 +672,10 @@ static const SDK_NOTICE_DETAIL = '/sdk-demos/notice/detail';
 
 ### SDK 위젯 테마 적용
 
-- **SketchInput**: Theme.of(context)로 테두리 색상 자동 변경
-- **SketchButton**: Theme.of(context)로 텍스트 색상 자동 변경
-- **SketchCard**: Theme.of(context)로 배경/테두리 색상 자동 변경
-- **NoticeListCard**: isDark 체크로 배경 색상 동적 변경
+- **SketchInput**: `SketchThemeExtension`에서 테두리 색상 자동 변경
+- **SketchButton**: `SketchThemeExtension`에서 텍스트 색상 자동 변경
+- **SketchCard**: `SketchThemeExtension`에서 배경/테두리 색상 자동 변경
+- **NoticeListCard**: `SketchDesignTokens` 토큰으로 테마별 색상 참조
 
 **테마 전환 애니메이션**:
 - Duration: 300ms (SketchThemeController 기본)

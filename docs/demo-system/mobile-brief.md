@@ -2,7 +2,7 @@
 
 ## 개요
 
-기존 design_system_demo 앱을 확장하여 qna, notice SDK의 UI/UX를 실제 환경에서 검증할 수 있는 데모 시스템을 구축합니다. 서버 연동 없이 모의 데이터로 동작하도록 Mock Service 계층을 구현하며, SDK 원본 코드는 수정하지 않고 데모 앱에서 SDK 위젯을 래핑하는 전략을 사용합니다.
+기존 design_system_demo 앱을 확장하여 qna, notice SDK의 UI/UX를 실제 환경에서 검증할 수 있는 데모 시스템을 구축합니다. SDK 원본 Binding(`QnaBinding`, `NoticeBinding`)을 `appCode='demo'`로 직접 사용하여 실서버와 연동하며, SDK 원본 코드는 수정하지 않고 데모 앱에서 SDK 위젯을 래핑하는 전략을 사용합니다.
 
 ## 모듈 구조 (apps/mobile/apps/design_system_demo/)
 
@@ -16,38 +16,30 @@ lib/
 │   │   │   └── controllers/home_controller.dart  # SDK Demos 카테고리 추가
 │   │   ├── sdk_demos/            # 신규 모듈
 │   │   │   ├── controllers/
-│   │   │   │   ├── sdk_list_controller.dart         # SDK 목록 관리
-│   │   │   │   ├── mock_qna_controller.dart         # QnA Mock Controller
-│   │   │   │   └── mock_notice_list_controller.dart # Notice Mock Controller
+│   │   │   │   └── sdk_list_controller.dart         # SDK 목록 관리
 │   │   │   ├── views/
 │   │   │   │   ├── sdk_list_view.dart               # SDK 목록 화면
 │   │   │   │   ├── sdk_qna_demo_view.dart           # QnA 데모 화면
 │   │   │   │   └── sdk_notice_demo_view.dart        # Notice 데모 화면
 │   │   │   ├── bindings/
-│   │   │   │   ├── sdk_list_binding.dart            # SDK 목록 바인딩
-│   │   │   │   ├── sdk_qna_demo_binding.dart        # QnA 데모 바인딩
-│   │   │   │   └── sdk_notice_demo_binding.dart     # Notice 데모 바인딩
+│   │   │   │   └── sdk_list_binding.dart            # SDK 목록 바인딩
 │   │   │   └── models/
 │   │   │       └── sdk_item.dart                    # SDK 항목 모델
 │   │   └── [기존 모듈들...]
 │   └── routes/
 │       ├── app_routes.dart       # 라우트 이름 추가
-│       └── app_pages.dart        # GetPage 등록
-└── main.dart
+│       └── app_pages.dart        # GetPage 등록 (SDK 원본 Binding 사용)
+└── main.dart                     # Dio, NoticeApiService 전역 등록
 ```
 
 ### 신규 파일 목록
 
 1. `lib/app/modules/sdk_demos/models/sdk_item.dart`
 2. `lib/app/modules/sdk_demos/controllers/sdk_list_controller.dart`
-3. `lib/app/modules/sdk_demos/controllers/mock_qna_controller.dart`
-4. `lib/app/modules/sdk_demos/controllers/mock_notice_list_controller.dart`
-5. `lib/app/modules/sdk_demos/views/sdk_list_view.dart`
-6. `lib/app/modules/sdk_demos/views/sdk_qna_demo_view.dart`
-7. `lib/app/modules/sdk_demos/views/sdk_notice_demo_view.dart`
-8. `lib/app/modules/sdk_demos/bindings/sdk_list_binding.dart`
-9. `lib/app/modules/sdk_demos/bindings/sdk_qna_demo_binding.dart`
-10. `lib/app/modules/sdk_demos/bindings/sdk_notice_demo_binding.dart`
+3. `lib/app/modules/sdk_demos/views/sdk_list_view.dart`
+4. `lib/app/modules/sdk_demos/views/sdk_qna_demo_view.dart`
+5. `lib/app/modules/sdk_demos/views/sdk_notice_demo_view.dart`
+6. `lib/app/modules/sdk_demos/bindings/sdk_list_binding.dart`
 
 ### 수정 파일 목록
 
@@ -56,39 +48,35 @@ lib/
 3. `lib/app/routes/app_pages.dart` - GetPage 등록
 4. `pubspec.yaml` - qna, notice 패키지 의존성 추가
 
-## Mock 전략 (서버 없이 SDK 동작)
+## 실서버 연동 전략
 
-### 핵심 과제
+### 핵심 전략
 
-SDK 패키지들은 `Get.find<Dio>()`를 통해 Dio 인스턴스를 가져와 API를 호출합니다. 서버 없이 동작하려면 **Mock Dio 인스턴스를 등록**하거나 **Mock Controller를 구현**해야 합니다.
+SDK 원본 Binding을 `appCode='demo'`로 직접 사용하여 실서버와 연동합니다. Mock Controller 없이 SDK의 실제 동작을 검증할 수 있습니다.
 
-**선택한 전략: Mock Controller 패턴** (SDK 원본 수정 불필요)
+**선택한 전략: SDK 원본 Binding 직접 사용** (Mock 불필요)
 
-### QnA SDK Mock 전략
+### QnA SDK 연동
 
 **SDK 의존성 체인:**
 ```
 QnaSubmitView → QnaController → QnaRepository → QnaApiService → Dio
 ```
 
-**Mock 구현:**
+**구현:**
 
-1. **MockQnaController** 생성 (QnaController 오버라이드)
-   - `submitQuestion()` 메서드를 오버라이드
-   - 모의 성공/에러 응답 시뮬레이션
-   - 2초 딜레이 후 성공 모달 표시
-
-2. **Binding에서 MockQnaController 등록**
+1. **main.dart에서 Dio 전역 등록** (JWT 인증 없이 동작)
+2. **QnaBinding(appCode: 'demo')을 라우트에 직접 사용**
    ```dart
-   Get.lazyPut<QnaController>(() => MockQnaController());
+   GetPage(
+     name: Routes.SDK_QNA_DEMO,
+     page: () => const SdkQnaDemoView(),
+     binding: QnaBinding(appCode: 'demo'),
+   )
    ```
+3. **QnaSubmitView는 SDK 원본 사용** — Controller, Repository, ApiService 모두 SDK 원본 동작
 
-3. **QnaSubmitView는 SDK 원본 사용**
-   - View는 GetView<QnaController>로 선언
-   - Get.find<QnaController>()로 Controller 가져옴
-   - MockQnaController가 주입되므로 모의 응답 동작
-
-### Notice SDK Mock 전략
+### Notice SDK 연동
 
 **SDK 의존성 체인:**
 ```
@@ -96,25 +84,19 @@ NoticeListView → NoticeListController → NoticeApiService → Dio
 NoticeDetailView → NoticeDetailController → NoticeApiService → Dio
 ```
 
-**Mock 구현:**
+**구현:**
 
-1. **MockNoticeListController** 생성 (NoticeListController 오버라이드)
-   - `loadNotices()` 메서드를 오버라이드
-   - 모의 공지사항 데이터 생성 (고정 2개, 일반 10개)
-   - 무한 스크롤 시뮬레이션 (페이지네이션)
-
-2. **Binding에서 MockNoticeListController 등록**
+1. **NoticeApiService를 main.dart에서 전역 등록**
+2. **NoticeBinding(appCode: 'demo')을 라우트에 직접 사용**
    ```dart
-   Get.lazyPut<NoticeListController>(() => MockNoticeListController());
+   GetPage(
+     name: Routes.SDK_NOTICE_DEMO,
+     page: () => const SdkNoticeDemoView(),
+     binding: NoticeBinding(appCode: 'demo'),
+   )
    ```
-
-3. **NoticeListView는 SDK 원본 사용**
-   - View는 GetView<NoticeListController>로 선언
-   - MockNoticeListController가 주입되므로 모의 데이터 표시
-
-4. **NoticeDetailView는 별도 라우트 필요 없음**
-   - SDK 원본 라우트 사용 (Notice SDK가 제공하는 라우팅)
-   - Mock 데이터가 이미 NoticeListController에 로드되어 있으므로 상세 화면에서 사용 가능
+3. **NoticeListView는 SDK 원본 사용** — 실서버에서 공지사항 목록/상세 조회
+4. **NoticeDetailView는 SDK 원본 라우팅** — Notice SDK가 제공하는 상세 화면 라우트 사용
 
 ## GetX 상태 관리 설계
 

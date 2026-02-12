@@ -394,6 +394,21 @@ melos bootstrap
 
 ---
 
+## 에러 계약 (Error Contracts)
+
+### API 에러 코드별 처리
+- **400**: 입력 검증 실패 → "제목과 내용을 확인해주세요"
+- **401/403**: 인증 필요 → "인증이 필요합니다. 다시 로그인해주세요"
+- **404**: 리소스 미존재 → "서비스 설정 오류가 발생했습니다"
+- **500+**: 서버 오류 → "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요"
+- **네트워크 타임아웃**: → "네트워크 연결을 확인해주세요"
+
+### View 에러 표시
+- QnA: Get.snackbar + SketchModal (에러 모달)
+- Notice: errorMessage.obs → 에러 상태 UI (아이콘 + 메시지 + 재시도 버튼)
+
+---
+
 ## 검증 기준 (CTO 리뷰)
 
 ### GetX 패턴
@@ -701,6 +716,17 @@ Platform: mobile
 - **Design System**: `.claude/guide/mobile/design_system.md`
 - **GetX Best Practices**: `.claude/guide/mobile/getx_best_practices.md`
 - **Common Patterns**: `.claude/guide/mobile/common_patterns.md`
+
+---
+
+## 통합 검증 단계
+
+Group 2 완료 후, 다음 항목을 검증합니다:
+- [ ] melos analyze — 정적 분석 이슈 없음
+- [ ] SDK 목록 화면에서 QnA/Notice 진입 가능
+- [ ] QnA 질문 제출 후 성공/에러 처리 정상
+- [ ] Notice 목록 → 상세 네비게이션 정상
+- [ ] 라이트/다크 테마 전환 시 SDK 위젯 스타일 정상
 
 ---
 
