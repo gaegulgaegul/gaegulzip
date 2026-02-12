@@ -50,7 +50,9 @@ export const deviceDeactivatedByToken = (data: {
     {
       userId: data.userId,
       appId: data.appId,
-      tokenPrefix: data.tokenPrefix,
+      tokenPrefix: data.tokenPrefix.length > 20
+        ? data.tokenPrefix.substring(0, 20) + '...'
+        : data.tokenPrefix,
     },
     'Device deactivated by token'
   );

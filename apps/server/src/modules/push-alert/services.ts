@@ -118,16 +118,25 @@ export const deactivateDevice = async (id: number, userId: number, appId: number
 };
 
 /**
- * 토큰으로 디바이스 비활성화 (FCM에서 invalid token 감지 시)
+ * 토큰으로 디바이스 비활성화
+ *
+ * @param token - FCM 디바이스 토큰
+ * @param appId - 앱 ID
+ * @param userId - 사용자 ID (지정 시 소유권 검증)
  */
-export const deactivateDeviceByToken = async (token: string, appId: number) => {
+export const deactivateDeviceByToken = async (token: string, appId: number, userId?: number) => {
+  const conditions = [eq(pushDeviceTokens.token, token), eq(pushDeviceTokens.appId, appId)];
+  if (userId !== undefined) {
+    conditions.push(eq(pushDeviceTokens.userId, userId));
+  }
+
   await db
     .update(pushDeviceTokens)
     .set({
       isActive: false,
       updatedAt: new Date(),
     })
-    .where(and(eq(pushDeviceTokens.token, token), eq(pushDeviceTokens.appId, appId)));
+    .where(and(...conditions));
 };
 
 /**

@@ -139,8 +139,8 @@ export const deactivateByToken = async (req: Request, res: Response) => {
 
   logger.debug({ userId, appId, tokenPrefix: token.slice(0, 20) }, 'Deactivating device by token');
 
-  // 토큰으로 비활성화 (이미 services.ts에 존재)
-  await deactivateDeviceByToken(token, appId);
+  // 토큰으로 비활성화 (소유권 검증 포함)
+  await deactivateDeviceByToken(token, appId, userId);
 
   // 로그 (비활성화된 디바이스가 없어도 204 반환)
   pushProbe.deviceDeactivatedByToken({
