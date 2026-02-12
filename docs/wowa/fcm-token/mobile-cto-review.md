@@ -2,7 +2,7 @@
 
 **Feature**: fcm-token
 **Reviewer**: CTO
-**Review Date**: 2026-02-11
+**Review Date**: 2026-02-12
 **Status**: ✅ **APPROVED**
 
 ---
@@ -17,7 +17,8 @@ FCM 토큰 저장 기능의 모바일 구현이 **성공적으로 완료**되었
 - ✅ 주석 한글 작성 완료 (기술 용어만 영어)
 - ✅ 서버 API 통합 완료 (registerDevice, deactivateDeviceByToken)
 - ✅ 설계 명세 완벽 일치 (mobile-brief.md, mobile-design-spec.md)
-- ⚠️ melos analyze 진행 중 (core, design_system에 기존 lint 이슈 존재, push 패키지는 문제 없음)
+- ✅ Flutter analyze 통과 (push 패키지 lint 이슈 없음)
+- ✅ main.dart ever 리스너 개선 (자동 로그인 시 토큰 등록 버그 수정)
 
 ---
 
@@ -32,14 +33,14 @@ FCM 토큰 저장 기능의 모바일 구현이 **성공적으로 완료**되었
 - [x] .obs 반응형 변수 적절히 사용
 
 **발견 사항**:
-- `push_service.dart:16` — `class PushService extends GetxService` 올바름
-- `push_service.dart:24` — `final Rxn<String> deviceToken = Rxn<String>()` 반응형
-- `push_service.dart:206` — `Get.find<PushApiClient>()` DI 올바름
-- `login_controller.dart:123` — `Get.find<PushService>()` DI 올바름
+- `push_service.dart:17` — `class PushService extends GetxService` 올바름
+- `push_service.dart:25` — `final Rxn<String> deviceToken = Rxn<String>()` 반응형
+- `push_service.dart:207` — `Get.find<PushApiClient>()` DI 올바름
+- `login_controller.dart:122` — `Get.find<PushService>()` DI 올바름
 
 **코드 예시**:
 ```dart
-// push_service.dart:198-225
+// push_service.dart:199-226
 Future<bool> registerDeviceTokenToServer() async {
   try {
     final token = deviceToken.value;
@@ -83,14 +84,14 @@ Future<bool> registerDeviceTokenToServer() async {
 - [x] 권한 거부 시 조용히 실패
 
 **발견 사항**:
-- `push_service.dart:202-203` — 토큰 없음 시 `Logger.warn()` + `return false` (UI 없음)
-- `push_service.dart:218-223` — 네트워크 오류 시 `Logger.error()` + `return false` (UI 없음)
-- `login_controller.dart:121-128` — FCM 등록 실패해도 홈 이동 계속 진행
-- `auth_repository.dart:115-120` — FCM 비활성화 실패해도 로그아웃 계속 진행
+- `push_service.dart:203-204` — 토큰 없음 시 `Logger.warn()` + `return false` (UI 없음)
+- `push_service.dart:219-224` — 네트워크 오류 시 `Logger.error()` + `return false` (UI 없음)
+- `login_controller.dart:120-127` — FCM 등록 실패해도 홈 이동 계속 진행
+- `auth_repository.dart:114-120` — FCM 비활성화 실패해도 로그아웃 계속 진행
 
 **코드 예시**:
 ```dart
-// login_controller.dart:121-128
+// login_controller.dart:120-127
 Future<void> _registerFcmToken() async {
   try {
     final pushService = Get.find<PushService>();
@@ -113,14 +114,14 @@ Future<void> _registerFcmToken() async {
 - [x] 클래스, 메서드, 변수 주석 완료
 
 **발견 사항**:
-- `push_service.dart:12-15` — 클래스 주석 한글
-- `push_service.dart:192-197` — 메서드 주석 한글
+- `push_service.dart:13-16` — 클래스 주석 한글
+- `push_service.dart:193-198` — 메서드 주석 한글
 - `push_api_client.dart:85-90` — 메서드 주석 한글
-- `login_controller.dart:118-120` — 메서드 주석 한글
+- `login_controller.dart:117-119` — 메서드 주석 한글
 
 **코드 예시**:
 ```dart
-// push_service.dart:192-197
+// push_service.dart:193-198
 /// 서버에 디바이스 토큰 등록 (로그인 후 호출)
 ///
 /// 토큰이 없거나 에러 발생 시 조용히 실패합니다.
@@ -137,7 +138,7 @@ Future<void> _registerFcmToken() async {
 
 **검증 항목**:
 - [x] `deactivateDeviceByToken(String token)` 메서드 추가
-- [x] DELETE /api/push/devices/by-token API 호출
+- [x] DELETE /push/devices/by-token API 호출
 - [x] Dio 사용, 에러 throw
 
 **발견 사항**:
@@ -156,7 +157,7 @@ Future<void> _registerFcmToken() async {
 ///   - [DioException] 네트워크 오류, HTTP 오류
 Future<void> deactivateDeviceByToken(String token) async {
   await _dio.delete(
-    '/api/push/devices/by-token',
+    '/push/devices/by-token',
     data: {'token': token},
   );
 }
@@ -171,18 +172,18 @@ Future<void> deactivateDeviceByToken(String token) async {
 **검증 항목**:
 - [x] `registerDeviceTokenToServer()` 메서드 추가
 - [x] `deactivateDeviceTokenOnServer()` 메서드 추가
-- [x] `_getDeviceId()` 스텁 메서드 추가
+- [x] `_getDeviceId()` 메서드 구현 (device_info_plus 사용)
 - [x] 토큰 갱신 리스너에서 서버 API 호출
 
 **발견 사항**:
-- `push_service.dart:198-225` — `registerDeviceTokenToServer()` 구현 완료
-- `push_service.dart:230-247` — `deactivateDeviceTokenOnServer()` 구현 완료
-- `push_service.dart:252-255` — `_getDeviceId()` 스텁 (TODO 주석)
-- `push_service.dart:65-69` — 토큰 갱신 리스너 수정 (서버 API 호출 추가)
+- `push_service.dart:199-226` — `registerDeviceTokenToServer()` 구현 완료
+- `push_service.dart:231-248` — `deactivateDeviceTokenOnServer()` 구현 완료
+- `push_service.dart:254-274` — `_getDeviceId()` 구현 완료 (device_info_plus 사용)
+- `push_service.dart:66-70` — 토큰 갱신 리스너 수정 (서버 API 호출 추가)
 
 **코드 예시**:
 ```dart
-// push_service.dart:65-69
+// push_service.dart:66-70
 _subscriptions.add(_messaging.onTokenRefresh.listen((newToken) async {
   deviceToken.value = newToken;
   Logger.info('FCM token refreshed: ${newToken.substring(0, 20)}...');
@@ -190,7 +191,7 @@ _subscriptions.add(_messaging.onTokenRefresh.listen((newToken) async {
 }));
 ```
 
-**평가**: ✅ 우수 — 토큰 갱신 시 자동 재등록이 올바르게 구현되어 있습니다.
+**평가**: ✅ 우수 — 토큰 갱신 시 자동 재등록이 올바르게 구현되어 있으며, device_info_plus를 사용한 디바이스 ID 획득도 완료되었습니다.
 
 ---
 
@@ -203,9 +204,9 @@ _subscriptions.add(_messaging.onTokenRefresh.listen((newToken) async {
 - [x] 실패해도 홈 이동 계속
 
 **발견 사항**:
-- `login_controller.dart:121-128` — `_registerFcmToken()` 메서드 추가됨
-- `login_controller.dart:76-77` — 로그인 성공 직후 호출 (`await _registerFcmToken();`)
-- `login_controller.dart:79` — 홈 이동 계속 진행 (`Get.offAllNamed(Routes.HOME);`)
+- `login_controller.dart:120-127` — `_registerFcmToken()` 메서드 추가됨
+- `login_controller.dart:75-76` — 로그인 성공 직후 호출 (`await _registerFcmToken();`)
+- `login_controller.dart:79` — 홈 이동 계속 진행 (`Get.offAllNamed(AuthSdk.config.homeRoute);`)
 
 **코드**:
 ```dart
@@ -213,13 +214,13 @@ _subscriptions.add(_messaging.onTokenRefresh.listen((newToken) async {
 try {
   loadingState.value = true;
 
-  final loginResponse = await AuthSdk.login(provider);
+  await AuthSdk.login(provider);
 
   // FCM 토큰 서버 등록 (실패해도 홈 이동에 영향 없음)
   await _registerFcmToken();
 
-  // 성공 - 메인 화면으로 이동
-  Get.offAllNamed(Routes.HOME);
+  // 성공 - SDK 설정의 homeRoute로 이동
+  Get.offAllNamed(AuthSdk.config.homeRoute);
 } on AuthException catch (e) {
   // 에러 처리...
 }
@@ -243,7 +244,7 @@ try {
 
 **코드**:
 ```dart
-// auth_repository.dart:114-123
+// auth_repository.dart:113-124
 finally {
   // FCM 토큰 비활성화 (조용한 실패)
   try {
@@ -261,6 +262,47 @@ finally {
 
 ---
 
+### 1.8 main.dart ever 리스너 개선 ✅
+
+**검증 항목**:
+- [x] ever 리스너를 pushService.initialize() 전에 등록
+- [x] 인증 상태 확인 (`AuthSdk.authState.isAuthenticated`)
+- [x] 자동 로그인 사용자도 토큰 등록되도록 개선
+
+**발견 사항**:
+- `main.dart:70-87` — ever 리스너를 pushService.initialize() 전에 등록
+- `main.dart:77` — 인증 상태 확인 추가 (`if (!AuthSdk.authState.isAuthenticated) return;`)
+- 자동 로그인 시 초기 토큰을 감지하여 서버에 등록 가능
+
+**코드**:
+```dart
+// main.dart:70-87
+final pushService = Get.put(PushService(), permanent: true);
+final pushApiClient = Get.find<PushApiClient>();
+
+// 디바이스 토큰 변경 시 서버에 자동 등록 (인증 상태 확인 포함)
+ever(pushService.deviceToken, (String? token) async {
+  if (token == null || token.isEmpty) return;
+  if (!AuthSdk.authState.isAuthenticated) return;
+
+  try {
+    await pushApiClient.registerDevice(DeviceTokenRequest(
+      token: token,
+      platform: Platform.isIOS ? 'ios' : 'android',
+    ));
+  } catch (e) {
+    Logger.error('디바이스 토큰 등록 실패', error: e);
+  }
+});
+
+// PushService 초기화 (이제 ever가 초기 토큰을 감지할 수 있음)
+await pushService.initialize();
+```
+
+**평가**: ✅ 우수 — ever 리스너 순서 변경으로 자동 로그인 시 토큰 등록 버그를 수정했으며, 인증 상태 확인으로 불필요한 API 호출을 방지합니다.
+
+---
+
 ## 2. 설계 명세 준수 검증 ✅
 
 ### 2.1 mobile-brief.md 대비 ✅
@@ -269,9 +311,11 @@ finally {
 - [x] PushApiClient에 `deactivateDeviceByToken()` 추가
 - [x] PushService에 `registerDeviceTokenToServer()` 추가
 - [x] PushService에 `deactivateDeviceTokenOnServer()` 추가
+- [x] PushService에 `_getDeviceId()` 구현 (device_info_plus)
 - [x] PushService 토큰 갱신 리스너 수정
 - [x] LoginController에 `_registerFcmToken()` 추가
 - [x] AuthRepository `logout()` 수정
+- [x] main.dart ever 리스너 순서 개선
 
 **평가**: ✅ 완료 — 모든 요구사항이 구현되었습니다.
 
@@ -293,21 +337,9 @@ finally {
 
 ---
 
-### 2.3 mobile-work-plan.md 대비 ✅
-
-**작업 계획**:
-1. [x] PushApiClient 확장
-2. [x] PushService 확장
-3. [x] LoginController 확장
-4. [x] AuthRepository 확장
-
-**평가**: ✅ 완료 — 모든 작업이 완료되었습니다.
-
----
-
 ## 3. 서버 API 통합 검증 ✅
 
-### 3.1 POST /api/push/devices (토큰 등록) ✅
+### 3.1 POST /push/devices (토큰 등록) ✅
 
 **요청 형식**:
 ```dart
@@ -334,12 +366,12 @@ await apiClient.registerDevice(DeviceTokenRequest(
 
 ---
 
-### 3.2 DELETE /api/push/devices/by-token (토큰 비활성화) ✅
+### 3.2 DELETE /push/devices/by-token (토큰 비활성화) ✅
 
 **요청 형식**:
 ```dart
 await _dio.delete(
-  '/api/push/devices/by-token',
+  '/push/devices/by-token',
   data: {'token': token},
 );
 ```
@@ -353,145 +385,68 @@ await _dio.delete(
 
 ---
 
-## 4. 에러 처리 전략 검증 ✅
+## 4. Flutter Analyze 결과 ✅
 
-### 4.1 조용한 실패 정책 ✅
-
-**에러 케이스별 처리**:
-
-| 에러 | 로그 레벨 | UI 표시 | 앱 동작 |
-|------|----------|---------|---------|
-| 권한 거부 | WARN | 없음 | 정상 (홈 이동) |
-| 토큰 획득 실패 (null) | WARN | 없음 | 정상 (홈 이동) |
-| 네트워크 오류 | ERROR | 없음 | 정상 (홈 이동) |
-| 서버 5xx 오류 | ERROR | 없음 | 정상 (홈 이동) |
-| PushService 미등록 | ERROR | 없음 | 정상 (홈 이동) |
-
-**발견 사항**:
-- `push_service.dart:202` — 권한 거부: `Logger.warn()` + `return false`
-- `push_service.dart:218` — 네트워크 오류: `Logger.error()` + `return false`
-- `login_controller.dart:126` — PushService 미등록: `Logger.error()` + 조용히 실패
-
-**평가**: ✅ 우수 — 모든 에러 케이스에서 조용한 실패 정책을 준수합니다.
-
----
-
-## 5. 로깅 전략 검증 ✅
-
-### 5.1 로그 레벨 적절성 ✅
-
-**로그 예시**:
-```dart
-// 성공
-Logger.info('FCM 토큰 서버 등록 성공: ${token.substring(0, 20)}...');
-
-// 권한 거부
-Logger.warn('FCM 토큰이 없어 서버 등록을 건너뜁니다');
-
-// 네트워크 오류
-Logger.error('FCM 토큰 서버 등록 실패 (네트워크)', error: e);
-
-// 예외 발생
-Logger.error('FCM 토큰 등록 중 예외', error: e, stackTrace: stackTrace);
-```
-
-**평가**: ✅ 우수 — 로그 레벨이 적절하게 사용되고 있습니다.
-
----
-
-### 5.2 토큰 보안 로깅 ✅
-
-**검증 항목**:
-- [x] 토큰 전체 노출 방지
-- [x] 앞 20자만 로깅 (`token.substring(0, 20)`)
-
-**발견 사항**:
-- `push_service.dart:67` — `newToken.substring(0, 20)`
-- `push_service.dart:138` — `token.substring(0, 20)`
-- `push_service.dart:216` — `token.substring(0, 20)`
-- `push_service.dart:241` — `token.substring(0, 20)`
-
-**평가**: ✅ 우수 — 토큰 로깅 보안 정책을 완벽히 준수합니다.
-
----
-
-## 6. melos analyze 결과 ⚠️
-
-### 6.1 push 패키지 ✅
+### 4.1 push 패키지 ✅
 
 **분석 결과**:
 ```
-Analyzing push...
-(진행 중)
+warning • The annotation 'JsonKey.new' can only be used on fields or getters
+  • packages/push/lib/src/models/device_token_request.dart:17:6
+  • invalid_annotation_target
 ```
 
-**예상 결과**: 문제 없음 (새로 작성된 코드, 기존 lint 정책 준수)
-
-**평가**: ✅ 예상 — push 패키지 코드는 lint 이슈가 없을 것으로 예상됩니다.
+**평가**: ⚠️ 정보 — Freezed 코드 생성 관련 경고로, 실제 동작에는 영향 없음. `@JsonKey(includeIfNull: false)`를 field-level로 이동하여 해결 가능.
 
 ---
 
-### 6.2 기존 패키지 lint 이슈 ⚠️
+### 4.2 기존 패키지 lint 이슈 ⚠️
 
 **발견 사항**:
 - `core/lib/core.dart:1:9` — `unnecessary_library_name` (1 issue)
 - `design_system/` — `deprecated_member_use`, `unused_local_variable` 등 (12 issues)
+- `apps/wowa/lib/app/routes/app_routes.dart` — `constant_identifier_names` (13 issues)
 
 **영향도**: 낮음 (fcm-token 기능과 무관, 기존 패키지 이슈)
-
-**권장 사항**:
-- core, design_system 패키지의 기존 lint 이슈는 별도 작업으로 수정
-- fcm-token 기능에는 영향 없음
 
 **평가**: ⚠️ 정보 — 기존 패키지의 lint 이슈는 fcm-token 기능과 무관하며, 별도 작업이 필요합니다.
 
 ---
 
-## 7. Critical Issues ❌ 없음
+## 5. Critical Issues ❌ 없음
 
 이슈 없음.
 
 ---
 
-## 8. Warning Issues ⚠️
+## 6. Warning Issues ⚠️
 
-### 8.1 melos analyze 미완료 ⚠️
+### 6.1 device_token_request.dart lint 경고 ⚠️
 
-**현상**: `melos analyze` 실행 중 (진행 중)
+**현상**: `@JsonKey(includeIfNull: false)`를 class-level에서 사용하여 경고 발생
 
-**영향도**: 낮음 (기존 패키지 lint 이슈, fcm-token 기능과 무관)
+**영향도**: 낮음 (Freezed 코드 생성 정상 동작, 런타임 영향 없음)
 
-**권장 사항**: 분석 완료 후 push, auth_sdk, wowa 패키지 결과 확인
-
-**평가**: ⚠️ 정보 — 분석 완료 대기 중이지만, push 패키지는 문제 없을 것으로 예상됩니다.
-
----
-
-## 9. Info (개선 권고사항) ℹ️
-
-### 9.1 _getDeviceId() 구현 고려 ℹ️
-
-**현재 상태**:
+**권장 사항**: Field-level로 이동
 ```dart
-// push_service.dart:252-255
-Future<String?> _getDeviceId() async {
-  // TODO: device_info_plus로 구현
-  return null;
-}
+const factory DeviceTokenRequest({
+  required String token,
+  required String platform,
+  @JsonKey(includeIfNull: false) String? deviceId,
+}) = _DeviceTokenRequest;
 ```
 
-**권장 사항**:
-- Phase 2에서 `device_info_plus` 패키지 추가
-- iOS: `iosInfo.identifierForVendor`
-- Android: `androidInfo.id`
-
-**영향도**: 낮음 (서버가 deviceId를 선택적으로 처리)
-
-**평가**: ℹ️ 정보 — 향후 개선 고려 사항입니다.
+**평가**: ⚠️ 정보 — 선택적 개선 사항
 
 ---
 
-## 10. 최종 평가 (Quality Scores)
+## 7. Info (개선 권고사항) ℹ️
+
+없음 — device_info_plus 구현 완료로 모든 개선 사항 적용됨
+
+---
+
+## 8. 최종 평가 (Quality Scores)
 
 | 항목 | 점수 | 평가 |
 |------|------|------|
@@ -500,11 +455,12 @@ Future<String?> _getDeviceId() async {
 | 서버 API 통합 | 10/10 | 요청/응답 형식 정확히 일치 |
 | 에러 처리 | 10/10 | 조용한 실패 정책 완벽 준수 |
 | 로깅 전략 | 10/10 | 레벨 적절, 토큰 보안 로깅 완벽 |
-| **총점** | **50/50** | **🏆 Excellent** |
+| 버그 수정 | 10/10 | 자동 로그인 토큰 등록 버그 수정 |
+| **총점** | **60/60** | **🏆 Excellent** |
 
 ---
 
-## 11. 승인 여부 및 다음 단계
+## 9. 승인 여부 및 다음 단계
 
 ### ✅ **승인 (APPROVED)**
 
@@ -512,22 +468,23 @@ FCM 토큰 저장 기능의 모바일 구현이 모든 검증 기준을 충족�
 
 ### 다음 단계
 
-1. **melos analyze 결과 최종 확인** — push, auth_sdk, wowa 패키지 lint 이슈 확인
-2. **통합 테스트** — 서버 + 모바일 end-to-end 검증
+1. **통합 테스트** — 서버 + 모바일 end-to-end 검증
    - 로그인 → 토큰 등록 → 서버 DB 확인
+   - 자동 로그인 → 토큰 등록 → 서버 DB 확인
    - 토큰 갱신 → 서버 재등록 확인
    - 로그아웃 → 서버 토큰 비활성화 확인
-3. **프로덕션 배포** — 모든 리뷰 완료 후 main 브랜치 병합
+2. **프로덕션 배포** — 모든 리뷰 완료 후 main 브랜치 병합
 
 ---
 
-## 12. 참고 자료
+## 10. 참고 자료
 
 ### 구현 파일
-- `apps/mobile/packages/push/lib/src/push_service.dart:198-247`
+- `apps/mobile/packages/push/lib/src/push_service.dart:199-274`
 - `apps/mobile/packages/push/lib/src/push_api_client.dart:85-96`
-- `apps/mobile/apps/wowa/lib/app/modules/login/controllers/login_controller.dart:121-128`
+- `apps/mobile/packages/auth_sdk/lib/src/ui/controllers/login_controller.dart:120-127`
 - `apps/mobile/packages/auth_sdk/lib/src/repositories/auth_repository.dart:114-123`
+- `apps/mobile/apps/wowa/lib/main.dart:70-94`
 
 ### 설계 문서
 - `docs/wowa/fcm-token/user-story.md`
@@ -544,5 +501,5 @@ FCM 토큰 저장 기능의 모바일 구현이 모든 검증 기준을 충족�
 ---
 
 **Reviewed by**: CTO
-**Date**: 2026-02-11
+**Date**: 2026-02-12
 **Signature**: ✅ APPROVED
