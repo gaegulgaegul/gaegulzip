@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:core/core.dart';
+import 'package:push/push.dart';
 import '../services/auth_api_service.dart';
 import '../models/login_response.dart';
 
@@ -110,6 +111,14 @@ class AuthRepository {
     } catch (_) {
       // 서버 로그아웃 실패해도 로컬 데이터는 삭제
     } finally {
+      // FCM 토큰 비활성화 (조용한 실패)
+      try {
+        final pushService = Get.find<PushService>();
+        await pushService.deactivateDeviceTokenOnServer();
+      } catch (_) {
+        // PushService가 없거나 실패해도 무시
+      }
+
       await _storageService.clearAll();
     }
   }
