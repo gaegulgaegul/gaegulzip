@@ -10,6 +10,15 @@ import 'push_api_client.dart';
 import 'push_notification.dart';
 import 'push_handler_callback.dart';
 
+/// 디바이스 플랫폼 식별 상수
+class PushPlatform {
+  static const String ios = 'ios';
+  static const String android = 'android';
+
+  /// 현재 플랫폼 문자열 반환
+  static String get current => Platform.isIOS ? ios : android;
+}
+
 /// FCM 푸시 알림 서비스 (앱 독립적 SDK)
 ///
 /// Firebase Cloud Messaging을 초기화하고 알림을 처리하는 서비스입니다.
@@ -62,11 +71,10 @@ class PushService extends GetxService {
       // 3. 디바이스 토큰 획득
       await _getDeviceToken();
 
-      // 4. 토큰 갱신 리스너 (갱신 시 서버에 자동 재등록)
-      _subscriptions.add(_messaging.onTokenRefresh.listen((newToken) async {
+      // 4. 토큰 갱신 리스너 (값 업데이트만 — 서버 등록은 ever 콜백에서 처리)
+      _subscriptions.add(_messaging.onTokenRefresh.listen((newToken) {
         deviceToken.value = newToken;
-        Logger.info('FCM token refreshed: ${newToken.substring(0, 20)}...');
-        await registerDeviceTokenToServer();
+        Logger.info('FCM token refreshed: ${newToken.length > 20 ? newToken.substring(0, 20) : newToken}...');
       }));
 
       // 5. 포그라운드 메시지 리스너
@@ -136,7 +144,7 @@ class PushService extends GetxService {
       final token = await _messaging.getToken();
       if (token != null) {
         deviceToken.value = token;
-        Logger.info('FCM device token obtained: ${token.substring(0, 20)}...');
+        Logger.info('FCM device token obtained: ${token.length > 20 ? token.substring(0, 20) : token}...');
       } else {
         Logger.warn('Failed to obtain FCM device token');
       }
@@ -205,7 +213,7 @@ class PushService extends GetxService {
       }
 
       final apiClient = Get.find<PushApiClient>();
-      final platform = Platform.isIOS ? 'ios' : 'android';
+      final platform = PushPlatform.current;
       final deviceId = await _getDeviceId();
 
       await apiClient.registerDevice(DeviceTokenRequest(
@@ -214,7 +222,7 @@ class PushService extends GetxService {
         deviceId: deviceId,
       ));
 
-      Logger.info('FCM 토큰 서버 등록 성공: ${token.substring(0, 20)}...');
+      Logger.info('FCM 토큰 서버 등록 성공: ${token.length > 20 ? token.substring(0, 20) : token}...');
       return true;
     } on DioException catch (e) {
       Logger.error('FCM 토큰 서버 등록 실패 (네트워크)', error: e);
@@ -239,7 +247,7 @@ class PushService extends GetxService {
       final apiClient = Get.find<PushApiClient>();
       await apiClient.deactivateDeviceByToken(token);
 
-      Logger.info('FCM 토큰 서버 비활성화 성공: ${token.substring(0, 20)}...');
+      Logger.info('FCM 토큰 서버 비활성화 성공: ${token.length > 20 ? token.substring(0, 20) : token}...');
     } on DioException catch (e) {
       Logger.error('FCM 토큰 서버 비활성화 실패 (네트워크 오류)', error: e);
     } catch (e, stackTrace) {

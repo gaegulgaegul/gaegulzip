@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:admob/admob.dart';
 import 'package:core/core.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -49,6 +47,14 @@ Future<void> main() async {
         SocialProvider.google: ProviderConfig(clientId: googleClientId),
         SocialProvider.apple: const ProviderConfig(),
       },
+      onPostLogin: () async {
+        final pushService = Get.find<PushService>();
+        await pushService.registerDeviceTokenToServer();
+      },
+      onPreLogout: () async {
+        final pushService = Get.find<PushService>();
+        await pushService.deactivateDeviceTokenOnServer();
+      },
     ),
   );
 
@@ -67,23 +73,24 @@ Future<void> main() async {
   // 8. NoticeApiService 전역 등록
   Get.put<NoticeApiService>(NoticeApiService(), permanent: true);
 
-  // 9. PushService 생성 + 토큰 리스너 등록 (initialize 전에 등록해야 초기 토큰 감지 가능)
+  // 9. PushService 생성 + 토큰/인증 워처 등록 (initialize 전에 등록해야 초기 토큰 감지 가능)
   final pushService = Get.put(PushService(), permanent: true);
-  final pushApiClient = Get.find<PushApiClient>();
 
-  // 디바이스 토큰 변경 시 서버에 자동 등록 (인증 상태 확인 포함)
-  ever(pushService.deviceToken, (String? token) async {
+  // 디바이스 토큰 서버 등록 헬퍼 (인증 + 토큰 조건 확인)
+  Future<void> registerDeviceToken() async {
+    final token = pushService.deviceToken.value;
     if (token == null || token.isEmpty) return;
     if (!AuthSdk.authState.isAuthenticated) return;
 
-    try {
-      await pushApiClient.registerDevice(DeviceTokenRequest(
-        token: token,
-        platform: Platform.isIOS ? 'ios' : 'android',
-      ));
-    } catch (e) {
-      Logger.error('디바이스 토큰 등록 실패', error: e);
-    }
+    await pushService.registerDeviceTokenToServer();
+  }
+
+  // 디바이스 토큰 변경 시 서버에 자동 등록
+  ever(pushService.deviceToken, (_) => registerDeviceToken());
+
+  // 인증 상태 변경 시에도 토큰 등록 시도 (로그인 후 토큰 이미 발급된 경우 대응)
+  ever(AuthSdk.authState.status, (status) {
+    if (status == AuthStatus.authenticated) registerDeviceToken();
   });
 
   // 10. PushService 초기화 (실패해도 앱 계속 실행)
