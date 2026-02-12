@@ -12,6 +12,8 @@ PODS:
   - auth_sdk (0.0.1):
     - Flutter
     - NidThirdPartyLogin (~> 5.0.0)
+  - device_info_plus (0.0.1):
+    - Flutter
   - Firebase/CoreOnly (11.15.0):
     - FirebaseCore (~> 11.15.0)
   - Firebase/Messaging (11.15.0):
@@ -125,6 +127,7 @@ PODS:
 
 DEPENDENCIES:
   - auth_sdk (from `.symlinks/plugins/auth_sdk/ios`)
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - Flutter (from `Flutter`)
@@ -161,6 +164,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   auth_sdk:
     :path: ".symlinks/plugins/auth_sdk/ios"
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
   firebase_core:
     :path: ".symlinks/plugins/firebase_core/ios"
   firebase_messaging:
@@ -190,6 +195,7 @@ SPEC CHECKSUMS:
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   auth_sdk: 472b09cf25a5d05d9472ad0b4c1979e0f78920b8
+  device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
   Firebase: d99ac19b909cd2c548339c2241ecd0d1599ab02e
   firebase_core: 99a37263b3c27536063a7b601d9e2a49400a433c
   firebase_messaging: bf6697c61f31c7cc0f654131212ff04c0115c2c7
