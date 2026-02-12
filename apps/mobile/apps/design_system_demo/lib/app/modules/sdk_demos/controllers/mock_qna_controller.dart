@@ -61,12 +61,9 @@ class MockQnaController extends QnaController {
         duration: const Duration(seconds: 2),
       );
 
-      // 입력 필드 초기화
+      // 입력 필드 초기화 (리스너가 titleText, bodyText, bodyLength 자동 업데이트)
       titleController.clear();
       bodyController.clear();
-      titleText.value = '';
-      bodyText.value = '';
-      bodyLength.value = 0;
     } catch (e) {
       // 에러 스낵바
       Get.snackbar(

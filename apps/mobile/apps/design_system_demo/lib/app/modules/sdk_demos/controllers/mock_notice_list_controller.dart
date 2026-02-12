@@ -53,15 +53,16 @@ class MockNoticeListController extends NoticeListController {
     if (isLoading.value || isLoadingMore.value || !hasMore.value) return;
 
     isLoadingMore.value = true;
-    _mockCurrentPage++;
+    final nextPage = _mockCurrentPage + 1;
 
     try {
       await Future.delayed(const Duration(milliseconds: 500));
 
       final newNotices = _dataGenerator.generateGeneralNotices(
-        page: _mockCurrentPage,
+        page: nextPage,
       );
       notices.addAll(newNotices);
+      _mockCurrentPage = nextPage;
 
       // 최대 3페이지
       hasMore.value = _mockCurrentPage < 3;
