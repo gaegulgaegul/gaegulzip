@@ -81,4 +81,17 @@ class PushApiClient {
       '/push/notifications/$notificationId/read',
     );
   }
+
+  /// 토큰으로 디바이스 비활성화 (로그아웃 시 사용)
+  ///
+  /// [token] FCM 디바이스 토큰
+  ///
+  /// Throws:
+  ///   - [DioException] 네트워크 오류, HTTP 오류
+  Future<void> deactivateDeviceByToken(String token) async {
+    await _dio.delete(
+      '/push/devices/by-token',
+      data: {'token': token},
+    );
+  }
 }

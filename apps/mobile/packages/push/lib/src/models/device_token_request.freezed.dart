@@ -27,7 +27,8 @@ mixin _$DeviceTokenRequest {
   /// 플랫폼 (ios, android, web)
   String get platform => throw _privateConstructorUsedError;
 
-  /// 디바이스 고유 ID (선택)
+  /// 디바이스 고유 ID (선택, null이면 JSON에서 제외)
+  @JsonKey(includeIfNull: false)
   String? get deviceId => throw _privateConstructorUsedError;
 
   /// Serializes this DeviceTokenRequest to a JSON map.
@@ -47,7 +48,11 @@ abstract class $DeviceTokenRequestCopyWith<$Res> {
     $Res Function(DeviceTokenRequest) then,
   ) = _$DeviceTokenRequestCopyWithImpl<$Res, DeviceTokenRequest>;
   @useResult
-  $Res call({String token, String platform, String? deviceId});
+  $Res call({
+    String token,
+    String platform,
+    @JsonKey(includeIfNull: false) String? deviceId,
+  });
 }
 
 /// @nodoc
@@ -98,7 +103,11 @@ abstract class _$$DeviceTokenRequestImplCopyWith<$Res>
   ) = __$$DeviceTokenRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String token, String platform, String? deviceId});
+  $Res call({
+    String token,
+    String platform,
+    @JsonKey(includeIfNull: false) String? deviceId,
+  });
 }
 
 /// @nodoc
@@ -144,7 +153,7 @@ class _$DeviceTokenRequestImpl implements _DeviceTokenRequest {
   const _$DeviceTokenRequestImpl({
     required this.token,
     required this.platform,
-    this.deviceId,
+    @JsonKey(includeIfNull: false) this.deviceId,
   });
 
   factory _$DeviceTokenRequestImpl.fromJson(Map<String, dynamic> json) =>
@@ -158,8 +167,9 @@ class _$DeviceTokenRequestImpl implements _DeviceTokenRequest {
   @override
   final String platform;
 
-  /// 디바이스 고유 ID (선택)
+  /// 디바이스 고유 ID (선택, null이면 JSON에서 제외)
   @override
+  @JsonKey(includeIfNull: false)
   final String? deviceId;
 
   @override
@@ -204,7 +214,7 @@ abstract class _DeviceTokenRequest implements DeviceTokenRequest {
   const factory _DeviceTokenRequest({
     required final String token,
     required final String platform,
-    final String? deviceId,
+    @JsonKey(includeIfNull: false) final String? deviceId,
   }) = _$DeviceTokenRequestImpl;
 
   factory _DeviceTokenRequest.fromJson(Map<String, dynamic> json) =
@@ -218,8 +228,9 @@ abstract class _DeviceTokenRequest implements DeviceTokenRequest {
   @override
   String get platform;
 
-  /// 디바이스 고유 ID (선택)
+  /// 디바이스 고유 ID (선택, null이면 JSON에서 제외)
   @override
+  @JsonKey(includeIfNull: false)
   String? get deviceId;
 
   /// Create a copy of DeviceTokenRequest

@@ -14,6 +14,9 @@ dependencies:
   # Firebase 관련 (firebase_core는 앱에서 초기화)
   firebase_messaging: ^15.1.5
 
+  # 디바이스 정보
+  device_info_plus: ^11.3.3
+
   # 상태 관리 및 의존성 주입
   get: ^4.6.6
 
