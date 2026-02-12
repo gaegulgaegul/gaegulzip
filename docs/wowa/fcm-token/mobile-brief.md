@@ -7,9 +7,9 @@ FCM 토큰 저장 기능은 **기존 코드에 최소한의 변경만 추가**�
 **핵심 전략**:
 - PushService는 이미 구현됨 (FCM 초기화, 토큰 획득, 리스너 등록 완료)
 - PushApiClient는 이미 구현됨 (registerDevice 메서드 존재)
-- LoginController에 토큰 등록 로직만 추가 (조용한 실패 정책)
-- 토큰 갱신 리스너에 서버 API 호출 추가
-- 로그아웃 시 토큰 비활성화 메서드 추가
+- AuthSdkConfig에 onPostLogin/onPreLogout 콜백 추가 (SDK 독립성 유지)
+- main.dart에서 콜백으로 PushService 연동 주입
+- 토큰 갱신 시 ever() 워처가 자동 서버 등록 처리
 
 ---
 
@@ -149,18 +149,21 @@ ever(pushService.deviceToken, (token) { ... });
 final pushService = Get.put(PushService(), permanent: true);
 final pushApiClient = Get.find<PushApiClient>();
 
-ever(pushService.deviceToken, (String? token) async {
+// 디바이스 토큰 서버 등록 헬퍼 (인증 + 토큰 조건 확인)
+Future<void> registerDeviceToken() async {
+  final token = pushService.deviceToken.value;
   if (token == null || token.isEmpty) return;
-  if (!AuthSdk.authState.isAuthenticated) return;  // 미인증 시 스킵
+  if (!AuthSdk.authState.isAuthenticated) return;
 
-  try {
-    await pushApiClient.registerDevice(DeviceTokenRequest(
-      token: token,
-      platform: Platform.isIOS ? 'ios' : 'android',
-    ));
-  } catch (e) {
-    Logger.error('디바이스 토큰 등록 실패', error: e);
-  }
+  await pushService.registerDeviceTokenToServer();
+}
+
+// 디바이스 토큰 변경 시 서버에 자동 등록
+ever(pushService.deviceToken, (_) => registerDeviceToken());
+
+// 인증 상태 변경 시에도 토큰 등록 시도 (로그인 후 토큰 이미 발급된 경우 대응)
+ever(AuthSdk.authState.status, (status) {
+  if (status == AuthStatus.authenticated) registerDeviceToken();
 });
 
 // 10. PushService 초기화 (이제 ever가 초기 토큰을 감지할 수 있음)
@@ -198,15 +201,16 @@ await pushService.initialize();
 /// Throws:
 ///   - [DioException] 네트워크 오류, HTTP 오류
 Future<void> deactivateDeviceByToken(String token) async {
-  await _dio.delete(
-    '/api/push/devices/by-token',
+  await _dio.post(
+    '/push/devices/deactivate',
     data: {'token': token},
   );
 }
 ```
 
 **설계 근거**:
-- 서버 API: `DELETE /push/devices/by-token` (server-brief.md 참조)
+- 서버 API: `POST /push/devices/deactivate` (server-brief.md 참조)
+- HTTP 스펙상 DELETE body 처리가 비표준이므로 POST 채택
 - 로그아웃 시 디바이스 ID를 모르는 경우 토큰으로 비활성화
 - 에러 발생 시 DioException throw (호출 측에서 조용히 실패 처리)
 
@@ -321,24 +325,14 @@ _subscriptions.add(_messaging.onTokenRefresh.listen((newToken) async {
 
 #### 파일: `controllers/login_controller.dart`
 
-**추가 메서드**:
+**설계 변경**: `_registerFcmToken()` 메서드를 직접 추가하지 않고, `AuthSdkConfig.onPostLogin` 콜백으로 대체합니다.
 
+main.dart에서 콜백 주입:
 ```dart
-/// FCM 토큰 서버 등록 (백그라운드 자동 처리)
-///
-/// 권한이 거부되거나 등록 실패 시 조용히 실패합니다.
-/// 앱의 다른 기능에 영향을 주지 않습니다.
-Future<void> _registerFcmToken() async {
-  try {
-    final pushService = Get.find<PushService>();
-
-    // PushService에 토큰 등록 요청 (성공 여부는 무시)
-    await pushService.registerDeviceTokenToServer();
-  } catch (e) {
-    // PushService가 등록되지 않았거나 예외 발생 시 조용히 실패
-    Logger.error('FCM 토큰 등록 중 예외 발생', error: e);
-  }
-}
+onPostLogin: () async {
+  final pushService = Get.find<PushService>();
+  await pushService.registerDeviceTokenToServer();
+},
 ```
 
 **_handleSocialLogin 메서드 수정**:
@@ -355,8 +349,8 @@ Future<void> _handleSocialLogin({
     // 2. AuthSdk를 통한 소셜 로그인
     final loginResponse = await AuthSdk.login(provider);
 
-    // 3. FCM 토큰 등록 (백그라운드 자동 처리, 실패해도 계속 진행)
-    await _registerFcmToken();
+    // 3. FCM 토큰 등록 (onPostLogin 콜백, 실패해도 계속 진행)
+    await AuthSdk.config.onPostLogin?.call();
 
     // 4. 성공 - 메인 화면으로 이동
     Get.offAllNamed(Routes.HOME);
@@ -369,9 +363,10 @@ Future<void> _handleSocialLogin({
 ```
 
 **설계 근거**:
-- 로그인 성공 직후 FCM 토큰 등록 시도
+- `AuthSdkConfig.onPostLogin` 콜백 패턴으로 SDK 간 의존성 제거
+- auth_sdk가 push 패키지에 직접 의존하지 않음 (SDK 독립성 원칙)
+- 로그인 성공 직후 콜백을 통해 FCM 토큰 등록 시도
 - 등록 실패 시 홈 화면 이동은 계속 진행 (조용한 실패)
-- PushService가 없어도 앱은 정상 동작
 
 ---
 
@@ -398,12 +393,11 @@ Future<void> logout({bool revokeAll = false}) async {
   } catch (_) {
     // 서버 로그아웃 실패해도 로컬 데이터는 삭제
   } finally {
-    // FCM 토큰 비활성화 (조용한 실패)
+    // FCM 토큰 비활성화 (onPreLogout 콜백, 조용한 실패)
     try {
-      final pushService = Get.find<PushService>();
-      await pushService.deactivateDeviceTokenOnServer();
+      await onPreLogout?.call();
     } catch (_) {
-      // PushService가 없거나 실패해도 무시
+      // 콜백 실패해도 무시
     }
 
     await _storageService.clearAll();
@@ -412,9 +406,10 @@ Future<void> logout({bool revokeAll = false}) async {
 ```
 
 **설계 근거**:
-- 로그아웃 시 FCM 토큰 비활성화 (서버 정책에 따라)
+- `onPreLogout` 콜백 패턴으로 SDK 간 의존성 제거
+- auth_sdk가 push 패키지에 직접 의존하지 않음 (SDK 독립성 원칙)
+- main.dart에서 콜백 주입: `onPreLogout: () async { pushService.deactivateDeviceTokenOnServer(); }`
 - 비활성화 실패해도 로그아웃은 계속 진행 (finally 블록)
-- PushService가 DI에 없어도 앱은 정상 동작
 
 ---
 
@@ -540,11 +535,11 @@ void main() async {
 - Upsert 방식: 동일 (userId, appId, token) 조합이면 업데이트
 - 인증 필수: Authorization Bearer 토큰
 
-### DELETE /api/push/devices/by-token — 토큰 기반 비활성화
+### POST /push/devices/deactivate — 토큰 기반 비활성화
 
 **Request**:
 ```json
-DELETE /api/push/devices/by-token
+POST /push/devices/deactivate
 Authorization: Bearer <jwt>
 Content-Type: application/json
 
@@ -859,7 +854,7 @@ try {
 - [ ] 로그인 성공 후 서버에 FCM 토큰 등록됨 (POST /api/push/devices 호출 확인)
 - [ ] 권한 거부 시 토큰 등록 건너뛰고 홈 화면 정상 이동
 - [ ] 토큰 갱신 시 서버에 자동 재등록됨 (Upsert 방식)
-- [ ] 로그아웃 시 서버에 토큰 비활성화 요청 전송 (DELETE /api/push/devices/by-token)
+- [ ] 로그아웃 시 서버에 토큰 비활성화 요청 전송 (POST /push/devices/deactivate)
 - [ ] 네트워크 오류 시 조용히 실패, 홈 화면 정상 이동
 - [ ] PushService 미등록 시에도 앱 정상 동작 (try-catch)
 
@@ -896,7 +891,7 @@ try {
 ### 서버 API
 
 - server-brief.md: `docs/wowa/fcm-token/server-brief.md`
-- API 엔드포인트: `POST /api/push/devices`, `DELETE /api/push/devices/by-token`
+- API 엔드포인트: `POST /push/devices`, `POST /push/devices/deactivate`
 
 ---
 
@@ -977,25 +972,9 @@ finally {
 
 ## 향후 개선 사항 (Phase 2)
 
-### 1. 디바이스 ID 획득 (device_info_plus)
+### 1. ~~디바이스 ID 획득 (device_info_plus)~~ ✅ 구현 완료
 
-**현재**: `_getDeviceId()` → null 반환
-
-**개선**:
-```dart
-import 'package:device_info_plus/device_info_plus.dart';
-
-Future<String?> _getDeviceId() async {
-  final deviceInfo = DeviceInfoPlugin();
-  if (Platform.isIOS) {
-    final iosInfo = await deviceInfo.iosInfo;
-    return iosInfo.identifierForVendor; // iOS UUID
-  } else {
-    final androidInfo = await deviceInfo.androidInfo;
-    return androidInfo.id; // Android ID
-  }
-}
-```
+`device_info_plus` 패키지를 사용하여 iOS `identifierForVendor`, Android `Build.ID`를 반환하도록 구현 완료.
 
 ### 2. 토큰 등록 재시도 큐
 
@@ -1056,5 +1035,5 @@ appLifecycleListener = AppLifecycleListener(
 
 1. Senior Developer가 PushService, PushApiClient, LoginController, AuthRepository 수정
 2. melos generate 실행 (Freezed 모델 재생성)
-3. 서버 API `DELETE /api/push/devices/by-token` 구현 확인
+3. 서버 API `POST /push/devices/deactivate` 구현 확인
 4. 통합 테스트: 로그인 → 토큰 등록 → 로그아웃 → 비활성화 검증

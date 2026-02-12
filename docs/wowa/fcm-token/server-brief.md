@@ -22,6 +22,7 @@ FCM 토큰 저장 기능의 서버 쪽 구현은 **이미 완료된 상태**입�
 | POST | `/push/devices` | ✅ | 디바이스 토큰 등록 (Upsert) | ✅ 완료 |
 | GET | `/push/devices` | ✅ | 사용자 디바이스 목록 조회 | ✅ 완료 |
 | DELETE | `/push/devices/:id` | ✅ | 디바이스 비활성화 (ID 기반) | ✅ 완료 |
+| POST | `/push/devices/deactivate` | ✅ | 디바이스 비활성화 (토큰 기반) | ✅ 완료 |
 | POST | `/push/send` | ✅ | 푸시 알림 발송 (관리자) | ✅ 완료 |
 | GET | `/push/notifications/me` | ✅ | 내 알림 목록 | ✅ 완료 |
 | GET | `/push/notifications/unread-count` | ✅ | 읽지 않은 알림 개수 | ✅ 완료 |
@@ -114,13 +115,13 @@ export const upsertDevice = async (data: {
 
 ## 추가 필요 API
 
-### DELETE /push/devices/by-token — 토큰 기반 비활성화
+### POST /push/devices/deactivate — 토큰 기반 비활성화
 
 **사용 시나리오**: 로그아웃 시 디바이스 ID를 모르는 경우
 
 **요청**:
 ```json
-DELETE /push/devices/by-token
+POST /push/devices/deactivate
 Authorization: Bearer <jwt>
 Content-Type: application/json
 
@@ -136,7 +137,6 @@ Content-Type: application/json
 
 **에러**:
 - 401 Unauthorized: JWT 없음/만료
-- 404 Not Found: 해당 토큰이 사용자에게 등록되지 않음
 
 **구현 위치**:
 - `apps/server/src/modules/push-alert/handlers.ts` — `deactivateDeviceByToken` 핸들러 추가
@@ -158,8 +158,8 @@ export const deactivateByToken = async (req: Request, res: Response) => {
 
   logger.debug({ userId, appId, tokenPrefix: token.slice(0, 20) }, 'Deactivating device by token');
 
-  // 토큰으로 비활성화 (이미 services.ts에 존재)
-  await deactivateDeviceByToken(token, appId);
+  // 토큰으로 비활성화 (userId 소유권 검증 포함)
+  await deactivateDeviceByToken(token, appId, userId);
 
   // 로그 (비활성화된 디바이스가 없어도 204 반환)
   pushProbe.deviceDeactivatedByToken({
@@ -183,15 +183,15 @@ export const deactivateByTokenSchema = z.object({
 ```typescript
 /**
  * 토큰으로 디바이스 비활성화 (인증 필요)
- * @route DELETE /push/devices/by-token
+ * @route POST /push/devices/deactivate
  * @body { token: string }
  * @returns 204: No Content
  */
-router.delete('/devices/by-token', authenticate, handlers.deactivateByToken);
+router.post('/devices/deactivate', authenticate, handlers.deactivateByToken);
 ```
 
 **주의**:
-- 기존 `DELETE /push/devices/:id` 엔드포인트와 충돌 방지 위해 `/devices/by-token` 경로 사용
+- `POST /push/devices/deactivate` 경로 사용 (HTTP 스펙상 DELETE body 처리가 비표준이므로 POST 채택)
 - `deactivateDeviceByToken` 서비스 함수는 이미 존재 (services.ts:123)
 - 해당 토큰이 사용자에게 속하지 않아도 조용히 성공 (멱등성 보장, 보안상 정보 노출 방지)
 
@@ -330,7 +330,7 @@ Authorization: Bearer <jwt>
 **방법 2: 토큰 기반 (신규 API, 권장)**
 ```dart
 // 디바이스 ID를 몰라도 됨
-DELETE /push/devices/by-token
+POST /push/devices/deactivate
 Authorization: Bearer <jwt>
 Body: { "token": "FCM_DEVICE_TOKEN" }
 ```
@@ -395,7 +395,7 @@ Body: { "token": "FCM_DEVICE_TOKEN" }
 - `POST /push/devices`
 - `GET /push/devices`
 - `DELETE /push/devices/:id`
-- `DELETE /push/devices/by-token` (신규)
+- `POST /push/devices/deactivate` (신규)
 
 ### 권한 검증
 
@@ -408,11 +408,11 @@ if (!device) {
 }
 ```
 
-**신규 DELETE /push/devices/by-token**:
+**신규 POST /push/devices/deactivate**:
 ```typescript
-// appId로만 필터링 (같은 앱 내에서만 비활성화)
-await deactivateDeviceByToken(token, appId);
-// userId 검증 없음 (토큰이 여러 사용자에게 등록될 수 없으므로 안전)
+// userId + appId로 필터링 (소유권 검증)
+await deactivateDeviceByToken(token, appId, userId);
+// userId 검증 추가 (보안 강화: 자신의 디바이스만 비활성화 가능)
 ```
 
 ### 토큰 로깅 정책
@@ -484,7 +484,7 @@ if (result.invalidTokens.length > 0) {
 
 4. **index.ts** — 라우터 등록
    ```typescript
-   router.delete('/devices/by-token', authenticate, handlers.deactivateByToken);
+   router.post('/devices/deactivate', authenticate, handlers.deactivateByToken);
    ```
 
 5. **테스트** — `tests/unit/push-alert/handlers.test.ts`
@@ -497,7 +497,7 @@ if (result.invalidTokens.length > 0) {
 모바일 팀이 담당:
 - 로그인 후 `POST /push/devices` 호출
 - 토큰 갱신 시 재등록
-- 로그아웃 시 `DELETE /push/devices/by-token` 호출
+- 로그아웃 시 `POST /push/devices/deactivate` 호출
 
 ---
 
@@ -507,7 +507,7 @@ if (result.invalidTokens.length > 0) {
 - [x] 디바이스 토큰 등록 API (Upsert 방식)
 - [x] 디바이스 목록 조회 API
 - [x] 디바이스 비활성화 API (ID 기반)
-- [ ] **디바이스 비활성화 API (토큰 기반)** — 추가 필요
+- [x] **디바이스 비활성화 API (토큰 기반)** — POST /push/devices/deactivate로 구현 완료
 - [x] 푸시 발송 API
 - [x] 무효 토큰 자동 비활성화
 - [x] 유니크 제약 (userId, appId, token)
@@ -522,9 +522,9 @@ if (result.invalidTokens.length > 0) {
 - [x] 로깅 정책 (토큰 앞 20자만)
 
 ### 모바일 연동 준비
-- [ ] 토큰 기반 비활성화 API 추가
-- [ ] API 문서 업데이트
-- [ ] 모바일 팀 공유
+- [x] 토큰 기반 비활성화 API 추가 (POST /push/devices/deactivate)
+- [x] API 문서 업데이트
+- [x] 모바일 팀 공유
 
 ---
 
