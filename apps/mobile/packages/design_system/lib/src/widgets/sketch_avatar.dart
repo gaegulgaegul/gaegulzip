@@ -197,7 +197,7 @@ class SketchAvatar extends StatelessWidget {
           );
 
     return ClipPath(
-      clipper: _SketchClipper(clippingPath),
+      clipper: _SketchClipper(clippingPath, seed: seed),
       child: _buildAvatarContent(context, config),
     );
   }
@@ -402,14 +402,17 @@ class _SizeConfig {
 }
 
 /// ClipPath용 CustomClipper.
+/// seed 비교를 통해 이미지/이니셜 변경 시 클리핑 경로를 갱신한다.
 class _SketchClipper extends CustomClipper<Path> {
   final Path path;
+  final int seed;
 
-  _SketchClipper(this.path);
+  _SketchClipper(this.path, {required this.seed});
 
   @override
   Path getClip(Size size) => path;
 
   @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(covariant _SketchClipper oldClipper) =>
+      seed != oldClipper.seed;
 }
