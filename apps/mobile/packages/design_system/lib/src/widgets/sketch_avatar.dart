@@ -92,6 +92,9 @@ class SketchAvatar extends StatelessWidget {
   /// 탭 콜백 (선택)
   final VoidCallback? onTap;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchAvatar({
     super.key,
     this.imageUrl,
@@ -105,6 +108,7 @@ class SketchAvatar extends StatelessWidget {
     this.borderColor,
     this.strokeWidth,
     this.onTap,
+    this.showBorder = true,
   });
 
   @override
@@ -136,10 +140,12 @@ class SketchAvatar extends StatelessWidget {
       width: size.size,
       height: size.size,
       decoration: BoxDecoration(
-        border: Border.all(
-          color: effectiveBorderColor,
-          width: effectiveStrokeWidth,
-        ),
+        border: showBorder
+            ? Border.all(
+                color: effectiveBorderColor,
+                width: effectiveStrokeWidth,
+              )
+            : null,
         shape: shape == SketchAvatarShape.circle
             ? BoxShape.circle
             : BoxShape.rectangle,

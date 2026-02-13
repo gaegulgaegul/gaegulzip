@@ -108,6 +108,9 @@ class SketchChip extends StatefulWidget {
   /// 라벨과 닫기 버튼 사이 간격.
   final double deleteSpacing;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchChip({
     super.key,
     required this.label,
@@ -126,6 +129,7 @@ class SketchChip extends StatefulWidget {
     ),
     this.iconSpacing = 6.0,
     this.deleteSpacing = 6.0,
+    this.showBorder = true,
   });
 
   @override
@@ -151,10 +155,12 @@ class _SketchChipState extends State<SketchChip> {
         child: Container(
           decoration: BoxDecoration(
             color: colorSpec.fillColor,
-            border: Border.all(
-              color: colorSpec.borderColor,
-              width: colorSpec.strokeWidth,
-            ),
+            border: widget.showBorder
+                ? Border.all(
+                    color: colorSpec.borderColor,
+                    width: colorSpec.strokeWidth,
+                  )
+                : null,
             borderRadius: BorderRadius.circular(100),
           ),
           padding: widget.padding,
@@ -218,12 +224,14 @@ class _SketchChipState extends State<SketchChip> {
   }
 
   _ColorSpec _getColorSpec(SketchThemeExtension? theme) {
+    final textColor = theme?.textColor ?? SketchDesignTokens.base900;
+
     // 커스텀 색상이 모든 것을 오버라이드함
     if (widget.fillColor != null || widget.borderColor != null || widget.labelColor != null) {
       return _ColorSpec(
         fillColor: widget.fillColor ?? Colors.transparent,
         borderColor: widget.borderColor ?? SketchDesignTokens.base300,
-        labelColor: widget.labelColor ?? SketchDesignTokens.base900,
+        labelColor: widget.labelColor ?? textColor,
         strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
       );
     }
@@ -231,18 +239,18 @@ class _SketchChipState extends State<SketchChip> {
     // 선택된 상태 — Frame0 스타일: 검정 fill
     if (widget.selected) {
       return _ColorSpec(
-        fillColor: SketchDesignTokens.base900,
-        borderColor: SketchDesignTokens.base900,
+        fillColor: textColor,
+        borderColor: textColor,
         labelColor: Colors.white,
         strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
       );
     }
 
-    // 일반 상태 — Frame0 스타일: 흰 fill + 어두운 테두리
+    // 일반 상태 — Frame0 스타일: fill + 어두운 테두리
     return _ColorSpec(
       fillColor: theme?.fillColor ?? SketchDesignTokens.white,
       borderColor: theme?.borderColor ?? SketchDesignTokens.base900,
-      labelColor: SketchDesignTokens.base900,
+      labelColor: textColor,
       strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
     );
   }

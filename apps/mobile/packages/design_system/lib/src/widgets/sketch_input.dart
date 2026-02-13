@@ -147,6 +147,9 @@ class SketchInput extends StatefulWidget {
   /// 커스텀 스트로크 너비.
   final double? strokeWidth;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchInput({
     super.key,
     this.label,
@@ -174,6 +177,7 @@ class SketchInput extends StatefulWidget {
     this.fillColor,
     this.borderColor,
     this.strokeWidth,
+    this.showBorder = true,
   });
 
   @override
@@ -229,7 +233,7 @@ class _SketchInputState extends State<SketchInput> {
               fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
               fontSize: SketchDesignTokens.fontSizeSm,
               fontWeight: FontWeight.w500,
-              color: hasError ? SketchDesignTokens.error : SketchDesignTokens.base900,
+              color: hasError ? SketchDesignTokens.error : (sketchTheme?.textColor ?? SketchDesignTokens.base900),
             ),
           ),
           const SizedBox(height: 6),
@@ -240,10 +244,12 @@ class _SketchInputState extends State<SketchInput> {
           height: _calculateHeight(),
           decoration: BoxDecoration(
             color: colorSpec.fillColor,
-            border: Border.all(
-              color: colorSpec.borderColor,
-              width: colorSpec.strokeWidth,
-            ),
+            border: widget.showBorder
+                ? Border.all(
+                    color: colorSpec.borderColor,
+                    width: colorSpec.strokeWidth,
+                  )
+                : null,
             borderRadius: BorderRadius.circular(6),
           ),
           padding: const EdgeInsets.symmetric(
@@ -331,7 +337,7 @@ class _SketchInputState extends State<SketchInput> {
               fontFamily: SketchDesignTokens.fontFamilyHand,
               fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
               fontSize: SketchDesignTokens.fontSizeXs,
-              color: hasError ? SketchDesignTokens.error : SketchDesignTokens.base600,
+              color: hasError ? SketchDesignTokens.error : (sketchTheme?.textSecondaryColor ?? SketchDesignTokens.base600),
             ),
           ),
         ],
@@ -359,34 +365,38 @@ class _SketchInputState extends State<SketchInput> {
   }) {
     if (isDisabled) {
       return _ColorSpec(
-        fillColor: SketchDesignTokens.base100,
-        borderColor: SketchDesignTokens.base300,
-        textColor: SketchDesignTokens.base500,
-        hintColor: SketchDesignTokens.base400,
-        iconColor: SketchDesignTokens.base400,
+        fillColor: theme?.disabledFillColor ?? SketchDesignTokens.base100,
+        borderColor: theme?.disabledBorderColor ?? SketchDesignTokens.base300,
+        textColor: theme?.disabledTextColor ?? SketchDesignTokens.base500,
+        hintColor: theme?.disabledTextColor ?? SketchDesignTokens.base400,
+        iconColor: theme?.disabledTextColor ?? SketchDesignTokens.base400,
         strokeWidth: SketchDesignTokens.strokeStandard,
       );
     }
+
+    final effectiveTextColor = theme?.textColor ?? SketchDesignTokens.base900;
+    final effectiveHintColor = theme?.textSecondaryColor ?? SketchDesignTokens.base500;
+    final effectiveIconColor = theme?.iconColor ?? SketchDesignTokens.base600;
 
     if (hasError) {
       return _ColorSpec(
         fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
         borderColor: SketchDesignTokens.error,
-        textColor: SketchDesignTokens.base900,
-        hintColor: SketchDesignTokens.base500,
+        textColor: effectiveTextColor,
+        hintColor: effectiveHintColor,
         iconColor: SketchDesignTokens.error,
         strokeWidth: SketchDesignTokens.strokeBold,
       );
     }
 
     if (isFocused) {
-      // Frame0 스타일: 포커스 시 굵은 검정 테두리
+      // Frame0 스타일: 포커스 시 굵은 테두리
       return _ColorSpec(
         fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
-        borderColor: widget.borderColor ?? SketchDesignTokens.black,
-        textColor: SketchDesignTokens.base900,
-        hintColor: SketchDesignTokens.base500,
-        iconColor: SketchDesignTokens.base900,
+        borderColor: widget.borderColor ?? theme?.focusBorderColor ?? SketchDesignTokens.black,
+        textColor: effectiveTextColor,
+        hintColor: effectiveHintColor,
+        iconColor: effectiveTextColor,
         strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeBold,
       );
     }
@@ -395,9 +405,9 @@ class _SketchInputState extends State<SketchInput> {
     return _ColorSpec(
       fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
       borderColor: widget.borderColor ?? theme?.borderColor ?? SketchDesignTokens.base900,
-      textColor: SketchDesignTokens.base900,
-      hintColor: SketchDesignTokens.base500,
-      iconColor: SketchDesignTokens.base600,
+      textColor: effectiveTextColor,
+      hintColor: effectiveHintColor,
+      iconColor: effectiveIconColor,
       strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
     );
   }

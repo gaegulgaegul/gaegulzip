@@ -110,6 +110,9 @@ class SketchProgressBar extends StatefulWidget {
   /// Circular: 중앙 텍스트 (showPercentage가 false일 때만 사용)
   final String? centerText;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchProgressBar({
     super.key,
     this.value,
@@ -124,6 +127,7 @@ class SketchProgressBar extends StatefulWidget {
     this.seed = 0,
     this.showPercentage = false,
     this.centerText,
+    this.showBorder = true,
   }) : assert(value == null || (value >= 0.0 && value <= 1.0), 'value는 0.0~1.0 사이여야 함');
 
   @override
@@ -192,6 +196,7 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
         effectiveBorderColor,
         effectiveStrokeWidth,
         effectiveRoughness,
+        sketchTheme,
       );
     }
   }
@@ -210,10 +215,12 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
           Container(
             decoration: BoxDecoration(
               color: backgroundColor,
-              border: Border.all(
-                color: borderColor,
-                width: strokeWidth,
-              ),
+              border: widget.showBorder
+                  ? Border.all(
+                      color: borderColor,
+                      width: strokeWidth,
+                    )
+                  : null,
               borderRadius: BorderRadius.circular(widget.height / 2),
             ),
           ),
@@ -260,6 +267,7 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
     Color borderColor,
     double strokeWidth,
     double roughness,
+    SketchThemeExtension? sketchTheme,
   ) {
     final effectiveSize = widget.size ?? 80.0;
 
@@ -275,10 +283,12 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
             height: effectiveSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: backgroundColor,
-                width: widget.height,
-              ),
+              border: widget.showBorder
+                  ? Border.all(
+                      color: backgroundColor,
+                      width: widget.height,
+                    )
+                  : null,
             ),
           ),
 
@@ -325,18 +335,18 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
           if (widget.showPercentage && widget.value != null)
             Text(
               '${(widget.value! * 100).toInt()}%',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: SketchDesignTokens.fontSizeBase,
                 fontWeight: FontWeight.w600,
-                color: SketchDesignTokens.base900,
+                color: sketchTheme?.textColor ?? SketchDesignTokens.base900,
               ),
             )
           else if (widget.centerText != null)
             Text(
               widget.centerText!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: SketchDesignTokens.fontSizeSm,
-                color: SketchDesignTokens.base700,
+                color: sketchTheme?.textSecondaryColor ?? SketchDesignTokens.base700,
               ),
             ),
         ],

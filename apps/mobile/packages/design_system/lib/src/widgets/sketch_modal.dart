@@ -100,6 +100,7 @@ class SketchModal {
     double? strokeWidth,
     double? roughness,
     int seed = 0,
+    bool showBorder = true,
   }) {
     return showDialog<T>(
       context: context,
@@ -116,6 +117,7 @@ class SketchModal {
         strokeWidth: strokeWidth,
         roughness: roughness,
         seed: seed,
+        showBorder: showBorder,
       ),
     );
   }
@@ -134,6 +136,7 @@ class _SketchModalDialog extends StatefulWidget {
   final double? strokeWidth;
   final double? roughness;
   final int seed;
+  final bool showBorder;
 
   const _SketchModalDialog({
     this.title,
@@ -147,6 +150,7 @@ class _SketchModalDialog extends StatefulWidget {
     this.strokeWidth,
     this.roughness,
     this.seed = 0,
+    this.showBorder = true,
   });
 
   @override
@@ -211,10 +215,12 @@ class _SketchModalDialogState extends State<_SketchModalDialog> with SingleTicke
             child: Container(
               decoration: BoxDecoration(
                 color: effectiveFillColor,
-                border: Border.all(
-                  color: effectiveBorderColor,
-                  width: effectiveStrokeWidth,
-                ),
+                border: widget.showBorder
+                    ? Border.all(
+                        color: effectiveBorderColor,
+                        width: effectiveStrokeWidth,
+                      )
+                    : null,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Padding(
@@ -254,6 +260,8 @@ class _SketchModalDialogState extends State<_SketchModalDialog> with SingleTicke
   }
 
   Widget _buildHeader(BuildContext context) {
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
+
     return Row(
       children: [
         // 제목
@@ -261,10 +269,10 @@ class _SketchModalDialogState extends State<_SketchModalDialog> with SingleTicke
           Expanded(
             child: Text(
               widget.title!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: SketchDesignTokens.fontSizeLg,
                 fontWeight: FontWeight.w600,
-                color: SketchDesignTokens.base900,
+                color: sketchTheme?.textColor ?? SketchDesignTokens.base900,
               ),
             ),
           ),
@@ -305,6 +313,8 @@ class _SketchCloseButtonState extends State<_SketchCloseButton> {
 
   @override
   Widget build(BuildContext context) {
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) {
@@ -320,14 +330,14 @@ class _SketchCloseButtonState extends State<_SketchCloseButton> {
           height: 32,
           child: Container(
             decoration: BoxDecoration(
-              color: _isPressed ? SketchDesignTokens.base200 : Colors.transparent,
+              color: _isPressed ? (sketchTheme?.disabledFillColor ?? SketchDesignTokens.base200) : Colors.transparent,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: const Center(
+            child: Center(
               child: Icon(
                 Icons.close,
                 size: 18,
-                color: SketchDesignTokens.base700,
+                color: sketchTheme?.iconColor ?? SketchDesignTokens.base700,
               ),
             ),
           ),

@@ -136,7 +136,7 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final theme = SketchThemeExtension.maybeOf(context);
     final effectiveBgColor = backgroundColor ?? theme?.fillColor ?? SketchDesignTokens.white;
-    final effectiveFgColor = foregroundColor ?? SketchDesignTokens.textPrimary;
+    final effectiveFgColor = foregroundColor ?? theme?.textColor ?? SketchDesignTokens.textPrimary;
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     Widget appBarContent = Container(

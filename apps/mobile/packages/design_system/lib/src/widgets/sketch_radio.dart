@@ -1,6 +1,8 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../theme/sketch_theme_extension.dart';
+
 /// 손그림 스타일 라디오 버튼 위젯
 ///
 /// Frame0 스타일의 라디오 버튼.
@@ -161,8 +163,9 @@ class _SketchRadioState<T> extends State<SketchRadio<T>> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
     final effectiveActiveColor = widget.activeColor ?? SketchDesignTokens.accentPrimary;
-    final effectiveInactiveColor = widget.inactiveColor ?? SketchDesignTokens.base700;
+    final effectiveInactiveColor = widget.inactiveColor ?? sketchTheme?.iconColor ?? SketchDesignTokens.base700;
 
     return Opacity(
       opacity: _isDisabled ? SketchDesignTokens.opacityDisabled : 1.0,
@@ -215,10 +218,10 @@ class _SketchRadioState<T> extends State<SketchRadio<T>> with SingleTickerProvid
                   fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                   fontSize: SketchDesignTokens.fontSizeBase,
                   color: _isDisabled
-                      ? SketchDesignTokens.textDisabled
+                      ? (sketchTheme?.disabledTextColor ?? SketchDesignTokens.textDisabled)
                       : (_isSelected
-                          ? SketchDesignTokens.textPrimary
-                          : SketchDesignTokens.textSecondary),
+                          ? (sketchTheme?.textColor ?? SketchDesignTokens.textPrimary)
+                          : (sketchTheme?.textSecondaryColor ?? SketchDesignTokens.textSecondary)),
                 ),
               ),
             ],

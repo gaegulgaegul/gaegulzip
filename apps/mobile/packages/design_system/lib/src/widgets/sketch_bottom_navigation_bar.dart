@@ -92,6 +92,9 @@ class SketchBottomNavigationBar extends StatelessWidget {
   /// 라벨 표시 모드.
   final SketchNavLabelBehavior labelBehavior;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchBottomNavigationBar({
     super.key,
     required this.items,
@@ -101,6 +104,7 @@ class SketchBottomNavigationBar extends StatelessWidget {
     this.selectedColor,
     this.unselectedColor,
     this.labelBehavior = SketchNavLabelBehavior.onlyShowSelected,
+    this.showBorder = true,
   }) : assert(
           items.length >= 2 && items.length <= 5,
           '네비게이션 바는 2~5개 항목을 권장합니다',
@@ -110,18 +114,20 @@ class SketchBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = SketchThemeExtension.of(context);
     final effectiveSelectedColor = selectedColor ?? SketchDesignTokens.accentPrimary;
-    final effectiveUnselectedColor = unselectedColor ?? SketchDesignTokens.base700;
+    final effectiveUnselectedColor = unselectedColor ?? theme.textSecondaryColor;
 
     return Container(
       height: height,
       decoration: BoxDecoration(
         color: theme.fillColor,
-        border: Border(
-          top: BorderSide(
-            color: theme.borderColor,
-            width: 1.0,
-          ),
-        ),
+        border: showBorder
+            ? Border(
+                top: BorderSide(
+                  color: theme.borderColor,
+                  width: 1.0,
+                ),
+              )
+            : null,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -134,6 +140,7 @@ class SketchBottomNavigationBar extends StatelessWidget {
             isSelected: isSelected,
             selectedColor: effectiveSelectedColor,
             unselectedColor: effectiveUnselectedColor,
+            badgeBorderColor: theme.fillColor,
             showLabel: _shouldShowLabel(index),
             onTap: () => onTap(index),
           );
@@ -160,6 +167,7 @@ class SketchBottomNavigationBar extends StatelessWidget {
     required bool isSelected,
     required Color selectedColor,
     required Color unselectedColor,
+    required Color badgeBorderColor,
     required bool showLabel,
     required VoidCallback onTap,
   }) {
@@ -193,7 +201,7 @@ class SketchBottomNavigationBar extends StatelessWidget {
                       Positioned(
                         right: -4,
                         top: -4,
-                        child: _buildBadge(item.badgeCount!),
+                        child: _buildBadge(item.badgeCount!, badgeBorderColor),
                       ),
                   ],
                 ),
@@ -221,7 +229,7 @@ class SketchBottomNavigationBar extends StatelessWidget {
   }
 
   /// 배지를 빌드함.
-  Widget _buildBadge(int count) {
+  Widget _buildBadge(int count, Color backgroundColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       constraints: const BoxConstraints(
@@ -232,7 +240,7 @@ class SketchBottomNavigationBar extends StatelessWidget {
         color: SketchDesignTokens.error,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: SketchDesignTokens.white,
+          color: backgroundColor,
           width: 1.5,
         ),
       ),

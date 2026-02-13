@@ -92,6 +92,9 @@ class SketchCheckbox extends StatefulWidget {
   /// 랜덤 시드
   final int seed;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchCheckbox({
     super.key,
     required this.value,
@@ -104,6 +107,7 @@ class SketchCheckbox extends StatefulWidget {
     this.strokeWidth,
     this.roughness,
     this.seed = 0,
+    this.showBorder = true,
   }) : assert(tristate || value != null, 'value는 tristate가 true일 때만 null 가능');
 
   @override
@@ -179,7 +183,7 @@ class _SketchCheckboxState extends State<SketchCheckbox> with SingleTickerProvid
     final sketchTheme = SketchThemeExtension.maybeOf(context);
     final isDisabled = widget.onChanged == null;
 
-    final effectiveActiveColor = widget.activeColor ?? SketchDesignTokens.base900;
+    final effectiveActiveColor = widget.activeColor ?? sketchTheme?.textColor ?? SketchDesignTokens.base900;
     final effectiveInactiveColor = widget.inactiveColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveCheckColor = widget.checkColor ?? Colors.white;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
@@ -213,10 +217,12 @@ class _SketchCheckboxState extends State<SketchCheckbox> with SingleTickerProvid
                   Container(
                     decoration: BoxDecoration(
                       color: backgroundColor,
-                      border: Border.all(
-                        color: borderColor,
-                        width: effectiveStrokeWidth,
-                      ),
+                      border: widget.showBorder
+                          ? Border.all(
+                              color: borderColor,
+                              width: effectiveStrokeWidth,
+                            )
+                          : null,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),

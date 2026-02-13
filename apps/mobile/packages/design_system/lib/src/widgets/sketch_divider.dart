@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
 import '../painters/sketch_line_painter.dart';
+import '../theme/sketch_theme_extension.dart';
 
 /// 콘텐츠 영역을 구분하는 수평/수직 구분선.
 ///
@@ -122,7 +123,8 @@ class SketchDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = color ?? SketchDesignTokens.base300;
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
+    final effectiveColor = color ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
 
     Widget divider;
 

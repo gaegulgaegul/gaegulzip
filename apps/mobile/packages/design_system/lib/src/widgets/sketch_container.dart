@@ -85,6 +85,9 @@ class SketchContainer extends StatelessWidget {
   /// 컨테이너 내 자식의 정렬.
   final AlignmentGeometry? alignment;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   /// 스케치 스타일 컨테이너를 생성함.
   ///
   /// 모든 스타일 속성은 선택 사항이며 지정하지 않으면 테마 값
@@ -100,6 +103,7 @@ class SketchContainer extends StatelessWidget {
     this.strokeWidth,
     this.margin,
     this.alignment,
+    this.showBorder = true,
   });
 
   @override
@@ -118,10 +122,12 @@ class SketchContainer extends StatelessWidget {
       margin: margin,
       decoration: BoxDecoration(
         color: effectiveFillColor,
-        border: Border.all(
-          color: effectiveBorderColor,
-          width: effectiveStrokeWidth,
-        ),
+        border: showBorder
+            ? Border.all(
+                color: effectiveBorderColor,
+                width: effectiveStrokeWidth,
+              )
+            : null,
         borderRadius: BorderRadius.circular(6),
       ),
       padding: effectivePadding,

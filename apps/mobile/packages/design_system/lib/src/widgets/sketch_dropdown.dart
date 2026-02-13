@@ -77,6 +77,9 @@ class SketchDropdown<T> extends StatefulWidget {
   /// 선 두께
   final double? strokeWidth;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchDropdown({
     super.key,
     this.value,
@@ -88,6 +91,7 @@ class SketchDropdown<T> extends StatefulWidget {
     this.fillColor,
     this.borderColor,
     this.strokeWidth,
+    this.showBorder = true,
   });
 
   @override
@@ -137,6 +141,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
     final effectiveFillColor = widget.fillColor ?? sketchTheme?.fillColor ?? Colors.white;
     final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
+    final effectiveTextColor = sketchTheme?.textColor ?? SketchDesignTokens.base900;
 
     // 외부 탭 감지용 투명 barrier
     _barrierEntry = OverlayEntry(
@@ -161,10 +166,12 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
               child: Container(
                 decoration: BoxDecoration(
                   color: effectiveFillColor,
-                  border: Border.all(
-                    color: effectiveBorderColor,
-                    width: effectiveStrokeWidth,
-                  ),
+                  border: widget.showBorder
+                      ? Border.all(
+                          color: effectiveBorderColor,
+                          width: effectiveStrokeWidth,
+                        )
+                      : null,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: ListView.builder(
@@ -186,7 +193,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                           horizontal: SketchDesignTokens.spacingMd,
                         ),
                         color: isSelected
-                            ? SketchDesignTokens.base900.withValues(alpha: 0.08)
+                            ? effectiveTextColor.withValues(alpha: 0.08)
                             : Colors.transparent,
                         child: Align(
                           alignment: Alignment.centerLeft,
@@ -198,7 +205,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                                     fontFamily: SketchDesignTokens.fontFamilyHand,
                                     fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                                     fontSize: SketchDesignTokens.fontSizeBase,
-                                    color: SketchDesignTokens.base900,
+                                    color: effectiveTextColor,
                                     fontWeight: isSelected
                                         ? FontWeight.w600
                                         : FontWeight.w400,
@@ -231,6 +238,9 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
     final effectiveFillColor = widget.fillColor ?? sketchTheme?.fillColor ?? Colors.white;
     final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
+    final buildTextColor = sketchTheme?.textColor ?? SketchDesignTokens.base900;
+    final buildHintColor = sketchTheme?.textSecondaryColor ?? SketchDesignTokens.base500;
+    final buildIconColor = sketchTheme?.iconColor ?? SketchDesignTokens.base700;
 
     return Opacity(
       opacity: isDisabled ? SketchDesignTokens.opacityDisabled : 1.0,
@@ -243,10 +253,12 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
             child: Container(
               decoration: BoxDecoration(
                 color: effectiveFillColor,
-                border: Border.all(
-                  color: effectiveBorderColor,
-                  width: effectiveStrokeWidth,
-                ),
+                border: widget.showBorder
+                    ? Border.all(
+                        color: effectiveBorderColor,
+                        width: effectiveStrokeWidth,
+                      )
+                    : null,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Padding(
@@ -261,26 +273,26 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                               ? widget.itemBuilder!(widget.value as T)
                               : Text(
                                   widget.value.toString(),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: SketchDesignTokens.fontFamilyHand,
                                     fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                                     fontSize: SketchDesignTokens.fontSizeBase,
-                                    color: SketchDesignTokens.base900,
+                                    color: buildTextColor,
                                   ),
                                 ))
                           : Text(
                               widget.hint ?? '',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: SketchDesignTokens.fontFamilyHand,
                                 fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                                 fontSize: SketchDesignTokens.fontSizeBase,
-                                color: SketchDesignTokens.base500,
+                                color: buildHintColor,
                               ),
                             ),
                     ),
                     Icon(
                       _isOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                      color: SketchDesignTokens.base700,
+                      color: buildIconColor,
                     ),
                   ],
                 ),

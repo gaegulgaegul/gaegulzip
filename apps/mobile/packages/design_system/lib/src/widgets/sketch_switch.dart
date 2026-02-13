@@ -145,7 +145,7 @@ class _SketchSwitchState extends State<SketchSwitch> with SingleTickerProviderSt
     final sketchTheme = SketchThemeExtension.maybeOf(context);
     final isDisabled = widget.onChanged == null;
 
-    final effectiveActiveColor = widget.activeColor ?? SketchDesignTokens.base900;
+    final effectiveActiveColor = widget.activeColor ?? sketchTheme?.textColor ?? SketchDesignTokens.base900;
     final effectiveInactiveColor = widget.inactiveColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveThumbColor = widget.thumbColor ?? Colors.white;
 

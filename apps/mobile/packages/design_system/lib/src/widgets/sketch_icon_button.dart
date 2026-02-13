@@ -105,6 +105,9 @@ class SketchIconButton extends StatefulWidget {
   /// 테두리의 스트로크 너비.
   final double? strokeWidth;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchIconButton({
     super.key,
     required this.icon,
@@ -118,6 +121,7 @@ class SketchIconButton extends StatefulWidget {
     this.fillColor,
     this.borderColor,
     this.strokeWidth,
+    this.showBorder = true,
   });
 
   @override
@@ -135,7 +139,7 @@ class _SketchIconButtonState extends State<SketchIconButton> {
     final effectiveFillColor = widget.fillColor ?? sketchTheme?.fillColor ?? Colors.transparent;
     final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
-    final effectiveIconColor = widget.iconColor ?? SketchDesignTokens.base900;
+    final effectiveIconColor = widget.iconColor ?? sketchTheme?.iconColor ?? SketchDesignTokens.base900;
 
     final button = Opacity(
       opacity: isDisabled ? SketchDesignTokens.opacityDisabled : 1.0,
@@ -162,10 +166,12 @@ class _SketchIconButtonState extends State<SketchIconButton> {
                 Container(
                   decoration: BoxDecoration(
                     color: effectiveFillColor,
-                    border: Border.all(
-                      color: effectiveBorderColor,
-                      width: effectiveStrokeWidth,
-                    ),
+                    border: widget.showBorder
+                        ? Border.all(
+                            color: effectiveBorderColor,
+                            width: effectiveStrokeWidth,
+                          )
+                        : null,
                     shape: widget.shape == SketchIconButtonShape.circle
                         ? BoxShape.circle
                         : BoxShape.rectangle,
@@ -177,7 +183,7 @@ class _SketchIconButtonState extends State<SketchIconButton> {
                     child: Icon(
                       widget.icon,
                       size: widget.iconSize,
-                      color: isDisabled ? SketchDesignTokens.base500 : effectiveIconColor,
+                      color: isDisabled ? (sketchTheme?.disabledTextColor ?? SketchDesignTokens.base500) : effectiveIconColor,
                     ),
                   ),
                 ),

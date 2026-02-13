@@ -78,6 +78,9 @@ class SketchTabBar extends StatelessWidget {
   /// 비선택 탭 색상 (null이면 base700 사용).
   final Color? unselectedColor;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchTabBar({
     super.key,
     required this.tabs,
@@ -87,6 +90,7 @@ class SketchTabBar extends StatelessWidget {
     this.height = 48.0,
     this.selectedColor,
     this.unselectedColor,
+    this.showBorder = true,
   }) : assert(
           tabs.length >= 2 && tabs.length <= 5,
           'TabBar는 2~5개 탭만 지원합니다',
@@ -100,18 +104,20 @@ class SketchTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = SketchThemeExtension.of(context);
     final effectiveSelectedColor = selectedColor ?? SketchDesignTokens.accentPrimary;
-    final effectiveUnselectedColor = unselectedColor ?? SketchDesignTokens.base700;
+    final effectiveUnselectedColor = unselectedColor ?? theme.textSecondaryColor;
 
     return Container(
       height: height,
       decoration: BoxDecoration(
         color: theme.fillColor,
-        border: Border(
-          bottom: BorderSide(
-            color: theme.borderColor,
-            width: 1.0,
-          ),
-        ),
+        border: showBorder
+            ? Border(
+                bottom: BorderSide(
+                  color: theme.borderColor,
+                  width: 1.0,
+                ),
+              )
+            : null,
       ),
       child: Row(
         children: List.generate(tabs.length, (index) {
@@ -124,6 +130,7 @@ class SketchTabBar extends StatelessWidget {
               isSelected: isSelected,
               selectedColor: effectiveSelectedColor,
               unselectedColor: effectiveUnselectedColor,
+              badgeBorderColor: theme.fillColor,
               onTap: () => onTap(index),
             ),
           );
@@ -138,6 +145,7 @@ class SketchTabBar extends StatelessWidget {
     required bool isSelected,
     required Color selectedColor,
     required Color unselectedColor,
+    required Color badgeBorderColor,
     required VoidCallback onTap,
   }) {
     final color = isSelected ? selectedColor : unselectedColor;
@@ -164,7 +172,7 @@ class SketchTabBar extends StatelessWidget {
                       Positioned(
                         right: -6,
                         top: -6,
-                        child: _buildBadge(tab.badgeCount!),
+                        child: _buildBadge(tab.badgeCount!, badgeBorderColor),
                       ),
                   ],
                 ),
@@ -224,7 +232,7 @@ class SketchTabBar extends StatelessWidget {
   }
 
   /// 배지를 빌드함.
-  Widget _buildBadge(int count) {
+  Widget _buildBadge(int count, Color backgroundColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       constraints: const BoxConstraints(
@@ -235,7 +243,7 @@ class SketchTabBar extends StatelessWidget {
         color: SketchDesignTokens.error,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: SketchDesignTokens.white,
+          color: backgroundColor,
           width: 1.0,
         ),
       ),

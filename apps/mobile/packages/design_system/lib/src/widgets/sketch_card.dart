@@ -115,6 +115,9 @@ class SketchCard extends StatefulWidget {
   /// 카드 주위의 여백 (스케치 테두리 외부).
   final EdgeInsetsGeometry? margin;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchCard({
     super.key,
     this.header,
@@ -131,6 +134,7 @@ class SketchCard extends StatefulWidget {
     this.width,
     this.height,
     this.margin,
+    this.showBorder = true,
   }) : assert(elevation >= 0 && elevation <= 3, 'Elevation must be between 0 and 3');
 
   @override
@@ -159,10 +163,12 @@ class _SketchCardState extends State<SketchCard> {
       margin: widget.margin,
       decoration: BoxDecoration(
         color: effectiveFillColor,
-        border: Border.all(
-          color: effectiveBorderColor,
-          width: effectiveStrokeWidth,
-        ),
+        border: widget.showBorder
+            ? Border.all(
+                color: effectiveBorderColor,
+                width: effectiveStrokeWidth,
+              )
+            : null,
         borderRadius: BorderRadius.circular(8),
         boxShadow: elevationSpec.shadowBlur > 0
             ? [
