@@ -60,6 +60,27 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
   /// 링크/선택 상태 색상.
   final Color linkColor;
 
+  /// 주요 텍스트 색상 (라벨, 입력값 등).
+  final Color textColor;
+
+  /// 보조 텍스트 색상 (힌트, 도움말 등).
+  final Color textSecondaryColor;
+
+  /// 아이콘 기본 색상.
+  final Color iconColor;
+
+  /// 포커스 테두리 색상.
+  final Color focusBorderColor;
+
+  /// 비활성화 배경 색상.
+  final Color disabledFillColor;
+
+  /// 비활성화 테두리 색상.
+  final Color disabledBorderColor;
+
+  /// 비활성화 텍스트 색상.
+  final Color disabledTextColor;
+
   /// 그림자 오프셋.
   final Offset shadowOffset;
 
@@ -78,6 +99,13 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
     this.fillColor = const Color(0xFFFFFFFF), // white
     this.surfaceColor = const Color(0xFFF7F7F7), // surface — 카드/모달 표면색
     this.linkColor = const Color(0xFF2196F3), // linkBlue — 링크/선택 상태
+    this.textColor = const Color(0xFF343434), // base900
+    this.textSecondaryColor = const Color(0xFF8E8E8E), // base500
+    this.iconColor = const Color(0xFF767676), // base600
+    this.focusBorderColor = const Color(0xFF000000), // black
+    this.disabledFillColor = const Color(0xFFF7F7F7), // base100
+    this.disabledBorderColor = const Color(0xFFDCDCDC), // base300
+    this.disabledTextColor = const Color(0xFF8E8E8E), // base500
     this.shadowOffset = SketchDesignTokens.shadowOffsetMd,
     this.shadowBlur = SketchDesignTokens.shadowBlurMd,
     this.shadowColor = SketchDesignTokens.shadowColor,
@@ -90,6 +118,13 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       fillColor: Color(0xFFFAF8F5), // background — 크림색 배경
       surfaceColor: Color(0xFFF7F7F7), // surface — 카드/모달 표면색
       linkColor: Color(0xFF2196F3), // linkBlue — 링크/선택 상태
+      textColor: Color(0xFF343434), // base900
+      textSecondaryColor: Color(0xFF8E8E8E), // base500
+      iconColor: Color(0xFF767676), // base600
+      focusBorderColor: Color(0xFF000000), // black
+      disabledFillColor: Color(0xFFF7F7F7), // base100
+      disabledBorderColor: Color(0xFFDCDCDC), // base300
+      disabledTextColor: Color(0xFF8E8E8E), // base500
     );
   }
 
@@ -100,6 +135,13 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       fillColor: Color(0xFF1A1D29), // backgroundDark — 네이비 배경
       surfaceColor: Color(0xFF2A2D3A), // surfaceDark — 어두운 표면색
       linkColor: Color(0xFF64B5F6), // linkBlueDark — 밝은 링크색 (다크 모드용)
+      textColor: Color(0xFFF5F5F5), // textOnDark
+      textSecondaryColor: Color(0xFFB0B0B0), // textSecondaryOnDark
+      iconColor: Color(0xFFB5B5B5), // base400
+      focusBorderColor: Color(0xFFFFFFFF), // white
+      disabledFillColor: Color(0xFF2C3048), // surfaceVariantDark
+      disabledBorderColor: Color(0xFF5E5E5E), // outlinePrimaryDark
+      disabledTextColor: Color(0xFF6E6E6E), // textDisabledDark
       shadowColor: Color(0x40000000), // 다크 모드용 더 어두운 그림자
     );
   }
@@ -159,6 +201,13 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
     Color? fillColor,
     Color? surfaceColor,
     Color? linkColor,
+    Color? textColor,
+    Color? textSecondaryColor,
+    Color? iconColor,
+    Color? focusBorderColor,
+    Color? disabledFillColor,
+    Color? disabledBorderColor,
+    Color? disabledTextColor,
     Offset? shadowOffset,
     double? shadowBlur,
     Color? shadowColor,
@@ -171,6 +220,13 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       fillColor: fillColor ?? this.fillColor,
       surfaceColor: surfaceColor ?? this.surfaceColor,
       linkColor: linkColor ?? this.linkColor,
+      textColor: textColor ?? this.textColor,
+      textSecondaryColor: textSecondaryColor ?? this.textSecondaryColor,
+      iconColor: iconColor ?? this.iconColor,
+      focusBorderColor: focusBorderColor ?? this.focusBorderColor,
+      disabledFillColor: disabledFillColor ?? this.disabledFillColor,
+      disabledBorderColor: disabledBorderColor ?? this.disabledBorderColor,
+      disabledTextColor: disabledTextColor ?? this.disabledTextColor,
       shadowOffset: shadowOffset ?? this.shadowOffset,
       shadowBlur: shadowBlur ?? this.shadowBlur,
       shadowColor: shadowColor ?? this.shadowColor,
@@ -194,6 +250,13 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       fillColor: Color.lerp(fillColor, other.fillColor, t)!,
       surfaceColor: Color.lerp(surfaceColor, other.surfaceColor, t)!,
       linkColor: Color.lerp(linkColor, other.linkColor, t)!,
+      textColor: Color.lerp(textColor, other.textColor, t)!,
+      textSecondaryColor: Color.lerp(textSecondaryColor, other.textSecondaryColor, t)!,
+      iconColor: Color.lerp(iconColor, other.iconColor, t)!,
+      focusBorderColor: Color.lerp(focusBorderColor, other.focusBorderColor, t)!,
+      disabledFillColor: Color.lerp(disabledFillColor, other.disabledFillColor, t)!,
+      disabledBorderColor: Color.lerp(disabledBorderColor, other.disabledBorderColor, t)!,
+      disabledTextColor: Color.lerp(disabledTextColor, other.disabledTextColor, t)!,
       shadowOffset: Offset.lerp(shadowOffset, other.shadowOffset, t)!,
       shadowBlur: lerpDouble(shadowBlur, other.shadowBlur, t)!,
       shadowColor: Color.lerp(shadowColor, other.shadowColor, t)!,
@@ -255,6 +318,13 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
         other.fillColor == fillColor &&
         other.surfaceColor == surfaceColor &&
         other.linkColor == linkColor &&
+        other.textColor == textColor &&
+        other.textSecondaryColor == textSecondaryColor &&
+        other.iconColor == iconColor &&
+        other.focusBorderColor == focusBorderColor &&
+        other.disabledFillColor == disabledFillColor &&
+        other.disabledBorderColor == disabledBorderColor &&
+        other.disabledTextColor == disabledTextColor &&
         other.shadowOffset == shadowOffset &&
         other.shadowBlur == shadowBlur &&
         other.shadowColor == shadowColor;
@@ -262,7 +332,7 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
 
   @override
   int get hashCode {
-    return Object.hash(
+    return Object.hashAll([
       strokeWidth,
       roughness,
       bowing,
@@ -270,10 +340,17 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       fillColor,
       surfaceColor,
       linkColor,
+      textColor,
+      textSecondaryColor,
+      iconColor,
+      focusBorderColor,
+      disabledFillColor,
+      disabledBorderColor,
+      disabledTextColor,
       shadowOffset,
       shadowBlur,
       shadowColor,
-    );
+    ]);
   }
 
   @override
@@ -286,6 +363,13 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
         'fillColor: $fillColor, '
         'surfaceColor: $surfaceColor, '
         'linkColor: $linkColor, '
+        'textColor: $textColor, '
+        'textSecondaryColor: $textSecondaryColor, '
+        'iconColor: $iconColor, '
+        'focusBorderColor: $focusBorderColor, '
+        'disabledFillColor: $disabledFillColor, '
+        'disabledBorderColor: $disabledBorderColor, '
+        'disabledTextColor: $disabledTextColor, '
         'shadowOffset: $shadowOffset, '
         'shadowBlur: $shadowBlur, '
         'shadowColor: $shadowColor'
