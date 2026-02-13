@@ -101,6 +101,7 @@ final sketchTheme = SketchThemeExtension.of(context);
 | 인터랙션 | `linkColor`, `iconColor`, `focusBorderColor` | 링크, 아이콘, 포커스 색상 |
 | 비활성화 | `disabledFillColor`, `disabledBorderColor`, `disabledTextColor` | 비활성화 상태 색상 |
 | 그림자 | `shadowOffset`, `shadowBlur`, `shadowColor` | 그림자 위치, 블러, 색상 |
+| 배지 | `badgeColor`, `badgeTextColor` | 배지 배경색, 배지 텍스트 색상 |
 | 스낵바 | `successSnackbarBgColor`, `infoSnackbarBgColor`, `warningSnackbarBgColor`, `errorSnackbarBgColor` | 타입별 스낵바 배경색 |
 
 #### 프리셋 변형
@@ -223,7 +224,7 @@ Widget _buildTitle(BuildContext context) {
 | 위젯 | 설명 |
 |------|------|
 | `SketchAppBar` | 앱바 (자동 뒤로가기, 액션, 그림자) |
-| `SketchTabBar` | 탭바 (underline/filled 인디케이터, 배지) |
+| `SketchTabBar` | 탭바 (폴더 탭 카드형 디자인, 배지) |
 | `SketchBottomNavigationBar` | 하단 네비게이션 (활성 아이콘, 배지, 라벨 모드) |
 | `SketchLink` | 링크 텍스트 (밑줄, 호버/눌림, 방문 여부, 아이콘) |
 
@@ -262,6 +263,7 @@ showSketchSnackbar(
 | `HatchingPainter` | 대각선 빗금 (45도, 6dp 간격) |
 | `SketchSnackbarIconPainter` | 스낵바 아이콘 (타입별 도형+기호) |
 | `SketchXClosePainter` | X 닫기 버튼 (대각선 2개, 2-pass) |
+| `SketchTabPainter` | 폴더 탭 (상단 둥글기, 선택 상태, 2-pass) |
 
 ## Enum 목록
 
@@ -269,11 +271,19 @@ showSketchSnackbar(
 |------|-----|
 | `SnackbarType` | success, info, warning, error |
 | `SocialLoginPlatform` | kakao, naver, apple, google |
+| `SocialLoginButtonSize` | small, medium, large |
 | `AppleSignInStyle` | dark, light |
+| `SketchInputMode` | defaultMode, search, date, time, datetime, number |
+| `SketchButtonStyle` | primary, secondary, outline, hatching |
+| `SketchButtonSize` | small(32), medium(44), large(56) |
+| `SketchIconButtonShape` | circle, square |
+| `SketchProgressBarStyle` | linear, circular |
 | `SketchAvatarSize` | xs(24), sm(32), md(40), lg(56), xl(80), xxl(120) |
 | `SketchAvatarShape` | circle, roundedSquare |
-| `SketchTabIndicatorStyle` | underline, filled |
+| `SketchTabIndicatorStyle` | **[deprecated]** underline, filled — 카드형 탭으로 변경 |
 | `SketchNavLabelBehavior` | alwaysShow, onlyShowSelected, neverShow |
+| `SketchLinkIconPosition` | leading, trailing |
+| `SketchArrowStyle` | none, start, end, both |
 
 ## 공통 파라미터
 
