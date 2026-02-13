@@ -126,6 +126,71 @@
 
 ---
 
+### 박스 관리 (Box)
+
+- **모듈 경로**: `apps/server/src/modules/box/`
+- **상태**: ✅ 완료
+- **핵심 파일**:
+  - `handlers.ts` — 박스 생성, 검색, 가입, 조회, 멤버 목록 핸들러
+  - `services.ts` — 박스/멤버 DB 조작 로직
+  - `schema.ts` — boxes, boxMembers 테이블
+  - `validators.ts` — Zod 입력 검증 (createBox, searchBox, joinBox, boxId)
+  - `types.ts` — 응답 타입 정의
+  - `box.probe.ts` — 운영 로그
+  - `index.ts` — Router 정의 및 export
+- **API 엔드포인트**:
+  | 메서드 | 경로 | 인증 | 설명 |
+  |--------|------|------|------|
+  | POST | `/boxes` | ✅ | 박스 생성 |
+  | GET | `/boxes/me` | ✅ | 내 박스 조회 |
+  | GET | `/boxes/search` | ✅ | 박스 검색 (이름/지역/키워드) |
+  | POST | `/boxes/:boxId/join` | ✅ | 박스 가입 |
+  | GET | `/boxes/:boxId` | ✅ | 박스 상세 조회 |
+  | GET | `/boxes/:boxId/members` | ✅ | 박스 멤버 목록 |
+- **DB 테이블**: `boxes`, `box_members`
+- **Quick Start**:
+  1. 인증된 사용자로 `POST /boxes` 호출: `{ name: "박스명", region: "서울", description: "설명" }`
+  2. `GET /boxes/search?keyword=크로스핏`으로 박스 검색
+  3. `POST /boxes/:boxId/join`으로 박스 가입
+  4. `GET /boxes/me`로 내 박스 정보 조회
+
+---
+
+### WOD 관리 (WOD)
+
+- **모듈 경로**: `apps/server/src/modules/wod/`
+- **상태**: ✅ 완료
+- **핵심 파일**:
+  - `handlers.ts` — WOD 등록, 조회, 제안 CRUD, 선택 핸들러
+  - `services.ts` — WOD/제안/선택 DB 조작 로직
+  - `schema.ts` — wods, proposedChanges, wodSelections 테이블
+  - `validators.ts` — Zod 입력 검증
+  - `types.ts` — 응답 타입 정의
+  - `normalization.ts` — WOD 데이터 정규화
+  - `comparison.ts` — WOD 비교 로직
+  - `wod.probe.ts` — 운영 로그
+  - `index.ts` — Router 정의 및 export
+- **API 엔드포인트**:
+  | 메서드 | 경로 | 인증 | 설명 |
+  |--------|------|------|------|
+  | POST | `/wods` | ✅ | WOD 등록 |
+  | GET | `/wods/:boxId/:date` | ✅ | 날짜별 WOD 조회 |
+  | GET | `/wods/proposals` | ✅ | 제안 목록 조회 |
+  | POST | `/wods/proposals` | ✅ | WOD 수정 제안 생성 |
+  | POST | `/wods/proposals/:proposalId/approve` | ✅ | 제안 승인 |
+  | POST | `/wods/proposals/:proposalId/reject` | ✅ | 제안 거절 |
+  | POST | `/wods/:wodId/select` | ✅ | WOD 선택 (개인 기록) |
+  | GET | `/wods/selections` | ✅ | 내 WOD 선택 목록 |
+- **DB 테이블**: `wods`, `proposed_changes`, `wod_selections`
+- **Quick Start**:
+  1. 박스 가입 후 `POST /wods` 호출: `{ boxId, date, sections: [...] }`
+  2. `GET /wods/:boxId/:date`로 해당 날짜 WOD 조회
+  3. 수정 필요 시 `POST /wods/proposals`로 제안 생성
+  4. 관리자/코치가 `POST /wods/proposals/:id/approve`로 승인
+  5. `POST /wods/:wodId/select`로 WOD 선택 (개인 기록)
+
+---
+
 ## 공유 미들웨어
 
 ### authenticate
@@ -199,14 +264,19 @@
 ## 앱 설정 (app.ts)
 
 **미들웨어 체인 순서**:
-1. `express.json()` — JSON 파싱
-2. Swagger UI — `/api-docs` (OpenAPI 문서)
-3. 라우트 마운트: `/auth/*`, `/push/*`, `/qna/*`, `/notices/*` (authenticate)
-4. `errorHandler` — 전역 에러 핸들러 (마지막)
+1. `cors()` — CORS 허용
+2. `express.json()` — JSON 파싱
+3. Swagger UI — `/api-docs` (OpenAPI 문서)
+4. 라우트 마운트: `/auth`, `/push`, `/boxes`, `/wods`, `/qna`, `/notices`, `/admin/*`
+5. `errorHandler` — 전역 에러 핸들러 (마지막)
 
 **헬스 체크**:
 - `GET /` → `{ message, version }`
 - `GET /health` → `{ status, uptime }`
+
+**관리자 라우트**:
+- `POST /admin/auth/login` — 관리자 로그인
+- `/admin/notices/*` — 공지사항 관리자 CRUD
 
 ---
 

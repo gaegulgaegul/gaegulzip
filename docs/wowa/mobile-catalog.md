@@ -5,59 +5,35 @@
 
 ## 앱 모듈
 
-### 로그인 (Login)
+### 박스 (Box)
 
-- **모듈 경로**: `apps/mobile/apps/wowa/lib/app/modules/login/`
-- **상태**: ⚠️ OAuth SDK 연동 완료, 서버 연동 구현됨 (실 서버 테스트 필요)
+- **모듈 경로**: `apps/mobile/apps/wowa/lib/app/modules/box/`
+- **상태**: ✅ 완료
 - **핵심 파일**:
-  - `controllers/login_controller.dart` — GetX 컨트롤러 (4개 프로바이더별 로딩 상태, 에러 처리, 스낵바/모달 피드백)
-  - `views/login_view.dart` — 소셜 로그인 4개 버튼 + 둘러보기 버튼
-  - `bindings/login_binding.dart` — AuthApiService, SecureStorageService, AuthRepository, 4개 소셜 프로바이더, LoginController DI 등록
-- **사용 패키지**: core (예외 클래스, SecureStorageService), api (AuthApiService, 모델), design_system (SocialLoginButton)
-- **서버 연동 API**:
-  | 메서드 | 경로 | 용도 |
-  |--------|------|------|
-  | POST | `/api/auth/oauth/login` | OAuth 소셜 로그인 |
-  | POST | `/api/auth/refresh` | 토큰 갱신 |
-- **Quick Start**:
-  1. `.env`에 `API_BASE_URL` 설정
-  2. 각 플랫폼 SDK 키 설정 (카카오 앱키, 네이버 클라이언트 ID 등)
-  3. `LoginBinding`이 모든 의존성 자동 주입
-  4. `LoginController._handleSocialLogin(provider)` 호출로 전체 플로우 실행
-  5. 성공 시 토큰 저장 → 홈 이동, 실패 시 스낵바/모달 표시
-- **상세 분석**: [`docs/core/social-login.md`](../core/social-login.md)
+  - `controllers/box_create_controller.dart` — 박스 생성 컨트롤러
+  - `controllers/box_search_controller.dart` — 박스 검색 컨트롤러
+  - `views/box_create_view.dart` — 박스 생성 화면
+  - `views/box_search_view.dart` — 박스 검색 화면
+  - `bindings/box_create_binding.dart`, `box_search_binding.dart` — DI 등록
+- **서버 연동 API**: `POST /boxes`, `GET /boxes/search`, `POST /boxes/:boxId/join`
+- **라우트**: `Routes.BOX_SEARCH` = `/box/search`, `Routes.BOX_CREATE` = `/box/create`
 
 ---
 
-### QnA 질문 작성 (QnA)
+### WOD (Workout of the Day)
 
-- **모듈 경로**: `apps/mobile/apps/wowa/lib/app/modules/qna/`
-- **상태**: ✅ 완료 (flutter analyze 0 errors)
+- **모듈 경로**: `apps/mobile/apps/wowa/lib/app/modules/wod/`
+- **상태**: ✅ 완료
 - **핵심 파일**:
-  - `controllers/qna_controller.dart` — GetxController (입력 검증, 제출, 성공/실패 모달)
-  - `views/qna_submit_view.dart` — GetView 화면 (SketchInput x2, 글자 수 카운터, SketchButton)
-  - `bindings/qna_binding.dart` — QnaApiService, QnaRepository, QnaController DI 등록
-- **사용 패키지**: core (NetworkException), api (QnaSubmitRequest/Response, QnaApiService), design_system (SketchInput, SketchButton, SketchModal)
-- **서버 연동 API**:
-  | 메서드 | 경로 | 용도 |
-  |--------|------|------|
-  | POST | `/api/qna/questions` | 질문 제출 (GitHub Issue 자동 생성) |
-- **반응형 상태 (.obs)**:
-  | 변수 | 타입 | 용도 |
-  |------|------|------|
-  | `isSubmitting` | RxBool | 제출 중 로딩 상태 |
-  | `titleError` | RxString | 제목 유효성 검증 에러 |
-  | `bodyError` | RxString | 본문 유효성 검증 에러 |
-  | `bodyLength` | RxInt | 본문 글자 수 (색상 변화: 60000 warning, 65000 error) |
-  | `errorMessage` | RxString | API 에러 메시지 |
-- **Quick Start**:
-  1. `QnaBinding`이 모든 의존성 자동 주입
-  2. `Get.toNamed(Routes.QNA)` 호출로 질문 작성 화면 이동
-  3. 제목(1-256자) + 본문(1-65536자) 입력 후 "질문 제출" 버튼 클릭
-  4. 성공 시 SketchModal → 확인 → 이전 화면으로 복귀
-  5. 실패 시 SketchModal → 닫기/재시도 선택
-- **새 앱에 적용**: `QnaRepository`의 `appCode: 'wowa'`를 새 앱 코드로 변경
-- **상세 설계**: [`docs/core/qna/mobile-design-spec.md`](../core/qna/mobile-design-spec.md), [`docs/core/qna/mobile-brief.md`](../core/qna/mobile-brief.md)
+  - `controllers/home_controller.dart` — WOD 홈 (날짜별 WOD 표시)
+  - `controllers/wod_register_controller.dart` — WOD 등록
+  - `controllers/wod_detail_controller.dart` — WOD 상세/비교
+  - `controllers/wod_select_controller.dart` — WOD 선택 (개인 기록)
+  - `controllers/proposal_review_controller.dart` — 제안 검토
+  - `views/` — 각 컨트롤러에 대응하는 View 파일
+  - `bindings/` — 각 화면별 Binding 파일
+- **서버 연동 API**: `POST /wods`, `GET /wods/:boxId/:date`, `POST /wods/proposals`, `POST /wods/:wodId/select`
+- **라우트**: `Routes.HOME`, `Routes.WOD_REGISTER`, `Routes.WOD_DETAIL`, `Routes.WOD_SELECT`, `Routes.PROPOSAL_REVIEW`
 
 ---
 
@@ -65,22 +41,15 @@
 
 - **모듈 경로**: `apps/mobile/apps/wowa/lib/app/modules/notification/`
 - **상태**: ⚠️ UI 스캐폴드 완료 (서버 연동 필요)
-- **핵심 파일**:
-  - `controllers/notification_controller.dart` — GetxController
-  - `views/notification_view.dart` — 알림 목록 화면
-  - `bindings/notification_binding.dart` — DI 등록
 - **사용 패키지**: notice (SDK 패키지)
+- **라우트**: `Routes.NOTIFICATIONS` = `/notifications`
 
 ---
 
-### 홈 (Home)
-
-- **상태**: ❌ 미구현 (라우트만 정의됨)
-- **라우트**: `Routes.HOME` = `/home`
-
 ### 설정 (Settings)
 
-- **상태**: ❌ 미구현 (라우트만 정의됨)
+- **모듈 경로**: `apps/mobile/apps/wowa/lib/app/modules/settings/`
+- **상태**: ⚠️ 스캐폴드
 - **라우트**: `Routes.SETTINGS` = `/settings`
 
 ---
@@ -90,75 +59,31 @@
 - **정의**: `apps/mobile/apps/wowa/lib/app/routes/app_routes.dart`
 - **페이지**: `apps/mobile/apps/wowa/lib/app/routes/app_pages.dart`
 - **등록된 라우트**:
-  | 경로 | 뷰 | 바인딩 | 트랜지션 |
-  |------|-----|--------|---------|
-  | `/login` | `LoginView` | `LoginBinding` | fadeIn (300ms) |
-  | `/qna` | `QnaSubmitView` | `QnaBinding` | cupertino (300ms) |
-  | `/home` | 미구현 | - | - |
-  | `/settings` | 미구현 | - | - |
+  | 경로 | 모듈 | 설명 |
+  |------|------|------|
+  | `/login` | auth_sdk | 소셜 로그인 화면 |
+  | `/home` | wod | WOD 홈 (날짜별 WOD 표시) |
+  | `/box/search` | box | 박스 검색 |
+  | `/box/create` | box | 박스 생성 |
+  | `/wod/register` | wod | WOD 등록 |
+  | `/wod/detail` | wod | WOD 상세/비교 |
+  | `/wod/select` | wod | WOD 선택 |
+  | `/wod/proposal/review` | wod | 제안 검토 |
+  | `/notifications` | notification | 알림 목록 |
+  | `/notice/list` | notice SDK | 공지사항 목록 |
+  | `/notice/detail` | notice SDK | 공지사항 상세 |
+  | `/qna` | qna SDK | 질문 작성 |
+  | `/settings` | settings | 설정 |
 - **초기 라우트**: `Routes.LOGIN`
+- **딥링크 허용 화면**: `notifications`, `home`, `qna`
 
 ---
 
 ## 앱 데이터 레이어
 
-### QnaRepository
-
-- **경로**: `apps/mobile/apps/wowa/lib/app/data/repositories/qna_repository.dart`
-- **상태**: ✅ 완료
-- **의존성**: QnaApiService (Get.find)
-- **메서드**:
-  | 메서드 | 반환 | 설명 |
-  |--------|------|------|
-  | `submitQuestion(title, body)` | `QnaSubmitResponse` | 질문 제출 (appCode 자동 설정) |
-- **에러 처리 패턴**:
-  - `DioException` timeout/connection → `NetworkException('네트워크 연결을 확인해주세요')`
-  - `DioException` 400 → `NetworkException('제목과 내용을 확인해주세요')`
-  - `DioException` 404 → `NetworkException('서비스 설정 오류가 발생했습니다')`
-  - `DioException` 5xx → `NetworkException('일시적인 오류가 발생했습니다')`
-
-### AuthRepository
-
-- **경로**: `apps/mobile/apps/wowa/lib/app/data/repositories/auth_repository.dart`
-- **상태**: ✅ 완료
-- **의존성**: AuthApiService, SecureStorageService (Get.find)
-- **메서드**:
-  | 메서드 | 반환 | 설명 |
-  |--------|------|------|
-  | `login(provider, code)` | `UserModel` | OAuth 로그인 → 토큰/유저정보 저장 |
-  | `refreshAccessToken()` | `void` | 토큰 갱신 → 저장소 업데이트 |
-  | `logout()` | `void` | 저장소 전체 삭제 |
-  | `isLoggedIn()` | `bool` | 액세스 토큰 존재 여부 |
-  | `isTokenExpired()` | `bool` | 토큰 만료 여부 |
-- **에러 처리 패턴**:
-  - `DioException` timeout/connection → `NetworkException`
-  - `DioException` 401 → `AuthException(code: 'invalid_code')`
-  - `DioException` 409 → `AuthException(code: 'account_conflict')` (기존 프로바이더 정보 포함)
-  - `DioException` 5xx → 일반 예외 (서버 오류)
-
----
-
-## 소셜 로그인 프로바이더
-
-- **경로**: `apps/mobile/apps/wowa/lib/app/services/social_login/`
-- **상태**: ✅ 4개 프로바이더 구현 완료
-- **기반 클래스**: `SocialLoginProvider` (abstract)
-  - 추상 속성: `platformName`, `isInitialized`
-  - 추상 메서드: `signIn()` → `String` (인가 코드/토큰), `signOut()`
-
-| 프로바이더 | 파일 | SDK | signIn() 반환값 |
-|-----------|------|-----|----------------|
-| `KakaoLoginProvider` | `kakao_login_provider.dart` | `kakao_flutter_sdk` | accessToken |
-| `NaverLoginProvider` | `naver_login_provider.dart` | `flutter_naver_login` | accessToken |
-| `GoogleLoginProvider` | `google_login_provider.dart` | `google_sign_in` | serverAuthCode (우선) / idToken |
-| `AppleLoginProvider` | `apple_login_provider.dart` | `sign_in_with_apple` | authorizationCode |
-
-- **공통 에러 처리**: 사용자 취소 → `AuthException(code: 'user_cancelled')`, 토큰 미반환 → 프로바이더별 에러 코드
-- **Quick Start** (새 프로바이더 추가):
-  1. `SocialLoginProvider` 상속 클래스 생성
-  2. `signIn()`, `signOut()` 구현
-  3. `LoginBinding`에서 `Get.lazyPut` 등록
-  4. `LoginController`에서 호출 로직 추가
+> 인증 관련 Repository/Provider는 `auth_sdk` 패키지로 이동됨.
+> QnA 관련 Repository는 `qna` SDK 패키지로 이동됨.
+> 자세한 내용은 아래 패키지별 제공 기능 참조.
 
 ---
 
@@ -379,22 +304,35 @@ Frame0 스케치 스타일 UI 컴포넌트 패키지.
 - **프리셋**: `.light()`, `.dark()`, `.rough()`, `.smooth()`, `.ultraSmooth()`, `.veryRough()`
 - **테마 접근**: `SketchThemeExtension.of(context)`
 
-#### 재사용 가능한 위젯 (12개)
+#### 재사용 가능한 위젯 (25개)
 
-| 위젯 | 용도 | 주요 속성 |
-|------|------|---------|
-| `SketchButton` | 버튼 | text, style(primary/secondary/outline), size, isLoading |
-| `SketchContainer` | 컨테이너 | child, fillColor, borderColor, roughness, enableNoise |
-| `SketchCard` | 카드 | header, body, footer, elevation(0-3), onTap |
-| `SketchInput` | 텍스트 입력 | label, hint, errorText, controller, obscureText |
-| `SketchModal` | 모달 다이얼로그 | `SketchModal.show(context, child:, title:)` (static) |
-| `SketchCheckbox` | 체크박스 | value, tristate, activeColor |
-| `SketchChip` | 칩/태그 | label, selected, onDeleted, icon |
-| `SketchIconButton` | 아이콘 버튼 | icon, shape(circle/square), badgeCount |
-| `SketchProgressBar` | 진행바 | value, style(linear/circular), showPercentage |
-| `SketchSwitch` | 스위치 토글 | value, activeColor |
-| `SketchSlider` | 슬라이더 | value, min, max, divisions |
-| `SketchDropdown<T>` | 드롭다운 | value, items, itemBuilder |
+| 위젯 | 용도 |
+|------|------|
+| `SketchButton` | 버튼 (primary/secondary/outline, isLoading) |
+| `SketchContainer` | 컨테이너 (fillColor, roughness, enableNoise) |
+| `SketchCard` | 카드 (header, body, footer, elevation) |
+| `SketchInput` | 텍스트 입력 (label, hint, errorText) |
+| `SketchNumberInput` | 숫자 입력 |
+| `SketchTextArea` | 멀티라인 텍스트 입력 |
+| `SketchSearchInput` | 검색 입력 |
+| `SketchModal` | 모달 다이얼로그 |
+| `SketchCheckbox` | 체크박스 |
+| `SketchRadio` | 라디오 버튼 |
+| `SketchChip` | 칩/태그 |
+| `SketchIconButton` | 아이콘 버튼 (circle/square, badgeCount) |
+| `SketchProgressBar` | 진행바 (linear/circular) |
+| `SketchSwitch` | 스위치 토글 |
+| `SketchSlider` | 슬라이더 |
+| `SketchDropdown<T>` | 드롭다운 |
+| `SketchAppBar` | 앱바 |
+| `SketchAvatar` | 아바타 |
+| `SketchBottomNavigationBar` | 하단 네비게이션 |
+| `SketchDivider` | 구분선 |
+| `SketchImagePlaceholder` | 이미지 플레이스홀더 |
+| `SketchLink` | 링크 텍스트 |
+| `SketchSnackbar` | 스낵바 |
+| `SketchTabBar` | 탭바 |
+| `SocialLoginButton` | 소셜 로그인 버튼 (kakao/naver/apple/google) |
 
 #### 소셜 로그인 버튼
 
@@ -416,6 +354,11 @@ Frame0 스케치 스타일 UI 컴포넌트 패키지.
 | `SketchLinePainter` | 스케치 스타일 선 |
 | `SketchPolygonPainter` | 스케치 스타일 다각형 |
 | `AnimatedSketchPainter` | 애니메이션 스케치 효과 |
+| `HatchingPainter` | 해칭 패턴 |
+| `SketchSnackbarIconPainter` | 스낵바 아이콘 |
+| `SketchTabPainter` | 탭 인디케이터 |
+| `SketchXClosePainter` | X 닫기 버튼 |
+| `XCrossPainter` | X 크로스 마크 |
 
 #### Enum
 
@@ -438,6 +381,22 @@ packages/design_system/assets/social_login/
 ├── apple_logo.svg
 └── google_logo.svg
 ```
+
+---
+
+### Push SDK (`apps/mobile/packages/push/`)
+
+FCM 푸시 알림 SDK 패키지.
+
+**의존성**: `core`, `firebase_messaging`, `device_info_plus`, `dio`, `get`, `freezed`
+**상태**: ✅ 완료
+
+#### 핵심 기능
+
+- FCM 토큰 획득 및 서버 등록/비활성화
+- 푸시 알림 수신 콜백 처리
+- 디바이스 정보 수집 (device_info_plus)
+- 서버 API 연동 (`POST /push/devices`, `DELETE /push/devices/:id`)
 
 ---
 
@@ -478,11 +437,12 @@ core (기반 - 내부 의존성 없음)
   ↑
   ├── api (HTTP 통신, 데이터 모델)
   ├── admob (Google 모바일 광고)
-  ├── design_system (UI 컴포넌트, 테마)
-  ├── auth_sdk (인증 SDK — core, api 의존)
-  ├── qna (QnA SDK — core, api, design_system 의존)
-  ├── notice (공지사항 SDK — core, api, design_system 의존)
-  └── wowa app (모듈, 라우팅, 통합)
+  ├── design_system (UI 컴포넌트, 테마 — core 의존)
+  ├── auth_sdk (인증 SDK — core, design_system 의존)
+  ├── push (푸시 알림 SDK — core 의존)
+  ├── qna (QnA SDK — core, design_system 의존)
+  ├── notice (공지사항 SDK — core, design_system 의존)
+  └── wowa app (box, wod, notification, settings 모듈)
 ```
 
 ---

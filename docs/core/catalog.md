@@ -8,9 +8,11 @@
 | 기능 | 상세 문서 | 서버 | 모바일 |
 |------|----------|------|--------|
 | 소셜 로그인 | [`social-login.md`](./social-login.md) | ✅ 완료 | ✅ auth_sdk 패키지 완료 |
-| FCM 푸시 알림 | [`fcm-push-notification.md`](./fcm-push-notification.md) | ✅ 완료 | ❌ 미구현 |
+| FCM 푸시 알림 | [`fcm-push-notification.md`](./fcm-push-notification.md) | ✅ 완료 | ✅ push 패키지 완료 |
 | QnA (질문과 답변) | [`qna/`](./qna/) | ✅ 완료 | ✅ qna 패키지 완료 |
 | 공지사항 (Notice) | - | ✅ 완료 | ✅ notice 패키지 완료 |
+| 박스 관리 (Box) | - | ✅ 완료 | ✅ wowa 앱 모듈 완료 |
+| WOD 관리 | - | ✅ 완료 | ✅ wowa 앱 모듈 완료 |
 
 ## 소셜 로그인
 
