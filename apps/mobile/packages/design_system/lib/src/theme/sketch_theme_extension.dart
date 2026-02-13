@@ -90,6 +90,12 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
   /// 그림자 색상.
   final Color shadowColor;
 
+  /// 배지 배경 색상.
+  final Color badgeColor;
+
+  /// 배지 텍스트 색상.
+  final Color badgeTextColor;
+
   /// Snackbar 배경 색상 (Success 타입).
   final Color successSnackbarBgColor;
 
@@ -121,6 +127,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
     this.shadowOffset = SketchDesignTokens.shadowOffsetMd,
     this.shadowBlur = SketchDesignTokens.shadowBlurMd,
     this.shadowColor = SketchDesignTokens.shadowColor,
+    this.badgeColor = const Color(0xFFF44336), // error
+    this.badgeTextColor = const Color(0xFFFFFFFF), // white
     this.successSnackbarBgColor = const Color(0xFFD4EDDA), // 연한 민트
     this.infoSnackbarBgColor = const Color(0xFFD6EEFF), // 연한 하늘
     this.warningSnackbarBgColor = const Color(0xFFFFF9D6), // 연한 레몬
@@ -141,6 +149,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       disabledFillColor: Color(0xFFF7F7F7), // base100
       disabledBorderColor: Color(0xFFDCDCDC), // base300
       disabledTextColor: Color(0xFF8E8E8E), // base500
+      badgeColor: Color(0xFFF44336), // error
+      badgeTextColor: Color(0xFFFFFFFF), // white
       successSnackbarBgColor: Color(0xFFD4EDDA), // 연한 민트
       infoSnackbarBgColor: Color(0xFFD6EEFF), // 연한 하늘
       warningSnackbarBgColor: Color(0xFFFFF9D6), // 연한 레몬
@@ -163,6 +173,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       disabledBorderColor: Color(0xFF5E5E5E), // outlinePrimaryDark
       disabledTextColor: Color(0xFF6E6E6E), // textDisabledDark
       shadowColor: Color(0x40000000), // 다크 모드용 더 어두운 그림자
+      badgeColor: Color(0xFFEF5350), // errorDark — 다크 모드용 밝은 빨강
+      badgeTextColor: Color(0xFFFFFFFF), // white
       successSnackbarBgColor: Color(0xFF1B3B2A), // 진한 초록
       infoSnackbarBgColor: Color(0xFF0C2D4A), // 진한 네이비
       warningSnackbarBgColor: Color(0xFF3B3515), // 진한 올리브
@@ -235,6 +247,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
     Offset? shadowOffset,
     double? shadowBlur,
     Color? shadowColor,
+    Color? badgeColor,
+    Color? badgeTextColor,
     Color? successSnackbarBgColor,
     Color? infoSnackbarBgColor,
     Color? warningSnackbarBgColor,
@@ -258,6 +272,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       shadowOffset: shadowOffset ?? this.shadowOffset,
       shadowBlur: shadowBlur ?? this.shadowBlur,
       shadowColor: shadowColor ?? this.shadowColor,
+      badgeColor: badgeColor ?? this.badgeColor,
+      badgeTextColor: badgeTextColor ?? this.badgeTextColor,
       successSnackbarBgColor: successSnackbarBgColor ?? this.successSnackbarBgColor,
       infoSnackbarBgColor: infoSnackbarBgColor ?? this.infoSnackbarBgColor,
       warningSnackbarBgColor: warningSnackbarBgColor ?? this.warningSnackbarBgColor,
@@ -292,6 +308,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       shadowOffset: Offset.lerp(shadowOffset, other.shadowOffset, t)!,
       shadowBlur: lerpDouble(shadowBlur, other.shadowBlur, t)!,
       shadowColor: Color.lerp(shadowColor, other.shadowColor, t)!,
+      badgeColor: Color.lerp(badgeColor, other.badgeColor, t)!,
+      badgeTextColor: Color.lerp(badgeTextColor, other.badgeTextColor, t)!,
       successSnackbarBgColor: Color.lerp(successSnackbarBgColor, other.successSnackbarBgColor, t)!,
       infoSnackbarBgColor: Color.lerp(infoSnackbarBgColor, other.infoSnackbarBgColor, t)!,
       warningSnackbarBgColor: Color.lerp(warningSnackbarBgColor, other.warningSnackbarBgColor, t)!,
@@ -364,6 +382,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
         other.shadowOffset == shadowOffset &&
         other.shadowBlur == shadowBlur &&
         other.shadowColor == shadowColor &&
+        other.badgeColor == badgeColor &&
+        other.badgeTextColor == badgeTextColor &&
         other.successSnackbarBgColor == successSnackbarBgColor &&
         other.infoSnackbarBgColor == infoSnackbarBgColor &&
         other.warningSnackbarBgColor == warningSnackbarBgColor &&
@@ -390,6 +410,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       shadowOffset,
       shadowBlur,
       shadowColor,
+      badgeColor,
+      badgeTextColor,
       successSnackbarBgColor,
       infoSnackbarBgColor,
       warningSnackbarBgColor,
@@ -417,6 +439,8 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
         'shadowOffset: $shadowOffset, '
         'shadowBlur: $shadowBlur, '
         'shadowColor: $shadowColor, '
+        'badgeColor: $badgeColor, '
+        'badgeTextColor: $badgeTextColor, '
         'successSnackbarBgColor: $successSnackbarBgColor, '
         'infoSnackbarBgColor: $infoSnackbarBgColor, '
         'warningSnackbarBgColor: $warningSnackbarBgColor, '
