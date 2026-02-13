@@ -27,6 +27,11 @@ class _InputDemoState extends State<InputDemo> {
   final _dateController = TextEditingController(text: '2024/09/02');
   final _timeController = TextEditingController(text: '09:24 AM');
 
+  // Number 모드 상태
+  double _numberValue = 365;
+  double _weightValue = 75.0;
+  double _distanceValue = 5.5;
+
   @override
   void dispose() {
     _controller.dispose();
@@ -56,6 +61,8 @@ class _InputDemoState extends State<InputDemo> {
 
   /// 실시간 프리뷰 섹션
   Widget _buildPreviewSection() {
+    final isNumber = _mode == SketchInputMode.number;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -69,17 +76,28 @@ class _InputDemoState extends State<InputDemo> {
         const SizedBox(height: SketchDesignTokens.spacingLg),
         SketchInput(
           mode: _mode,
-          controller: _mode == SketchInputMode.date
-              ? _dateController
-              : _mode == SketchInputMode.time
-                  ? _timeController
-                  : _controller,
+          controller: isNumber
+              ? null
+              : _mode == SketchInputMode.date
+                  ? _dateController
+                  : _mode == SketchInputMode.time
+                      ? _timeController
+                      : _controller,
           label: _showLabel ? 'Label' : null,
-          hint: _showHint ? null : '', // null이면 모드 기본 힌트 사용
+          hint: _showHint ? null : '',
           errorText: _showError ? 'This field is required' : null,
-          obscureText: _obscureText,
-          prefixIcon: _showPrefix ? const Icon(LucideIcons.user) : null,
-          suffixIcon: _showSuffix ? const Icon(LucideIcons.eye) : null,
+          obscureText: isNumber ? false : _obscureText,
+          prefixIcon:
+              isNumber ? null : (_showPrefix ? const Icon(LucideIcons.user) : null),
+          suffixIcon:
+              isNumber ? null : (_showSuffix ? const Icon(LucideIcons.eye) : null),
+          // Number 모드 전용
+          numberValue: isNumber ? _numberValue : null,
+          onNumberChanged: isNumber
+              ? (v) => setState(() => _numberValue = v)
+              : null,
+          min: isNumber ? 0 : null,
+          max: isNumber ? 999 : null,
           onTap: _mode == SketchInputMode.date ||
                   _mode == SketchInputMode.time ||
                   _mode == SketchInputMode.datetime
@@ -214,6 +232,47 @@ class _InputDemoState extends State<InputDemo> {
           controller:
               TextEditingController(text: '2024/09/02 09:24 AM'),
           onTap: () {},
+        ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
+
+        // Number 모드 — 기본
+        const Text('Number 모드 (기본)',
+            style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        SketchInput(
+          mode: SketchInputMode.number,
+          numberValue: _numberValue,
+          onNumberChanged: (v) => setState(() => _numberValue = v),
+        ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
+
+        // Number 모드 — 라벨 + 접미사 + 범위
+        const Text('Number 모드 (라벨, 접미사, 범위)',
+            style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        SketchInput(
+          mode: SketchInputMode.number,
+          label: '무게',
+          numberValue: _weightValue,
+          min: 0,
+          max: 300,
+          suffix: 'kg',
+          onNumberChanged: (v) => setState(() => _weightValue = v),
+        ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
+
+        // Number 모드 — 소수점
+        const Text('Number 모드 (소수점, step)',
+            style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        SketchInput(
+          mode: SketchInputMode.number,
+          label: '거리',
+          numberValue: _distanceValue,
+          step: 0.5,
+          decimalPlaces: 1,
+          suffix: 'km',
+          onNumberChanged: (v) => setState(() => _distanceValue = v),
         ),
       ],
     );
