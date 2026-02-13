@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 아이콘 버튼의 모양 변형.
@@ -163,27 +164,29 @@ class _SketchIconButtonState extends State<SketchIconButton> {
               clipBehavior: Clip.none,
               children: [
                 // 버튼
-                Container(
-                  decoration: BoxDecoration(
-                    color: effectiveFillColor,
-                    border: widget.showBorder
-                        ? Border.all(
-                            color: effectiveBorderColor,
-                            width: effectiveStrokeWidth,
-                          )
-                        : null,
-                    shape: widget.shape == SketchIconButtonShape.circle
-                        ? BoxShape.circle
-                        : BoxShape.rectangle,
-                    borderRadius: widget.shape == SketchIconButtonShape.square
-                        ? BorderRadius.circular(6)
-                        : null,
+                CustomPaint(
+                  painter: SketchPainter(
+                    fillColor: effectiveFillColor,
+                    borderColor: effectiveBorderColor,
+                    strokeWidth: effectiveStrokeWidth,
+                    roughness: sketchTheme?.roughness ??
+                        SketchDesignTokens.roughness,
+                    seed: widget.icon.hashCode,
+                    enableNoise: true,
+                    showBorder: widget.showBorder,
+                    borderRadius:
+                        widget.shape == SketchIconButtonShape.circle
+                            ? 9999.0
+                            : 6.0,
                   ),
                   child: Center(
                     child: Icon(
                       widget.icon,
                       size: widget.iconSize,
-                      color: isDisabled ? (sketchTheme?.disabledTextColor ?? SketchDesignTokens.base500) : effectiveIconColor,
+                      color: isDisabled
+                          ? (sketchTheme?.disabledTextColor ??
+                              SketchDesignTokens.base500)
+                          : effectiveIconColor,
                     ),
                   ),
                 ),

@@ -2,12 +2,31 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
+
+/// 입력 모드 — 하나의 SketchInput에서 mode 파라미터로 전환.
+enum SketchInputMode {
+  /// 기본 텍스트 입력.
+  defaultMode,
+
+  /// 검색 입력 (돋보기 아이콘 + 지우기 버튼).
+  search,
+
+  /// 날짜 입력 (YYYY/MM/DD, readOnly).
+  date,
+
+  /// 시간 입력 (HH:MM AM/PM, readOnly).
+  time,
+
+  /// 날짜+시간 입력 (readOnly).
+  datetime,
+}
 
 /// 손으로 그린 스케치 스타일 모양의 텍스트 입력 필드.
 ///
 /// Frame0 스타일의 스케치 미학을 가진 TextField를 생성함.
-/// 라벨, 힌트, 도움말 텍스트, 에러 상태, 접두사/접미사 아이콘을 지원함.
+/// [SketchPainter]를 사용하여 불규칙한 손그림 테두리와 노이즈 텍스처를 렌더링.
 ///
 /// **기본 사용법:**
 /// ```dart
@@ -16,62 +35,33 @@ import '../theme/sketch_theme_extension.dart';
 /// )
 /// ```
 ///
-/// **라벨과 도움말:**
+/// **검색 모드:**
 /// ```dart
 /// SketchInput(
-///   label: 'Email',
-///   hint: 'you@example.com',
-///   helperText: 'We will never share your email',
+///   mode: SketchInputMode.search,
+///   hint: '박스 이름 검색',
+///   onChanged: (query) => search(query),
 /// )
 /// ```
 ///
-/// **아이콘과 함께:**
+/// **날짜 모드:**
 /// ```dart
 /// SketchInput(
-///   label: 'Password',
-///   hint: 'Enter password',
-///   obscureText: true,
-///   prefixIcon: Icon(Icons.lock),
-///   suffixIcon: IconButton(
-///     icon: Icon(Icons.visibility),
-///     onPressed: () => toggleVisibility(),
-///   ),
-/// )
-/// ```
-///
-/// **에러 상태:**
-/// ```dart
-/// SketchInput(
-///   label: 'Username',
-///   hint: 'Enter username',
-///   errorText: 'Username is required',
-/// )
-/// ```
-///
-/// **Controller와 함께:**
-/// ```dart
-/// final controller = TextEditingController();
-/// SketchInput(
-///   controller: controller,
-///   hint: 'Type here',
-///   onChanged: (value) => print(value),
-/// )
-/// ```
-///
-/// **다양한 입력 타입:**
-/// ```dart
-/// SketchInput(
-///   keyboardType: TextInputType.emailAddress,
-///   hint: 'Email',
+///   mode: SketchInputMode.date,
+///   controller: dateController,
+///   onTap: () => showDatePicker(...),
 /// )
 /// ```
 ///
 /// **상태:**
-/// - 일반: 기본 테두리 색상
-/// - 포커스: 액센트 색상 테두리, 굵은 스트로크
-/// - 에러: 빨간 테두리, 굵은 스트로크, 아래 에러 메시지
-/// - 비활성화: 흐릿한 색상, 상호작용 없음
+/// - 일반: strokeBold 테두리, 스케치 질감
+/// - 포커스: strokeThick 테두리, 더 두꺼운 스케치 효과
+/// - 에러: 빨간 테두리, strokeBold
+/// - 비활성화: 흐릿한 색상, strokeStandard
 class SketchInput extends StatefulWidget {
+  /// 입력 모드 (default, search, date, time, datetime).
+  final SketchInputMode mode;
+
   /// 입력 필드 위에 표시되는 라벨 텍스트.
   final String? label;
 
@@ -85,9 +75,11 @@ class SketchInput extends StatefulWidget {
   final String? errorText;
 
   /// 입력 필드 시작 부분에 표시되는 아이콘.
+  /// mode별 기본 아이콘이 있으며, 이 값이 제공되면 기본 아이콘을 오버라이드.
   final Widget? prefixIcon;
 
   /// 입력 필드 끝 부분에 표시되는 아이콘.
+  /// search 모드에서는 자동 지우기 버튼이 표시됨.
   final Widget? suffixIcon;
 
   /// 텍스트 입력 관리를 위한 controller.
@@ -150,8 +142,15 @@ class SketchInput extends StatefulWidget {
   /// 테두리 표시 여부.
   final bool showBorder;
 
+  /// 필드 탭 시 콜백 (date/time/datetime 모드에서 picker 트리거).
+  final VoidCallback? onTap;
+
+  /// search 모드에서 지우기 버튼 표시 여부 (기본값: search 모드일 때 true).
+  final bool? showClearButton;
+
   const SketchInput({
     super.key,
+    this.mode = SketchInputMode.defaultMode,
     this.label,
     this.hint,
     this.helperText,
@@ -178,6 +177,8 @@ class SketchInput extends StatefulWidget {
     this.borderColor,
     this.strokeWidth,
     this.showBorder = true,
+    this.onTap,
+    this.showClearButton,
   });
 
   @override
@@ -187,16 +188,50 @@ class SketchInput extends StatefulWidget {
 class _SketchInputState extends State<SketchInput> {
   final FocusNode _focusNode = FocusNode();
   bool _isFocused = false;
+  bool _hasText = false;
+
+  // search 모드 지우기 버튼을 위한 controller 관리
+  late TextEditingController _effectiveController;
+  bool _isControllerInternal = false;
 
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(_onFocusChange);
+    _initController();
+  }
+
+  void _initController() {
+    if (widget.controller != null) {
+      _effectiveController = widget.controller!;
+      _isControllerInternal = false;
+    } else {
+      _effectiveController = TextEditingController();
+      _isControllerInternal = true;
+    }
+    _effectiveController.addListener(_onTextChanged);
+    _hasText = _effectiveController.text.isNotEmpty;
+  }
+
+  @override
+  void didUpdateWidget(covariant SketchInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      _effectiveController.removeListener(_onTextChanged);
+      if (_isControllerInternal) {
+        _effectiveController.dispose();
+      }
+      _initController();
+    }
   }
 
   @override
   void dispose() {
+    _effectiveController.removeListener(_onTextChanged);
     _focusNode.removeListener(_onFocusChange);
+    if (_isControllerInternal) {
+      _effectiveController.dispose();
+    }
     _focusNode.dispose();
     super.dispose();
   }
@@ -207,24 +242,38 @@ class _SketchInputState extends State<SketchInput> {
     });
   }
 
+  void _onTextChanged() {
+    final hasText = _effectiveController.text.isNotEmpty;
+    if (hasText != _hasText) {
+      setState(() => _hasText = hasText);
+    }
+  }
+
+  /// date/time/datetime 모드 여부.
+  bool get _isPickerMode =>
+      widget.mode == SketchInputMode.date ||
+      widget.mode == SketchInputMode.time ||
+      widget.mode == SketchInputMode.datetime;
+
   @override
   Widget build(BuildContext context) {
     final sketchTheme = SketchThemeExtension.maybeOf(context);
     final hasError = widget.errorText != null;
 
-    // 상태에 따라 색상 결정
-    final _ColorSpec colorSpec = _getColorSpec(
+    final colorSpec = _getColorSpec(
       sketchTheme,
       isFocused: _isFocused,
       hasError: hasError,
       isDisabled: !widget.enabled,
     );
 
+    final modeDefaults = _resolveModeDefaults(colorSpec);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 라벨 (선택 사항)
+        // 라벨 (옵셔널, 항상 상단 고정)
         if (widget.label != null) ...[
           Text(
             widget.label!,
@@ -233,98 +282,114 @@ class _SketchInputState extends State<SketchInput> {
               fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
               fontSize: SketchDesignTokens.fontSizeSm,
               fontWeight: FontWeight.w500,
-              color: hasError ? SketchDesignTokens.error : (sketchTheme?.textColor ?? SketchDesignTokens.base900),
+              color: hasError
+                  ? SketchDesignTokens.error
+                  : (sketchTheme?.textColor ?? SketchDesignTokens.base900),
             ),
           ),
           const SizedBox(height: 6),
         ],
 
-        // 입력 필드
-        Container(
-          height: _calculateHeight(),
-          decoration: BoxDecoration(
-            color: colorSpec.fillColor,
-            border: widget.showBorder
-                ? Border.all(
-                    color: colorSpec.borderColor,
-                    width: colorSpec.strokeWidth,
-                  )
-                : null,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: SketchDesignTokens.spacingMd,
-            vertical: SketchDesignTokens.spacingSm,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 접두사 아이콘
-              if (widget.prefixIcon != null) ...[
-                IconTheme(
-                  data: IconThemeData(
-                    color: colorSpec.iconColor,
-                    size: 20,
+        // 입력 필드 — CustomPaint + SketchPainter
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _isPickerMode ? widget.onTap : null,
+          child: AbsorbPointer(
+            absorbing: _isPickerMode,
+            child: CustomPaint(
+              painter: SketchPainter(
+                fillColor: colorSpec.fillColor,
+                borderColor: colorSpec.borderColor,
+                strokeWidth: colorSpec.strokeWidth,
+                roughness:
+                    sketchTheme?.roughness ?? SketchDesignTokens.roughness,
+                seed: widget.label?.hashCode ?? widget.hint?.hashCode ?? 0,
+                enableNoise: true,
+                showBorder: widget.showBorder,
+                borderRadius: SketchDesignTokens.irregularBorderRadius,
+              ),
+              child: SizedBox(
+                height: _calculateHeight(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: SketchDesignTokens.spacingMd,
+                    vertical: SketchDesignTokens.spacingSm,
                   ),
-                  child: widget.prefixIcon!,
-                ),
-                const SizedBox(width: SketchDesignTokens.spacingSm),
-              ],
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // 접두사 아이콘
+                      if (modeDefaults.prefixIcon != null) ...[
+                        IconTheme(
+                          data: IconThemeData(
+                            color: colorSpec.iconColor,
+                            size: 20,
+                          ),
+                          child: modeDefaults.prefixIcon!,
+                        ),
+                        const SizedBox(width: SketchDesignTokens.spacingSm),
+                      ],
 
-              // 텍스트 필드
-              Expanded(
-                child: TextField(
-                  controller: widget.controller,
-                  focusNode: _focusNode,
-                  obscureText: widget.obscureText,
-                  keyboardType: widget.keyboardType,
-                  textCapitalization: widget.textCapitalization,
-                  maxLines: widget.maxLines,
-                  minLines: widget.minLines,
-                  maxLength: widget.maxLength,
-                  inputFormatters: widget.inputFormatters,
-                  onChanged: widget.onChanged,
-                  onEditingComplete: widget.onEditingComplete,
-                  onSubmitted: widget.onSubmitted,
-                  enabled: widget.enabled,
-                  readOnly: widget.readOnly,
-                  autofocus: widget.autofocus,
-                  textAlign: widget.textAlign,
-                  style: widget.style ??
-                      TextStyle(
-                        fontFamily: SketchDesignTokens.fontFamilyHand,
-                        fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
-                        fontSize: SketchDesignTokens.fontSizeBase,
-                        color: colorSpec.textColor,
+                      // 텍스트 필드
+                      Expanded(
+                        child: TextField(
+                          controller: _effectiveController,
+                          focusNode: _focusNode,
+                          obscureText: widget.obscureText,
+                          keyboardType: widget.keyboardType,
+                          textCapitalization: widget.textCapitalization,
+                          maxLines: widget.maxLines,
+                          minLines: widget.minLines,
+                          maxLength: widget.maxLength,
+                          inputFormatters: widget.inputFormatters,
+                          onChanged: widget.onChanged,
+                          onEditingComplete: widget.onEditingComplete,
+                          onSubmitted: widget.onSubmitted,
+                          enabled: widget.enabled,
+                          readOnly: modeDefaults.readOnly,
+                          autofocus: widget.autofocus,
+                          textAlign: widget.textAlign,
+                          style: widget.style ??
+                              TextStyle(
+                                fontFamily: SketchDesignTokens.fontFamilyHand,
+                                fontFamilyFallback:
+                                    SketchDesignTokens.fontFamilyHandFallback,
+                                fontSize: SketchDesignTokens.fontSizeBase,
+                                color: colorSpec.textColor,
+                              ),
+                          decoration: InputDecoration(
+                            hintText: modeDefaults.hint,
+                            hintStyle: TextStyle(
+                              fontFamily: SketchDesignTokens.fontFamilyHand,
+                              fontFamilyFallback:
+                                  SketchDesignTokens.fontFamilyHandFallback,
+                              color: colorSpec.hintColor,
+                              fontSize: SketchDesignTokens.fontSizeBase,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                            isDense: true,
+                            counterText: '',
+                          ),
+                        ),
                       ),
-                  decoration: InputDecoration(
-                    hintText: widget.hint,
-                    hintStyle: TextStyle(
-                      fontFamily: SketchDesignTokens.fontFamilyHand,
-                      fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
-                      color: colorSpec.hintColor,
-                      fontSize: SketchDesignTokens.fontSizeBase,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                    isDense: true,
-                    counterText: '', // 문자 카운터 숨김
+
+                      // 접미사 아이콘
+                      if (modeDefaults.suffixIcon != null) ...[
+                        const SizedBox(width: SketchDesignTokens.spacingSm),
+                        IconTheme(
+                          data: IconThemeData(
+                            color: colorSpec.iconColor,
+                            size: 20,
+                          ),
+                          child: modeDefaults.suffixIcon!,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
-
-              // 접미사 아이콘
-              if (widget.suffixIcon != null) ...[
-                const SizedBox(width: SketchDesignTokens.spacingSm),
-                IconTheme(
-                  data: IconThemeData(
-                    color: colorSpec.iconColor,
-                    size: 20,
-                  ),
-                  child: widget.suffixIcon!,
-                ),
-              ],
-            ],
+            ),
           ),
         ),
 
@@ -337,7 +402,10 @@ class _SketchInputState extends State<SketchInput> {
               fontFamily: SketchDesignTokens.fontFamilyHand,
               fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
               fontSize: SketchDesignTokens.fontSizeXs,
-              color: hasError ? SketchDesignTokens.error : (sketchTheme?.textSecondaryColor ?? SketchDesignTokens.base600),
+              color: hasError
+                  ? SketchDesignTokens.error
+                  : (sketchTheme?.textSecondaryColor ??
+                      SketchDesignTokens.base600),
             ),
           ),
         ],
@@ -347,13 +415,68 @@ class _SketchInputState extends State<SketchInput> {
 
   double _calculateHeight() {
     if (widget.maxLines == null) {
-      // 여러 줄
-      return 120.0; // 기본 여러 줄 높이
+      return 120.0;
     } else if (widget.maxLines == 1) {
-      return 44.0; // 한 줄
+      return 44.0;
     } else {
-      // 고정된 여러 줄
       return 44.0 + (widget.maxLines! - 1) * 20.0;
+    }
+  }
+
+  /// 모드별 기본값 결정 — 사용자 제공 값이 모드 기본값을 오버라이드.
+  _ModeDefaults _resolveModeDefaults(_ColorSpec colorSpec) {
+    switch (widget.mode) {
+      case SketchInputMode.search:
+        final effectiveClear = widget.showClearButton ?? true;
+        return _ModeDefaults(
+          prefixIcon: widget.prefixIcon ?? const Icon(Icons.search),
+          suffixIcon: widget.suffixIcon ??
+              (effectiveClear && _hasText
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _effectiveController.clear();
+                        widget.onChanged?.call('');
+                      },
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    )
+                  : null),
+          hint: widget.hint ?? 'Search',
+          readOnly: widget.readOnly,
+        );
+
+      case SketchInputMode.date:
+        return _ModeDefaults(
+          prefixIcon: widget.prefixIcon,
+          suffixIcon: widget.suffixIcon,
+          hint: widget.hint ?? 'YYYY/MM/DD',
+          readOnly: true,
+        );
+
+      case SketchInputMode.time:
+        return _ModeDefaults(
+          prefixIcon: widget.prefixIcon,
+          suffixIcon: widget.suffixIcon,
+          hint: widget.hint ?? 'HH:MM AM',
+          readOnly: true,
+        );
+
+      case SketchInputMode.datetime:
+        return _ModeDefaults(
+          prefixIcon: widget.prefixIcon,
+          suffixIcon: widget.suffixIcon,
+          hint: widget.hint ?? 'YYYY/MM/DD HH:MM',
+          readOnly: true,
+        );
+
+      case SketchInputMode.defaultMode:
+        return _ModeDefaults(
+          prefixIcon: widget.prefixIcon,
+          suffixIcon: widget.suffixIcon,
+          hint: widget.hint,
+          readOnly: widget.readOnly,
+        );
     }
   }
 
@@ -370,12 +493,14 @@ class _SketchInputState extends State<SketchInput> {
         textColor: theme?.disabledTextColor ?? SketchDesignTokens.base500,
         hintColor: theme?.disabledTextColor ?? SketchDesignTokens.base400,
         iconColor: theme?.disabledTextColor ?? SketchDesignTokens.base400,
-        strokeWidth: SketchDesignTokens.strokeStandard,
+        strokeWidth:
+            widget.strokeWidth ?? SketchDesignTokens.strokeStandard, // 2.0
       );
     }
 
     final effectiveTextColor = theme?.textColor ?? SketchDesignTokens.base900;
-    final effectiveHintColor = theme?.textSecondaryColor ?? SketchDesignTokens.base500;
+    final effectiveHintColor =
+        theme?.textSecondaryColor ?? SketchDesignTokens.base500;
     final effectiveIconColor = theme?.iconColor ?? SketchDesignTokens.base600;
 
     if (hasError) {
@@ -385,32 +510,52 @@ class _SketchInputState extends State<SketchInput> {
         textColor: effectiveTextColor,
         hintColor: effectiveHintColor,
         iconColor: SketchDesignTokens.error,
-        strokeWidth: SketchDesignTokens.strokeBold,
+        strokeWidth:
+            widget.strokeWidth ?? SketchDesignTokens.strokeBold, // 3.0
       );
     }
 
     if (isFocused) {
-      // Frame0 스타일: 포커스 시 굵은 테두리
       return _ColorSpec(
         fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
-        borderColor: widget.borderColor ?? theme?.focusBorderColor ?? SketchDesignTokens.black,
+        borderColor: widget.borderColor ??
+            theme?.focusBorderColor ??
+            SketchDesignTokens.black,
         textColor: effectiveTextColor,
         hintColor: effectiveHintColor,
         iconColor: effectiveTextColor,
-        strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeBold,
+        strokeWidth:
+            widget.strokeWidth ?? SketchDesignTokens.strokeThick, // 4.0
       );
     }
 
-    // 일반 상태 — Frame0 스타일: 어두운 테두리
+    // 일반 상태 — strokeBold로 두꺼운 스케치 테두리 재현
     return _ColorSpec(
       fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
-      borderColor: widget.borderColor ?? theme?.borderColor ?? SketchDesignTokens.base900,
+      borderColor: widget.borderColor ??
+          theme?.borderColor ??
+          SketchDesignTokens.base900,
       textColor: effectiveTextColor,
       hintColor: effectiveHintColor,
       iconColor: effectiveIconColor,
-      strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
+      strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeBold, // 3.0
     );
   }
+}
+
+/// 모드별 해석된 기본값.
+class _ModeDefaults {
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
+  final String? hint;
+  final bool readOnly;
+
+  const _ModeDefaults({
+    this.prefixIcon,
+    this.suffixIcon,
+    this.hint,
+    this.readOnly = false,
+  });
 }
 
 /// 내부 색상 사양.

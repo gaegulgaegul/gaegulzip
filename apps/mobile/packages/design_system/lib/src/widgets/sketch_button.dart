@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../painters/hatching_painter.dart';
 import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
@@ -14,6 +17,9 @@ enum SketchButtonStyle {
 
   /// 테두리만 있는 투명 버튼.
   outline,
+
+  /// 대각선 빗금 패턴이 채워진 버튼.
+  hatching,
 }
 
 /// 버튼 크기 변형.
@@ -149,24 +155,45 @@ class _SketchButtonState extends State<SketchButton> {
           scale: _isPressed ? 0.98 : 1.0,
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeOut,
-          child: CustomPaint(
-            painter: SketchPainter(
-              fillColor: colorSpec.fillColor,
-              borderColor: colorSpec.borderColor,
-              strokeWidth: colorSpec.strokeWidth,
-              roughness: sketchTheme?.roughness ?? SketchDesignTokens.roughness,
-              seed: widget.text?.hashCode ?? 0,
-              showBorder: widget.showBorder,
-              borderRadius: SketchDesignTokens.irregularBorderRadius,
-            ),
-            child: SizedBox(
-              width: widget.width,
-              height: sizeSpec.height,
-              child: Padding(
-                padding: sizeSpec.padding,
-                child: _buildContent(sizeSpec, colorSpec),
+          child: Stack(
+            children: [
+              // 1. 버튼 배경/테두리 (SketchPainter)
+              CustomPaint(
+                painter: SketchPainter(
+                  fillColor: colorSpec.fillColor,
+                  borderColor: colorSpec.borderColor,
+                  strokeWidth: colorSpec.strokeWidth,
+                  roughness: sketchTheme?.roughness ?? SketchDesignTokens.roughness,
+                  seed: widget.text?.hashCode ?? 0,
+                  showBorder: widget.showBorder,
+                  borderRadius: SketchDesignTokens.irregularBorderRadius,
+                ),
+                child: SizedBox(
+                  width: widget.width,
+                  height: sizeSpec.height,
+                  child: Padding(
+                    padding: sizeSpec.padding,
+                    child: _buildContent(sizeSpec, colorSpec),
+                  ),
+                ),
               ),
-            ),
+
+              // 2. 빗금 패턴 (hatching 스타일일 때만)
+              if (colorSpec.enableHatching)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: HatchingPainter(
+                      fillColor: colorSpec.textColor,
+                      strokeWidth: 1.0,
+                      angle: pi / 4,
+                      spacing: 6.0,
+                      roughness: 0.5,
+                      seed: widget.text?.hashCode ?? 0,
+                      borderRadius: SketchDesignTokens.irregularBorderRadius,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -273,6 +300,7 @@ class _SketchButtonState extends State<SketchButton> {
         borderColor: theme?.disabledBorderColor ?? SketchDesignTokens.base300,
         textColor: theme?.disabledTextColor ?? SketchDesignTokens.base500,
         strokeWidth: SketchDesignTokens.strokeStandard,
+        enableHatching: true,
       );
     }
 
@@ -303,6 +331,15 @@ class _SketchButtonState extends State<SketchButton> {
           textColor: textColor,
           strokeWidth: SketchDesignTokens.strokeStandard,
         );
+      case SketchButtonStyle.hatching:
+        // Frame0: 투명 fill + 어두운 테두리 + 대각선 빗금 패턴
+        return _ColorSpec(
+          fillColor: Colors.transparent,
+          borderColor: textColor,
+          textColor: textColor,
+          strokeWidth: SketchDesignTokens.strokeStandard,
+          enableHatching: true,
+        );
     }
   }
 }
@@ -326,11 +363,13 @@ class _ColorSpec {
   final Color borderColor;
   final Color textColor;
   final double strokeWidth;
+  final bool enableHatching;
 
   const _ColorSpec({
     required this.fillColor,
     required this.borderColor,
     required this.textColor,
     required this.strokeWidth,
+    this.enableHatching = false,
   });
 }

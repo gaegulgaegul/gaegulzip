@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../painters/hatching_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손그림 스타일 라디오 버튼 위젯
@@ -94,6 +97,9 @@ class SketchRadio<T> extends StatefulWidget {
   /// 비선택 시 색상
   final Color? inactiveColor;
 
+  /// 비활성화 시 대각선 빗금 오버레이 표시 여부
+  final bool enableDisabledHatching;
+
   const SketchRadio({
     super.key,
     required this.value,
@@ -103,6 +109,7 @@ class SketchRadio<T> extends StatefulWidget {
     this.size = 24.0,
     this.activeColor,
     this.inactiveColor,
+    this.enableDisabledHatching = false,
   });
 
   @override
@@ -164,8 +171,20 @@ class _SketchRadioState<T> extends State<SketchRadio<T>> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     final sketchTheme = SketchThemeExtension.maybeOf(context);
-    final effectiveActiveColor = widget.activeColor ?? SketchDesignTokens.accentPrimary;
-    final effectiveInactiveColor = widget.inactiveColor ?? sketchTheme?.iconColor ?? SketchDesignTokens.base700;
+    final textColor = sketchTheme?.textColor ?? SketchDesignTokens.base900;
+
+    // 빗금 활성화 여부
+    final showHatching = _isDisabled && widget.enableDisabledHatching;
+
+    // 모노크롬 스타일: 선택/비선택 모두 textColor 기반
+    final effectiveBorderColor = showHatching
+        ? (sketchTheme?.disabledBorderColor ?? SketchDesignTokens.base300)
+        : _isSelected
+            ? (widget.activeColor ?? textColor)
+            : (widget.inactiveColor ?? textColor);
+    final effectiveDotColor = showHatching
+        ? (sketchTheme?.disabledTextColor ?? SketchDesignTokens.base500)
+        : (widget.activeColor ?? textColor);
 
     return Opacity(
       opacity: _isDisabled ? SketchDesignTokens.opacityDisabled : 1.0,
@@ -174,35 +193,45 @@ class _SketchRadioState<T> extends State<SketchRadio<T>> with SingleTickerProvid
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 라디오 버튼 원형
+            // 라디오 버튼 원형 (스케치 스타일)
             SizedBox(
               width: widget.size,
               height: widget.size,
               child: AnimatedBuilder(
                 animation: _scaleAnimation,
                 builder: (context, child) {
-                  return CustomPaint(
-                    painter: _SketchCirclePainter(
-                      fillColor: _isSelected
-                          ? effectiveActiveColor.withValues(alpha: 0.1)
-                          : Colors.transparent,
-                      borderColor: _isSelected ? effectiveActiveColor : effectiveInactiveColor,
-                      strokeWidth: 2.0,
-                    ),
-                    child: _isSelected
-                        ? Center(
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              curve: Curves.easeOut,
-                              width: widget.size * 0.5 * _scaleAnimation.value,
-                              height: widget.size * 0.5 * _scaleAnimation.value,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: effectiveActiveColor,
-                              ),
+                  return Stack(
+                    children: [
+                      CustomPaint(
+                        size: Size(widget.size, widget.size),
+                        painter: _SketchRadioPainter(
+                          borderColor: effectiveBorderColor,
+                          dotColor: effectiveDotColor,
+                          strokeWidth: SketchDesignTokens.strokeStandard,
+                          innerDotScale: _scaleAnimation.value,
+                          roughness: sketchTheme?.roughness ?? SketchDesignTokens.roughness,
+                          seed: widget.value.hashCode,
+                        ),
+                      ),
+                      if (showHatching)
+                        ClipOval(
+                          child: CustomPaint(
+                            painter: HatchingPainter(
+                              fillColor: effectiveDotColor,
+                              strokeWidth: 1.0,
+                              angle: pi / 4,
+                              spacing: 6.0,
+                              roughness: 0.5,
+                              seed: widget.value.hashCode + 500,
+                              borderRadius: 9999,
                             ),
-                          )
-                        : null,
+                            child: SizedBox(
+                              width: widget.size,
+                              height: widget.size,
+                            ),
+                          ),
+                        ),
+                    ],
                   );
                 },
               ),
@@ -219,9 +248,7 @@ class _SketchRadioState<T> extends State<SketchRadio<T>> with SingleTickerProvid
                   fontSize: SketchDesignTokens.fontSizeBase,
                   color: _isDisabled
                       ? (sketchTheme?.disabledTextColor ?? SketchDesignTokens.textDisabled)
-                      : (_isSelected
-                          ? (sketchTheme?.textColor ?? SketchDesignTokens.textPrimary)
-                          : (sketchTheme?.textSecondaryColor ?? SketchDesignTokens.textSecondary)),
+                      : textColor,
                 ),
               ),
             ],
@@ -232,45 +259,121 @@ class _SketchRadioState<T> extends State<SketchRadio<T>> with SingleTickerProvid
   }
 }
 
-/// 원형 테두리 CustomPainter
-class _SketchCirclePainter extends CustomPainter {
-  final Color fillColor;
+/// 스케치 스타일 라디오 버튼 CustomPainter.
+///
+/// 외부 원과 내부 점을 모두 손그림 스타일로 렌더링.
+/// [innerDotScale]로 선택 애니메이션 제어 (0.0=비선택, 1.0=선택).
+class _SketchRadioPainter extends CustomPainter {
   final Color borderColor;
+  final Color dotColor;
   final double strokeWidth;
+  final double innerDotScale;
+  final double roughness;
+  final int seed;
 
-  const _SketchCirclePainter({
-    required this.fillColor,
+  const _SketchRadioPainter({
     required this.borderColor,
-    required this.strokeWidth,
+    required this.dotColor,
+    this.strokeWidth = SketchDesignTokens.strokeStandard,
+    this.innerDotScale = 0.0,
+    this.roughness = SketchDesignTokens.roughness,
+    this.seed = 0,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
+    final outerRadius = (min(size.width, size.height) - strokeWidth) / 2;
+    final random = Random(seed);
 
-    // 배경 원 (채우기)
-    if (fillColor != Colors.transparent) {
-      final fillPaint = Paint()
-        ..color = fillColor
-        ..style = PaintingStyle.fill;
-
-      canvas.drawCircle(center, radius, fillPaint);
-    }
-
-    // 테두리 원
+    // 1. 외부 원 (스케치 스타일 테두리)
+    final outerPath = _createSketchCirclePath(center, outerRadius, random);
     final borderPaint = Paint()
       ..color = borderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(outerPath, borderPaint);
 
-    canvas.drawCircle(center, radius, borderPaint);
+    // 2. 내부 점 (스케치 스타일 채우기)
+    if (innerDotScale > 0.01) {
+      final dotRadius = outerRadius * 0.45 * innerDotScale;
+      final dotRandom = Random(seed + 100);
+      final dotPath = _createSketchCirclePath(center, dotRadius, dotRandom);
+      final dotPaint = Paint()
+        ..color = dotColor
+        ..style = PaintingStyle.fill;
+      canvas.drawPath(dotPath, dotPaint);
+    }
+  }
+
+  /// 손그림 스타일 원형 경로 생성.
+  ///
+  /// 이상적 원 경로를 따라 포인트를 샘플링하고
+  /// 법선 방향으로 jitter를 추가하여 불규칙한 원을 만듦.
+  Path _createSketchCirclePath(Offset center, double radius, Random random) {
+    if (roughness <= 0.01 || radius < 2) {
+      return Path()..addOval(Rect.fromCircle(center: center, radius: radius));
+    }
+
+    final idealPath = Path()
+      ..addOval(Rect.fromCircle(center: center, radius: radius));
+
+    final metrics = idealPath.computeMetrics().toList();
+    if (metrics.isEmpty) return idealPath;
+
+    final metric = metrics.first;
+    final totalLength = metric.length;
+
+    // 원 둘레에 따라 포인트 수 조정 (약 4px마다 1개)
+    final numPoints = (totalLength / 4).round().clamp(16, 80);
+    // 반지름에 비례하여 jitter 스케일링 (작은 원은 더 적은 jitter)
+    final maxJitter = roughness * 0.6 * min(1.0, radius / 6);
+
+    final points = <Offset>[];
+
+    for (int i = 0; i < numPoints; i++) {
+      final distance = totalLength * i / numPoints;
+      final tangent = metric.getTangentForOffset(distance);
+      if (tangent != null) {
+        final normal = Offset(-tangent.vector.dy, tangent.vector.dx);
+        final jitter = (random.nextDouble() - 0.5) * 2 * maxJitter;
+        points.add(tangent.position + normal * jitter);
+      }
+    }
+
+    if (points.length < 3) return idealPath;
+
+    // 이차 베지어 곡선으로 부드럽게 연결
+    final sketchPath = Path();
+    sketchPath.moveTo(
+      (points.last.dx + points.first.dx) / 2,
+      (points.last.dy + points.first.dy) / 2,
+    );
+
+    for (int i = 0; i < points.length; i++) {
+      final curr = points[i];
+      final next = points[(i + 1) % points.length];
+      sketchPath.quadraticBezierTo(
+        curr.dx,
+        curr.dy,
+        (curr.dx + next.dx) / 2,
+        (curr.dy + next.dy) / 2,
+      );
+    }
+
+    sketchPath.close();
+    return sketchPath;
   }
 
   @override
-  bool shouldRepaint(covariant _SketchCirclePainter oldDelegate) {
-    return fillColor != oldDelegate.fillColor ||
-        borderColor != oldDelegate.borderColor ||
-        strokeWidth != oldDelegate.strokeWidth;
+  bool shouldRepaint(covariant _SketchRadioPainter oldDelegate) {
+    return borderColor != oldDelegate.borderColor ||
+        dotColor != oldDelegate.dotColor ||
+        strokeWidth != oldDelegate.strokeWidth ||
+        innerDotScale != oldDelegate.innerDotScale ||
+        roughness != oldDelegate.roughness ||
+        seed != oldDelegate.seed;
   }
 }

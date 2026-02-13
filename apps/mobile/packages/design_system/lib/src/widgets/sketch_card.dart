@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손으로 그린 스케치 스타일 모양의 카드 widget.
@@ -161,27 +162,36 @@ class _SketchCardState extends State<SketchCard> {
       width: widget.width,
       height: widget.height,
       margin: widget.margin,
-      decoration: BoxDecoration(
-        color: effectiveFillColor,
-        border: widget.showBorder
-            ? Border.all(
-                color: effectiveBorderColor,
-                width: effectiveStrokeWidth,
-              )
-            : null,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: elevationSpec.shadowBlur > 0
-            ? [
+      decoration: elevationSpec.shadowBlur > 0
+          ? BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                  SketchDesignTokens.irregularBorderRadius),
+              boxShadow: [
                 BoxShadow(
                   offset: elevationSpec.shadowOffset,
                   blurRadius: elevationSpec.shadowBlur,
                   color: elevationSpec.shadowColor,
                 ),
-              ]
-            : null,
+              ],
+            )
+          : null,
+      child: CustomPaint(
+        painter: SketchPainter(
+          fillColor: effectiveFillColor,
+          borderColor: effectiveBorderColor,
+          strokeWidth: effectiveStrokeWidth,
+          roughness:
+              sketchTheme?.roughness ?? SketchDesignTokens.roughness,
+          seed: 0,
+          enableNoise: true,
+          showBorder: widget.showBorder,
+          borderRadius: SketchDesignTokens.irregularBorderRadius,
+        ),
+        child: Padding(
+          padding: effectivePadding,
+          child: _buildCardLayout(),
+        ),
       ),
-      padding: effectivePadding,
-      child: _buildCardLayout(),
     );
 
     if (widget.onTap != null) {

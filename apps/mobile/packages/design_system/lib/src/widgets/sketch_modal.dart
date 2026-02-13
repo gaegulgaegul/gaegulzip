@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손으로 그린 스케치 스타일 모양의 모달 다이얼로그.
@@ -107,7 +110,6 @@ class SketchModal {
       barrierDismissible: barrierDismissible,
       builder: (context) => _SketchModalDialog(
         title: title,
-        child: child,
         actions: actions,
         showCloseButton: showCloseButton,
         width: width,
@@ -118,6 +120,7 @@ class SketchModal {
         roughness: roughness,
         seed: seed,
         showBorder: showBorder,
+        child: child,
       ),
     );
   }
@@ -195,8 +198,11 @@ class _SketchModalDialogState extends State<_SketchModalDialog> with SingleTicke
     final sketchTheme = SketchThemeExtension.maybeOf(context);
 
     final effectiveFillColor = widget.fillColor ?? sketchTheme?.fillColor ?? Colors.white;
-    final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
-    final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
+    final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base900;
+    final effectiveStrokeWidth = widget.strokeWidth ?? SketchDesignTokens.strokeBold;
+    final effectiveRoughness = widget.roughness ?? sketchTheme?.roughness ?? SketchDesignTokens.roughness;
+    final effectiveShadowColor = sketchTheme?.shadowColor ?? SketchDesignTokens.shadowColor;
+    final effectiveShadowOffset = sketchTheme?.shadowOffset ?? SketchDesignTokens.shadowOffsetMd;
 
     return FadeTransition(
       opacity: _opacityAnimation,
@@ -212,46 +218,70 @@ class _SketchModalDialogState extends State<_SketchModalDialog> with SingleTicke
               maxWidth: MediaQuery.of(context).size.width * 0.9,
               maxHeight: MediaQuery.of(context).size.height * 0.9,
             ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: effectiveFillColor,
-                border: widget.showBorder
-                    ? Border.all(
-                        color: effectiveBorderColor,
-                        width: effectiveStrokeWidth,
-                      )
-                    : null,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(SketchDesignTokens.spacingLg),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // 헤더 (제목 + 닫기 버튼)
-                    if (widget.title != null || widget.showCloseButton)
-                      _buildHeader(context),
-
-                    // 헤더 뒤 간격
-                    if (widget.title != null || widget.showCloseButton)
-                      const SizedBox(height: SketchDesignTokens.spacingMd),
-
-                    // 콘텐츠
-                    Flexible(
-                      child: SingleChildScrollView(
-                        child: widget.child,
-                      ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // 그림자 레이어 (본체와 동일한 모양, 오프셋 적용)
+                Positioned(
+                  left: effectiveShadowOffset.dx,
+                  top: effectiveShadowOffset.dy,
+                  right: -effectiveShadowOffset.dx,
+                  bottom: -effectiveShadowOffset.dy,
+                  child: CustomPaint(
+                    painter: SketchPainter(
+                      fillColor: effectiveShadowColor,
+                      borderColor: Colors.transparent,
+                      showBorder: false,
+                      seed: widget.seed,
+                      roughness: effectiveRoughness,
+                      enableNoise: false,
+                      borderRadius: SketchDesignTokens.irregularBorderRadius,
                     ),
-
-                    // 액션
-                    if (widget.actions != null && widget.actions!.isNotEmpty) ...[
-                      const SizedBox(height: SketchDesignTokens.spacingLg),
-                      _buildActions(),
-                    ],
-                  ],
+                  ),
                 ),
-              ),
+                // 본체 레이어 (Stack 크기를 결정하는 non-positioned child)
+                CustomPaint(
+                  painter: SketchPainter(
+                    fillColor: effectiveFillColor,
+                    borderColor: effectiveBorderColor,
+                    strokeWidth: effectiveStrokeWidth,
+                    showBorder: widget.showBorder,
+                    seed: widget.seed,
+                    roughness: effectiveRoughness,
+                    enableNoise: true,
+                    borderRadius: SketchDesignTokens.irregularBorderRadius,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(SketchDesignTokens.spacingLg),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // 헤더 (제목 + 닫기 버튼)
+                        if (widget.title != null || widget.showCloseButton)
+                          _buildHeader(context),
+
+                        // 헤더 뒤 간격
+                        if (widget.title != null || widget.showCloseButton)
+                          const SizedBox(height: SketchDesignTokens.spacingMd),
+
+                        // 콘텐츠
+                        Flexible(
+                          child: SingleChildScrollView(
+                            child: widget.child,
+                          ),
+                        ),
+
+                        // 액션
+                        if (widget.actions != null && widget.actions!.isNotEmpty) ...[
+                          const SizedBox(height: SketchDesignTokens.spacingLg),
+                          _buildActions(),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -261,15 +291,18 @@ class _SketchModalDialogState extends State<_SketchModalDialog> with SingleTicke
 
   Widget _buildHeader(BuildContext context) {
     final sketchTheme = SketchThemeExtension.maybeOf(context);
+    final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base900;
 
     return Row(
       children: [
-        // 제목
+        // 제목 (핸드라이팅 폰트 적용)
         if (widget.title != null)
           Expanded(
             child: Text(
               widget.title!,
               style: TextStyle(
+                fontFamily: SketchDesignTokens.fontFamilyHand,
+                fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
                 fontSize: SketchDesignTokens.fontSizeLg,
                 fontWeight: FontWeight.w600,
                 color: sketchTheme?.textColor ?? SketchDesignTokens.base900,
@@ -277,9 +310,10 @@ class _SketchModalDialogState extends State<_SketchModalDialog> with SingleTicke
             ),
           ),
 
-        // 닫기 버튼
+        // 닫기 버튼 (손그림 X)
         if (widget.showCloseButton)
           _SketchCloseButton(
+            color: effectiveBorderColor,
             onPressed: () => Navigator.of(context).pop(),
           ),
       ],
@@ -287,21 +321,22 @@ class _SketchModalDialogState extends State<_SketchModalDialog> with SingleTicke
   }
 
   Widget _buildActions() {
-    return Wrap(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       spacing: SketchDesignTokens.spacingSm,
-      runSpacing: SketchDesignTokens.spacingSm,
-      alignment: WrapAlignment.end,
       children: widget.actions!,
     );
   }
 }
 
-/// 스케치 스타일 닫기 버튼 (X 아이콘).
+/// 스케치 스타일 닫기 버튼 (손그림 X 마크).
 class _SketchCloseButton extends StatefulWidget {
   final VoidCallback onPressed;
+  final Color color;
 
   const _SketchCloseButton({
     required this.onPressed,
+    required this.color,
   });
 
   @override
@@ -334,15 +369,103 @@ class _SketchCloseButtonState extends State<_SketchCloseButton> {
               borderRadius: BorderRadius.circular(4),
             ),
             child: Center(
-              child: Icon(
-                Icons.close,
-                size: 18,
-                color: sketchTheme?.iconColor ?? SketchDesignTokens.base700,
+              child: CustomPaint(
+                size: const Size(16, 16),
+                painter: _SketchXPainter(
+                  color: widget.color,
+                  strokeWidth: SketchDesignTokens.strokeBold,
+                  roughness: 0.8,
+                  seed: 42,
+                ),
               ),
             ),
           ),
         ),
       ),
     );
+  }
+}
+
+/// 손그림 스타일 X 마크를 그리는 CustomPainter.
+///
+/// 두 개의 대각선을 각각 2번씩 그려 손으로 그린 효과를 만듦.
+/// roughness로 선의 흔들림 정도를 제어함.
+class _SketchXPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double roughness;
+  final int seed;
+
+  const _SketchXPainter({
+    required this.color,
+    this.strokeWidth = SketchDesignTokens.strokeBold,
+    this.roughness = 0.8,
+    this.seed = 0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    // 대각선 2개를 각각 2번씩 그려 손그림 효과 생성 (총 4패스)
+    final lines = [
+      [Offset(0, 0), Offset(size.width, size.height)], // 좌상→우하
+      [Offset(size.width, 0), Offset(0, size.height)], // 우상→좌하
+    ];
+
+    for (int lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+      final start = lines[lineIdx][0];
+      final end = lines[lineIdx][1];
+
+      for (int pass = 0; pass < 2; pass++) {
+        final random = Random(seed + lineIdx * 100 + pass * 10);
+        final path = _createWobblyLine(start, end, random);
+        canvas.drawPath(path, paint);
+      }
+    }
+  }
+
+  /// 흔들리는 손그림 선 경로 생성.
+  Path _createWobblyLine(Offset start, Offset end, Random random) {
+    final path = Path();
+    const segments = 4;
+
+    final angle = atan2(end.dy - start.dy, end.dx - start.dx);
+    final perpAngle = angle + pi / 2;
+
+    // 모든 점을 미리 계산
+    final points = <Offset>[];
+    for (int i = 0; i <= segments; i++) {
+      final t = i / segments;
+      final x = start.dx + (end.dx - start.dx) * t;
+      final y = start.dy + (end.dy - start.dy) * t;
+      final offset = (random.nextDouble() - 0.5) * roughness * 2.0;
+      points.add(Offset(
+        x + cos(perpAngle) * offset,
+        y + sin(perpAngle) * offset,
+      ));
+    }
+
+    path.moveTo(points[0].dx, points[0].dy);
+    for (int i = 1; i <= segments; i++) {
+      final controlX = (points[i - 1].dx + points[i].dx) / 2;
+      final controlY = (points[i - 1].dy + points[i].dy) / 2;
+      path.quadraticBezierTo(controlX, controlY, points[i].dx, points[i].dy);
+    }
+
+    return path;
+  }
+
+  @override
+  bool shouldRepaint(covariant _SketchXPainter oldDelegate) {
+    return color != oldDelegate.color ||
+        strokeWidth != oldDelegate.strokeWidth ||
+        roughness != oldDelegate.roughness ||
+        seed != oldDelegate.seed;
   }
 }

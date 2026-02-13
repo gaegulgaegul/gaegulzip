@@ -1,13 +1,17 @@
+import 'dart:math';
+
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손으로 그린 스케치 스타일 모양의 여러 줄 텍스트 입력 필드.
 ///
 /// Frame0 스타일의 스케치 미학을 가진 여러 줄 TextField를 생성함.
-/// 라벨, 힌트, 도움말 텍스트, 에러 상태, 글자 수 제한 및 카운터를 지원함.
+/// [SketchPainter]를 사용하여 불규칙한 손그림 테두리와 노이즈 텍스처를 렌더링.
+/// 우하단에 장식용 resize handle 표시.
 ///
 /// **기본 사용법:**
 /// ```dart
@@ -23,39 +27,14 @@ import '../theme/sketch_theme_extension.dart';
 ///   hint: '댓글 입력',
 ///   maxLength: 500,
 ///   showCounter: true,
-///   onChanged: (text) {
-///     print('현재 길이: ${text.length}');
-///   },
-/// )
-/// ```
-///
-/// **에러 상태:**
-/// ```dart
-/// SketchTextArea(
-///   label: '질문',
-///   hint: '질문 내용',
-///   errorText: '최소 20자 이상 입력하세요',
-///   maxLength: 1000,
-///   showCounter: true,
-/// )
-/// ```
-///
-/// **Controller와 함께:**
-/// ```dart
-/// final controller = TextEditingController();
-/// SketchTextArea(
-///   controller: controller,
-///   hint: 'Type here',
-///   minLines: 5,
-///   maxLines: 10,
 /// )
 /// ```
 ///
 /// **상태:**
-/// - 일반: 기본 테두리 색상
-/// - 포커스: 굵은 검정 테두리
-/// - 에러: 빨간 테두리, 굵은 스트로크, 아래 에러 메시지
-/// - 비활성화: 흐릿한 색상, 상호작용 없음
+/// - 일반: strokeBold 테두리, 스케치 질감
+/// - 포커스: strokeThick 테두리, 더 두꺼운 스케치 효과
+/// - 에러: 빨간 테두리, strokeBold
+/// - 비활성화: 흐릿한 색상, strokeStandard
 class SketchTextArea extends StatefulWidget {
   /// 입력 필드 위에 표시되는 라벨 텍스트.
   final String? label;
@@ -159,7 +138,6 @@ class _SketchTextAreaState extends State<SketchTextArea> {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
       _effectiveController.removeListener(_onTextChange);
-      // 이전 내부 controller dispose
       if (oldWidget.controller == null) {
         _effectiveController.dispose();
       }
@@ -186,7 +164,6 @@ class _SketchTextAreaState extends State<SketchTextArea> {
   }
 
   void _onTextChange() {
-    // 카운터 업데이트를 위한 리빌드
     if (widget.showCounter) {
       setState(() {});
     }
@@ -197,8 +174,7 @@ class _SketchTextAreaState extends State<SketchTextArea> {
     final sketchTheme = SketchThemeExtension.maybeOf(context);
     final hasError = widget.errorText != null;
 
-    // 상태에 따라 색상 결정
-    final _ColorSpec colorSpec = _getColorSpec(
+    final colorSpec = _getColorSpec(
       sketchTheme,
       isFocused: _isFocused,
       hasError: hasError,
@@ -214,58 +190,89 @@ class _SketchTextAreaState extends State<SketchTextArea> {
           Text(
             widget.label!,
             style: TextStyle(
+              fontFamily: SketchDesignTokens.fontFamilyHand,
+              fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
               fontSize: SketchDesignTokens.fontSizeSm,
               fontWeight: FontWeight.w500,
-              color: hasError ? SketchDesignTokens.error : (sketchTheme?.textColor ?? SketchDesignTokens.base900),
+              color: hasError
+                  ? SketchDesignTokens.error
+                  : (sketchTheme?.textColor ?? SketchDesignTokens.base900),
             ),
           ),
           const SizedBox(height: 6),
         ],
 
-        // 입력 필드
-        Container(
-          decoration: BoxDecoration(
-            color: colorSpec.fillColor,
-            border: widget.showBorder
-                ? Border.all(
-                    color: colorSpec.borderColor,
-                    width: colorSpec.strokeWidth,
-                  )
-                : null,
-            borderRadius: BorderRadius.circular(6),
+        // 입력 필드 — CustomPaint + SketchPainter
+        CustomPaint(
+          painter: SketchPainter(
+            fillColor: colorSpec.fillColor,
+            borderColor: colorSpec.borderColor,
+            strokeWidth: colorSpec.strokeWidth,
+            roughness:
+                sketchTheme?.roughness ?? SketchDesignTokens.roughness,
+            seed: widget.label?.hashCode ?? widget.hint?.hashCode ?? 0,
+            enableNoise: true,
+            showBorder: widget.showBorder,
+            borderRadius: SketchDesignTokens.irregularBorderRadius,
           ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: SketchDesignTokens.spacingMd,
-            vertical: SketchDesignTokens.spacingSm,
-          ),
-          child: TextField(
-            controller: _effectiveController,
-            focusNode: _focusNode,
-            minLines: widget.minLines,
-            maxLines: widget.maxLines,
-            maxLength: widget.maxLength,
-            inputFormatters: widget.inputFormatters,
-            onChanged: widget.onChanged,
-            enabled: widget.enabled,
-            readOnly: widget.readOnly,
-            autofocus: widget.autofocus,
-            textAlign: widget.textAlign,
-            style: widget.style ??
-                TextStyle(
-                  fontSize: SketchDesignTokens.fontSizeBase,
-                  color: colorSpec.textColor,
+          child: Stack(
+            children: [
+              // 텍스트 입력 영역
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SketchDesignTokens.spacingMd,
+                  vertical: SketchDesignTokens.spacingSm,
                 ),
-            decoration: InputDecoration(
-              hintText: widget.hint,
-              hintStyle: TextStyle(
-                color: colorSpec.hintColor,
-                fontSize: SketchDesignTokens.fontSizeBase,
+                child: TextField(
+                  controller: _effectiveController,
+                  focusNode: _focusNode,
+                  minLines: widget.minLines,
+                  maxLines: widget.maxLines,
+                  maxLength: widget.maxLength,
+                  inputFormatters: widget.inputFormatters,
+                  onChanged: widget.onChanged,
+                  enabled: widget.enabled,
+                  readOnly: widget.readOnly,
+                  autofocus: widget.autofocus,
+                  textAlign: widget.textAlign,
+                  style: widget.style ??
+                      TextStyle(
+                        fontFamily: SketchDesignTokens.fontFamilyHand,
+                        fontFamilyFallback:
+                            SketchDesignTokens.fontFamilyHandFallback,
+                        fontSize: SketchDesignTokens.fontSizeBase,
+                        color: colorSpec.textColor,
+                      ),
+                  decoration: InputDecoration(
+                    hintText: widget.hint,
+                    hintStyle: TextStyle(
+                      fontFamily: SketchDesignTokens.fontFamilyHand,
+                      fontFamilyFallback:
+                          SketchDesignTokens.fontFamilyHandFallback,
+                      color: colorSpec.hintColor,
+                      fontSize: SketchDesignTokens.fontSizeBase,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                    isDense: true,
+                    counterText: '',
+                  ),
+                ),
               ),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-              isDense: true,
-              counterText: '', // 기본 카운터 숨김 (커스텀 카운터 사용)
-            ),
+
+              // Resize Handle — 우하단 장식용 대각선 줄무늬
+              Positioned(
+                right: SketchDesignTokens.spacingSm,
+                bottom: SketchDesignTokens.spacingSm,
+                child: CustomPaint(
+                  size: const Size(14, 14),
+                  painter: _ResizeHandlePainter(
+                    color: colorSpec.borderColor,
+                    strokeWidth: 2.0,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
 
@@ -278,6 +285,8 @@ class _SketchTextAreaState extends State<SketchTextArea> {
           Text(
             widget.errorText!,
             style: TextStyle(
+              fontFamily: SketchDesignTokens.fontFamilyHand,
+              fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
               fontSize: SketchDesignTokens.fontSizeXs,
               color: SketchDesignTokens.error,
             ),
@@ -287,7 +296,7 @@ class _SketchTextAreaState extends State<SketchTextArea> {
     );
   }
 
-  /// 글자 수 카운터 위젯 빌드
+  /// 글자 수 카운터 위젯 빌드.
   Widget _buildCounter() {
     final currentLength = _effectiveController.text.length;
 
@@ -302,22 +311,20 @@ class _SketchTextAreaState extends State<SketchTextArea> {
           style: TextStyle(
             fontFamily: SketchDesignTokens.fontFamilyMono,
             fontSize: SketchDesignTokens.fontSizeXs,
-            color: _getCounterColor(currentLength, SketchThemeExtension.maybeOf(context)),
+            color: _getCounterColor(
+                currentLength, SketchThemeExtension.maybeOf(context)),
           ),
         ),
       ),
     );
   }
 
-  /// 글자 수에 따른 카운터 색상 결정
+  /// 글자 수에 따른 카운터 색상 결정.
   Color _getCounterColor(int currentLength, SketchThemeExtension? theme) {
-    final tertiaryColor = theme?.textSecondaryColor ?? SketchDesignTokens.textTertiary;
+    final tertiaryColor =
+        theme?.textSecondaryColor ?? SketchDesignTokens.textTertiary;
 
-    if (widget.maxLength == null) {
-      return tertiaryColor;
-    }
-
-    if (widget.maxLength! <= 0) {
+    if (widget.maxLength == null || widget.maxLength! <= 0) {
       return tertiaryColor;
     }
     final ratio = currentLength / widget.maxLength!;
@@ -325,9 +332,8 @@ class _SketchTextAreaState extends State<SketchTextArea> {
       return SketchDesignTokens.error;
     } else if (ratio >= 0.9) {
       return SketchDesignTokens.warning;
-    } else {
-      return tertiaryColor;
     }
+    return tertiaryColor;
   }
 
   _ColorSpec _getColorSpec(
@@ -342,12 +348,14 @@ class _SketchTextAreaState extends State<SketchTextArea> {
         borderColor: theme?.disabledBorderColor ?? SketchDesignTokens.base300,
         textColor: theme?.disabledTextColor ?? SketchDesignTokens.base500,
         hintColor: theme?.disabledTextColor ?? SketchDesignTokens.base400,
-        strokeWidth: SketchDesignTokens.strokeStandard,
+        strokeWidth:
+            widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
       );
     }
 
     final effectiveTextColor = theme?.textColor ?? SketchDesignTokens.base900;
-    final effectiveHintColor = theme?.textSecondaryColor ?? SketchDesignTokens.base500;
+    final effectiveHintColor =
+        theme?.textSecondaryColor ?? SketchDesignTokens.base500;
 
     if (hasError) {
       return _ColorSpec(
@@ -355,29 +363,92 @@ class _SketchTextAreaState extends State<SketchTextArea> {
         borderColor: SketchDesignTokens.error,
         textColor: effectiveTextColor,
         hintColor: effectiveHintColor,
-        strokeWidth: SketchDesignTokens.strokeBold,
+        strokeWidth:
+            widget.strokeWidth ?? SketchDesignTokens.strokeBold,
       );
     }
 
     if (isFocused) {
-      // Frame0 스타일: 포커스 시 굵은 테두리
       return _ColorSpec(
         fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
-        borderColor: widget.borderColor ?? theme?.focusBorderColor ?? SketchDesignTokens.black,
+        borderColor: widget.borderColor ??
+            theme?.focusBorderColor ??
+            SketchDesignTokens.black,
         textColor: effectiveTextColor,
         hintColor: effectiveHintColor,
-        strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeBold,
+        strokeWidth:
+            widget.strokeWidth ?? SketchDesignTokens.strokeThick,
       );
     }
 
-    // 일반 상태 — Frame0 스타일: 어두운 테두리
+    // 일반 상태 — strokeBold로 두꺼운 스케치 테두리 재현
     return _ColorSpec(
       fillColor: widget.fillColor ?? theme?.fillColor ?? Colors.white,
-      borderColor: widget.borderColor ?? theme?.borderColor ?? SketchDesignTokens.base900,
+      borderColor: widget.borderColor ??
+          theme?.borderColor ??
+          SketchDesignTokens.base900,
       textColor: effectiveTextColor,
       hintColor: effectiveHintColor,
-      strokeWidth: widget.strokeWidth ?? SketchDesignTokens.strokeStandard,
+      strokeWidth:
+          widget.strokeWidth ?? SketchDesignTokens.strokeBold,
     );
+  }
+}
+
+/// 우하단 resize handle — 대각선 2줄 장식용 painter.
+class _ResizeHandlePainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+
+  const _ResizeHandlePainter({
+    required this.color,
+    this.strokeWidth = 2.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    final random = Random(42);
+    final maxJitter = 0.3;
+
+    // 첫 번째 대각선 (좌하 → 우상)
+    _drawSketchLine(
+      canvas,
+      Offset(size.width * 0.35 + _jitter(random, maxJitter),
+          size.height + _jitter(random, maxJitter)),
+      Offset(size.width + _jitter(random, maxJitter),
+          size.height * 0.35 + _jitter(random, maxJitter)),
+      paint,
+    );
+
+    // 두 번째 대각선 (더 짧은 선)
+    _drawSketchLine(
+      canvas,
+      Offset(size.width * 0.65 + _jitter(random, maxJitter),
+          size.height + _jitter(random, maxJitter)),
+      Offset(size.width + _jitter(random, maxJitter),
+          size.height * 0.65 + _jitter(random, maxJitter)),
+      paint,
+    );
+  }
+
+  double _jitter(Random random, double max) {
+    return (random.nextDouble() - 0.5) * 2 * max;
+  }
+
+  void _drawSketchLine(
+      Canvas canvas, Offset start, Offset end, Paint paint) {
+    canvas.drawLine(start, end, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ResizeHandlePainter oldDelegate) {
+    return color != oldDelegate.color || strokeWidth != oldDelegate.strokeWidth;
   }
 }
 

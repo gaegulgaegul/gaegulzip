@@ -18,6 +18,7 @@ enum SketchProgressBarStyle {
 ///
 /// Frame0 스타일의 스케치 진행률 표시 위젯.
 /// Linear(가로 바)와 Circular(원형) 두 가지 스타일 지원.
+/// SketchPainter와 동일한 불규칙 테두리 + 노이즈 텍스처 적용.
 ///
 /// **기본 사용법 (Linear):**
 /// ```dart
@@ -179,7 +180,6 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
     final effectiveBackgroundColor = widget.backgroundColor ?? sketchTheme?.fillColor ?? SketchDesignTokens.base200;
     final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
-
     final effectiveRoughness = widget.roughness ?? sketchTheme?.roughness ?? SketchDesignTokens.roughness;
 
     if (widget.style == SketchProgressBarStyle.linear) {
@@ -188,6 +188,7 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
         effectiveBackgroundColor,
         effectiveBorderColor,
         effectiveStrokeWidth,
+        effectiveRoughness,
       );
     } else {
       return _buildCircular(
@@ -206,57 +207,49 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
     Color backgroundColor,
     Color borderColor,
     double strokeWidth,
+    double roughness,
   ) {
-    return SizedBox(
-      height: widget.height,
-      child: Stack(
-        children: [
-          // 배경
-          Container(
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              border: widget.showBorder
-                  ? Border.all(
-                      color: borderColor,
-                      width: strokeWidth,
-                    )
-                  : null,
-              borderRadius: BorderRadius.circular(widget.height / 2),
-            ),
+    if (widget.value != null) {
+      // Determinate
+      return SizedBox(
+        width: double.infinity,
+        height: widget.height,
+        child: CustomPaint(
+          painter: _SketchLinearProgressPainter(
+            progress: widget.value!,
+            progressColor: progressColor,
+            backgroundColor: backgroundColor,
+            borderColor: borderColor,
+            strokeWidth: strokeWidth,
+            roughness: roughness,
+            seed: widget.seed,
+            showBorder: widget.showBorder,
           ),
+        ),
+      );
+    }
 
-          // 진행 바
-          if (widget.value != null)
-            FractionallySizedBox(
-              widthFactor: widget.value,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: progressColor,
-                  borderRadius: BorderRadius.circular(widget.height / 2),
-                ),
-              ),
-            )
-          else
-            // Indeterminate 애니메이션
-            AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return FractionallySizedBox(
-                  alignment: Alignment(
-                    -1.0 + 2.0 * _animationController.value,
-                    0.0,
-                  ),
-                  widthFactor: 0.3,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: progressColor,
-                      borderRadius: BorderRadius.circular(widget.height / 2),
-                    ),
-                  ),
-                );
-              },
+    // Indeterminate 애니메이션
+    return SizedBox(
+      width: double.infinity,
+      height: widget.height,
+      child: AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          return CustomPaint(
+            painter: _SketchLinearProgressPainter(
+              progress: null,
+              indeterminatePosition: _animationController.value,
+              progressColor: progressColor,
+              backgroundColor: backgroundColor,
+              borderColor: borderColor,
+              strokeWidth: strokeWidth,
+              roughness: roughness,
+              seed: widget.seed,
+              showBorder: widget.showBorder,
             ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -352,6 +345,210 @@ class _SketchProgressBarState extends State<SketchProgressBar> with SingleTicker
         ],
       ),
     );
+  }
+}
+
+/// 손그림 스타일 Linear 프로그레스 CustomPainter
+///
+/// SketchPainter와 동일한 알고리즘으로 불규칙 pill 테두리 + 노이즈 텍스처 렌더링.
+/// 트랙 배경과 진행 fill을 하나의 paint pass에서 처리.
+class _SketchLinearProgressPainter extends CustomPainter {
+  final double? progress;
+  final double indeterminatePosition;
+  final Color progressColor;
+  final Color backgroundColor;
+  final Color borderColor;
+  final double strokeWidth;
+  final double roughness;
+  final int seed;
+  final bool showBorder;
+
+  const _SketchLinearProgressPainter({
+    required this.progress,
+    this.indeterminatePosition = 0.0,
+    required this.progressColor,
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.strokeWidth,
+    required this.roughness,
+    required this.seed,
+    required this.showBorder,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // width나 height가 너무 작으면 그릴 수 없음
+    if (size.width < 1 || size.height < 1) return;
+
+    final random = Random(seed);
+    final inset = showBorder ? strokeWidth / 2 : 0.0;
+    final trackRect = Rect.fromLTWH(
+      inset,
+      inset,
+      size.width - inset * 2,
+      size.height - inset * 2,
+    );
+    final radius = min(trackRect.height / 2, trackRect.width / 2);
+
+    // 트랙 경로 (스케치 스타일 pill)
+    final trackPath = _createSketchPath(trackRect, radius, random);
+
+    // 1. 트랙 배경 채우기
+    canvas.drawPath(
+      trackPath,
+      Paint()
+        ..color = backgroundColor
+        ..style = PaintingStyle.fill,
+    );
+
+    // 2. 트랙 배경 노이즈
+    if (backgroundColor.a > 0.01) {
+      canvas.save();
+      canvas.clipPath(trackPath);
+      _drawNoise(canvas, size, seed + 1000, backgroundColor);
+      canvas.restore();
+    }
+
+    // 3. 진행 fill (트랙에 클리핑)
+    final fillProgress = progress;
+    if (fillProgress != null && fillProgress > 0) {
+      canvas.save();
+      canvas.clipPath(trackPath);
+
+      final fillWidth = trackRect.width * fillProgress + inset;
+      final fillRect = Rect.fromLTWH(0, 0, fillWidth, size.height);
+      canvas.drawRect(
+        fillRect,
+        Paint()
+          ..color = progressColor
+          ..style = PaintingStyle.fill,
+      );
+
+      // fill 위 노이즈 (색상 반전)
+      canvas.clipRect(fillRect);
+      _drawNoise(canvas, Size(fillWidth, size.height), seed + 2000, progressColor);
+      canvas.restore();
+    } else if (fillProgress == null) {
+      // Indeterminate: 30% 폭 fill이 좌→우 슬라이드
+      canvas.save();
+      canvas.clipPath(trackPath);
+
+      final fillWidth = size.width * 0.3;
+      final maxTravel = size.width - fillWidth;
+      final xOffset = maxTravel * indeterminatePosition;
+      final fillRect = Rect.fromLTWH(xOffset, 0, fillWidth, size.height);
+
+      canvas.drawRect(
+        fillRect,
+        Paint()
+          ..color = progressColor
+          ..style = PaintingStyle.fill,
+      );
+      canvas.restore();
+    }
+
+    // 4. 트랙 테두리
+    if (showBorder) {
+      canvas.drawPath(
+        trackPath,
+        Paint()
+          ..color = borderColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round,
+      );
+    }
+  }
+
+  /// 노이즈 텍스처 그리기 — 배경색 명도에 따라 dot 색상 자동 결정
+  void _drawNoise(Canvas canvas, Size size, int noiseSeed, Color baseColor) {
+    // 밝은 배경에는 검정 점, 어두운 배경에는 흰 점
+    final isLight = baseColor.computeLuminance() > 0.5;
+    final dotColor = isLight
+        ? Colors.black.withValues(alpha: SketchDesignTokens.noiseIntensity)
+        : Colors.white.withValues(alpha: SketchDesignTokens.noiseIntensity);
+
+    final noisePaint = Paint()
+      ..color = dotColor
+      ..style = PaintingStyle.fill;
+
+    final noiseRandom = Random(noiseSeed);
+    final dotCount = (size.width * size.height / 100).toInt().clamp(20, 300);
+
+    for (int i = 0; i < dotCount; i++) {
+      final x = noiseRandom.nextDouble() * size.width;
+      final y = noiseRandom.nextDouble() * size.height;
+      canvas.drawCircle(
+        Offset(x, y),
+        SketchDesignTokens.noiseGrainSize / 2,
+        noisePaint,
+      );
+    }
+  }
+
+  /// SketchPainter와 동일한 스케치 경로 생성 알고리즘
+  Path _createSketchPath(Rect rect, double radius, Random random) {
+    if (roughness <= 0.01) {
+      return Path()
+        ..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)));
+    }
+
+    final idealPath = Path()
+      ..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)));
+
+    final metrics = idealPath.computeMetrics().toList();
+    if (metrics.isEmpty) return idealPath;
+
+    final metric = metrics.first;
+    final totalLength = metric.length;
+
+    final numPoints = (totalLength / 6).round().clamp(20, 200);
+    final maxJitter = roughness * 0.6;
+
+    final points = <Offset>[];
+
+    for (int i = 0; i < numPoints; i++) {
+      final distance = totalLength * i / numPoints;
+      final tangent = metric.getTangentForOffset(distance);
+      if (tangent != null) {
+        final normal = Offset(-tangent.vector.dy, tangent.vector.dx);
+        final jitter = (random.nextDouble() - 0.5) * 2 * maxJitter;
+        points.add(tangent.position + normal * jitter);
+      }
+    }
+
+    if (points.length < 3) return idealPath;
+
+    final sketchPath = Path();
+    sketchPath.moveTo(
+      (points.last.dx + points.first.dx) / 2,
+      (points.last.dy + points.first.dy) / 2,
+    );
+
+    for (int i = 0; i < points.length; i++) {
+      final curr = points[i];
+      final next = points[(i + 1) % points.length];
+      final midX = (curr.dx + next.dx) / 2;
+      final midY = (curr.dy + next.dy) / 2;
+      sketchPath.quadraticBezierTo(curr.dx, curr.dy, midX, midY);
+    }
+
+    sketchPath.close();
+    return sketchPath;
+  }
+
+  @override
+  bool shouldRepaint(covariant _SketchLinearProgressPainter oldDelegate) {
+    return progress != oldDelegate.progress ||
+        indeterminatePosition != oldDelegate.indeterminatePosition ||
+        progressColor != oldDelegate.progressColor ||
+        backgroundColor != oldDelegate.backgroundColor ||
+        borderColor != oldDelegate.borderColor ||
+        strokeWidth != oldDelegate.strokeWidth ||
+        roughness != oldDelegate.roughness ||
+        seed != oldDelegate.seed ||
+        showBorder != oldDelegate.showBorder;
   }
 }
 
