@@ -13,29 +13,46 @@ class SketchPainterDemo extends StatefulWidget {
 }
 
 class _SketchPainterDemoState extends State<SketchPainterDemo> {
-  // 미리 정의된 색상 목록
-  final List<Color> _colors = [
-    Colors.white,
-    SketchDesignTokens.accentPrimary,
-    SketchDesignTokens.accentLight,
-    SketchDesignTokens.error,
-    SketchDesignTokens.warning,
-    SketchDesignTokens.success,
-    SketchDesignTokens.base900,
-    SketchDesignTokens.base600,
-  ];
-
   // 상태
-  Color _fillColor = Colors.white;
-  Color _borderColor = SketchDesignTokens.base900;
+  late Color _fillColor;
+  late Color _borderColor;
   double _strokeWidth = SketchDesignTokens.strokeStandard;
   double _roughness = SketchDesignTokens.roughness;
   double _bowing = SketchDesignTokens.bowing;
   int _seed = 0;
   bool _enableNoise = true;
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      final sketchTheme = SketchThemeExtension.of(context);
+      _fillColor = sketchTheme.fillColor;
+      _borderColor = sketchTheme.borderColor;
+      _initialized = true;
+    }
+  }
+
+  /// 테마 기반 색상 팔레트
+  List<Color> _buildColors(SketchThemeExtension theme) {
+    return [
+      theme.fillColor,
+      SketchDesignTokens.accentPrimary,
+      SketchDesignTokens.accentLight,
+      SketchDesignTokens.error,
+      SketchDesignTokens.warning,
+      SketchDesignTokens.success,
+      theme.borderColor,
+      theme.textSecondaryColor,
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final sketchTheme = SketchThemeExtension.of(context);
+    final colors = _buildColors(sketchTheme);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(SketchDesignTokens.spacingLg),
       child: Column(
@@ -59,19 +76,20 @@ class _SketchPainterDemoState extends State<SketchPainterDemo> {
           const SizedBox(height: SketchDesignTokens.spacingXl),
 
           // 컨트롤
-          _buildSectionTitle('Fill Color'),
-          _buildColorPicker(_fillColor, (color) {
+          _buildSectionTitle('Fill Color', sketchTheme),
+          _buildColorPicker(colors, _fillColor, (color) {
             setState(() => _fillColor = color);
           }),
           const SizedBox(height: SketchDesignTokens.spacingLg),
 
-          _buildSectionTitle('Border Color'),
-          _buildColorPicker(_borderColor, (color) {
+          _buildSectionTitle('Border Color', sketchTheme),
+          _buildColorPicker(colors, _borderColor, (color) {
             setState(() => _borderColor = color);
           }),
           const SizedBox(height: SketchDesignTokens.spacingLg),
 
           _buildSlider(
+            sketchTheme,
             'Stroke Width',
             _strokeWidth,
             1.0,
@@ -81,6 +99,7 @@ class _SketchPainterDemoState extends State<SketchPainterDemo> {
           const SizedBox(height: SketchDesignTokens.spacingLg),
 
           _buildSlider(
+            sketchTheme,
             'Roughness',
             _roughness,
             0.0,
@@ -90,6 +109,7 @@ class _SketchPainterDemoState extends State<SketchPainterDemo> {
           const SizedBox(height: SketchDesignTokens.spacingLg),
 
           _buildSlider(
+            sketchTheme,
             'Bowing',
             _bowing,
             0.0,
@@ -99,6 +119,7 @@ class _SketchPainterDemoState extends State<SketchPainterDemo> {
           const SizedBox(height: SketchDesignTokens.spacingLg),
 
           _buildSlider(
+            sketchTheme,
             'Seed',
             _seed.toDouble(),
             0.0,
@@ -108,6 +129,7 @@ class _SketchPainterDemoState extends State<SketchPainterDemo> {
           const SizedBox(height: SketchDesignTokens.spacingLg),
 
           _buildSwitch(
+            sketchTheme,
             'Enable Noise',
             _enableNoise,
             (value) => setState(() => _enableNoise = value),
@@ -118,22 +140,27 @@ class _SketchPainterDemoState extends State<SketchPainterDemo> {
   }
 
   /// 섹션 제목
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, SketchThemeExtension theme) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: SketchDesignTokens.fontSizeBase,
         fontWeight: FontWeight.bold,
+        color: theme.textSecondaryColor,
       ),
     );
   }
 
   /// 컬러 피커
-  Widget _buildColorPicker(Color selected, ValueChanged<Color> onChanged) {
+  Widget _buildColorPicker(
+    List<Color> colors,
+    Color selected,
+    ValueChanged<Color> onChanged,
+  ) {
     return Wrap(
       spacing: SketchDesignTokens.spacingSm,
       runSpacing: SketchDesignTokens.spacingSm,
-      children: _colors.map((color) {
+      children: colors.map((color) {
         final isSelected = color == selected;
         return GestureDetector(
           onTap: () => onChanged(color),
@@ -158,6 +185,7 @@ class _SketchPainterDemoState extends State<SketchPainterDemo> {
 
   /// 슬라이더
   Widget _buildSlider(
+    SketchThemeExtension theme,
     String label,
     double value,
     double min,
@@ -169,7 +197,10 @@ class _SketchPainterDemoState extends State<SketchPainterDemo> {
       children: [
         Text(
           '$label: ${value.toStringAsFixed(1)}',
-          style: const TextStyle(fontSize: SketchDesignTokens.fontSizeSm),
+          style: TextStyle(
+            fontSize: SketchDesignTokens.fontSizeSm,
+            color: theme.textSecondaryColor,
+          ),
         ),
         SketchSlider(
           value: value,
@@ -184,6 +215,7 @@ class _SketchPainterDemoState extends State<SketchPainterDemo> {
 
   /// 스위치
   Widget _buildSwitch(
+    SketchThemeExtension theme,
     String label,
     bool value,
     ValueChanged<bool> onChanged,
@@ -193,7 +225,10 @@ class _SketchPainterDemoState extends State<SketchPainterDemo> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: SketchDesignTokens.fontSizeBase),
+          style: TextStyle(
+            fontSize: SketchDesignTokens.fontSizeBase,
+            color: theme.textColor,
+          ),
         ),
         SketchSwitch(
           value: value,

@@ -13,7 +13,10 @@ import 'demos/checkbox_demo.dart';
 import 'demos/slider_demo.dart';
 import 'demos/dropdown_demo.dart';
 import 'demos/container_demo.dart';
+import 'demos/radio_demo.dart';
 import 'demos/social_login_button_demo.dart';
+import 'demos/snackbar_demo.dart';
+import 'demos/text_area_demo.dart';
 
 /// 위젯 데모 화면
 ///
@@ -59,10 +62,16 @@ class WidgetDemoView extends StatelessWidget {
         return const SliderDemo();
       case 'SketchDropdown':
         return const DropdownDemo();
+      case 'SketchRadio':
+        return const RadioDemo();
       case 'SketchContainer':
         return const ContainerDemo();
       case 'SocialLoginButton':
         return const SocialLoginButtonDemo();
+      case 'SketchSnackbar':
+        return const SnackbarDemo();
+      case 'SketchTextArea':
+        return const TextAreaDemo();
       default:
         return Center(
           child: Text('Unknown widget: $name'),

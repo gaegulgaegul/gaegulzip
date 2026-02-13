@@ -19,6 +19,7 @@ class _ButtonDemoState extends State<ButtonDemo> {
   SketchButtonSize _size = SketchButtonSize.medium;
   bool _isLoading = false;
   bool _showIcon = false;
+  bool _isDisabled = false;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +58,7 @@ class _ButtonDemoState extends State<ButtonDemo> {
             size: _size,
             isLoading: _isLoading,
             icon: _showIcon ? const Icon(LucideIcons.star) : null,
-            onPressed: () {
+            onPressed: _isDisabled ? null : () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('버튼 클릭됨!')),
               );
@@ -143,6 +144,18 @@ class _ButtonDemoState extends State<ButtonDemo> {
           ],
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
+
+        // Disabled 토글
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Disabled', style: TextStyle(fontSize: SketchDesignTokens.fontSizeBase)),
+            SketchSwitch(
+              value: _isDisabled,
+              onChanged: (value) => setState(() => _isDisabled = value),
+            ),
+          ],
+        ),
 
         // Loading 토글
         Row(

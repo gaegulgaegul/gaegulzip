@@ -1,4 +1,3 @@
-import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'demos/sketch_painter_demo.dart';
@@ -18,12 +17,9 @@ class PainterDemoView extends StatelessWidget {
     final String painterName = Get.arguments as String? ?? '';
 
     return Scaffold(
-      backgroundColor: SketchDesignTokens.base100,
       appBar: AppBar(
         title: Text(painterName),
         centerTitle: true,
-        backgroundColor: SketchDesignTokens.base100,
-        elevation: 0,
       ),
       body: _buildDemoWidget(painterName),
     );
@@ -44,13 +40,7 @@ class PainterDemoView extends StatelessWidget {
         return const AnimatedPainterDemo();
       default:
         return Center(
-          child: Text(
-            'Unknown painter: $painterName',
-            style: TextStyle(
-              fontSize: SketchDesignTokens.fontSizeBase,
-              color: SketchDesignTokens.base600,
-            ),
-          ),
+          child: Text('Unknown painter: $painterName'),
         );
     }
   }
