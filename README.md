@@ -14,7 +14,7 @@
 gaegulzip/
 ├── apps/
 │   ├── server/                 # 공통 백엔드 (Express + Drizzle + PostgreSQL)
-│   │   └── src/modules/        # 기능 모듈 (auth, push-alert, qna, notice)
+│   │   └── src/modules/        # 기능 모듈 (auth, box, notice, push-alert, qna, wod)
 │   ├── mobile/                 # Flutter 모노레포 (Melos)
 │   │   ├── apps/wowa/          # 제품: 크로스핏 WOD 알리미
 │   │   ├── apps/[next-app]/    # 다음 제품은 여기에
