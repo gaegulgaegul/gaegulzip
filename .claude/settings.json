@@ -14,7 +14,6 @@
   },
   "enabledPlugins": {
     "bkit@bkit-marketplace": true,
-    "github@claude-plugins-official": true,
     "coderabbit@claude-plugins-official": true
   },
   "plugins": {

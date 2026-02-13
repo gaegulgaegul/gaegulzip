@@ -169,6 +169,7 @@ doc/api/
 .claude/settings.local.json
 
 # bkit
+.pdca-status.json
 docs/.pdca-status.json
 docs/.pdca-snapshots/
 docs/archive/
