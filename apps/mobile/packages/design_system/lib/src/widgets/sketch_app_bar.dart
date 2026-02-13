@@ -222,6 +222,7 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
     final containerRoughness = effectiveRoughness * 1.75;
 
     return Stack(
+      clipBehavior: Clip.none, // 그림자가 Stack 영역 밖으로 확장되도록 허용
       children: [
         // 그림자 레이어 (showShadow: true일 때만)
         if (showShadow)
