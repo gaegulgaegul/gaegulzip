@@ -1,6 +1,9 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../painters/sketch_painter.dart';
+import '../theme/sketch_theme_extension.dart';
+
 /// 스케치 버튼의 스타일 변형.
 enum SketchButtonStyle {
   /// 액센트 색상 배경의 채워진 버튼.
@@ -102,6 +105,9 @@ class SketchButton extends StatefulWidget {
   /// 아이콘과 텍스트 사이 간격.
   final double iconSpacing;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchButton({
     super.key,
     this.text,
@@ -112,6 +118,7 @@ class SketchButton extends StatefulWidget {
     this.isLoading = false,
     this.width,
     this.iconSpacing = 8.0,
+    this.showBorder = true,
   }) : assert(text != null || icon != null, 'Either text or icon must be provided');
 
   @override
@@ -125,8 +132,9 @@ class _SketchButtonState extends State<SketchButton> {
   Widget build(BuildContext context) {
     final isDisabled = widget.onPressed == null && !widget.isLoading;
 
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
     final sizeSpec = _getSizeSpec(widget.size);
-    final colorSpec = _getColorSpec(widget.style, isDisabled);
+    final colorSpec = _getColorSpec(sketchTheme, widget.style, isDisabled);
 
     return Opacity(
       opacity: isDisabled ? SketchDesignTokens.opacityDisabled : 1.0,
@@ -141,19 +149,24 @@ class _SketchButtonState extends State<SketchButton> {
           scale: _isPressed ? 0.98 : 1.0,
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeOut,
-          child: Container(
-            width: widget.width,
-            height: sizeSpec.height,
-            decoration: BoxDecoration(
-              color: colorSpec.fillColor,
-              border: Border.all(
-                color: colorSpec.borderColor,
-                width: colorSpec.strokeWidth,
-              ),
-              borderRadius: BorderRadius.circular(9999),
+          child: CustomPaint(
+            painter: SketchPainter(
+              fillColor: colorSpec.fillColor,
+              borderColor: colorSpec.borderColor,
+              strokeWidth: colorSpec.strokeWidth,
+              roughness: sketchTheme?.roughness ?? SketchDesignTokens.roughness,
+              seed: widget.text?.hashCode ?? 0,
+              showBorder: widget.showBorder,
+              borderRadius: SketchDesignTokens.irregularBorderRadius,
             ),
-            padding: sizeSpec.padding,
-            child: _buildContent(sizeSpec, colorSpec),
+            child: SizedBox(
+              width: widget.width,
+              height: sizeSpec.height,
+              child: Padding(
+                padding: sizeSpec.padding,
+                child: _buildContent(sizeSpec, colorSpec),
+              ),
+            ),
           ),
         ),
       ),
@@ -253,40 +266,41 @@ class _SketchButtonState extends State<SketchButton> {
     }
   }
 
-  _ColorSpec _getColorSpec(SketchButtonStyle style, bool isDisabled) {
+  _ColorSpec _getColorSpec(SketchThemeExtension? theme, SketchButtonStyle style, bool isDisabled) {
     if (isDisabled) {
-      // 비활성화 상태: 스타일에 관계없이 흐릿한 색상 사용
       return _ColorSpec(
-        fillColor: SketchDesignTokens.base200,
-        borderColor: SketchDesignTokens.base300,
-        textColor: SketchDesignTokens.base500,
+        fillColor: theme?.disabledFillColor ?? SketchDesignTokens.base200,
+        borderColor: theme?.disabledBorderColor ?? SketchDesignTokens.base300,
+        textColor: theme?.disabledTextColor ?? SketchDesignTokens.base500,
         strokeWidth: SketchDesignTokens.strokeStandard,
       );
     }
 
+    final textColor = theme?.textColor ?? SketchDesignTokens.base900;
+
     switch (style) {
       case SketchButtonStyle.primary:
-        // Frame0 스타일: 검정 fill + 흰 텍스트
+        // Frame0: 라이트=검정fill+흰텍스트, 다크=흰fill+검정텍스트
         return _ColorSpec(
-          fillColor: SketchDesignTokens.base900,
-          borderColor: SketchDesignTokens.base900,
-          textColor: SketchDesignTokens.white,
+          fillColor: textColor,
+          borderColor: textColor,
+          textColor: theme?.fillColor ?? SketchDesignTokens.white,
           strokeWidth: SketchDesignTokens.strokeStandard,
         );
       case SketchButtonStyle.secondary:
-        // Frame0 스타일: 흰 fill + 어두운 테두리
+        // Frame0: 회색 배경 + 어두운 테두리
         return _ColorSpec(
-          fillColor: SketchDesignTokens.white,
-          borderColor: SketchDesignTokens.base900,
-          textColor: SketchDesignTokens.base900,
+          fillColor: theme?.surfaceColor ?? SketchDesignTokens.base200,
+          borderColor: textColor,
+          textColor: textColor,
           strokeWidth: SketchDesignTokens.strokeStandard,
         );
       case SketchButtonStyle.outline:
-        // Frame0 스타일: 투명 fill + 어두운 테두리
+        // Frame0: 투명 fill + 어두운 테두리
         return _ColorSpec(
           fillColor: Colors.transparent,
-          borderColor: SketchDesignTokens.base900,
-          textColor: SketchDesignTokens.base900,
+          borderColor: textColor,
+          textColor: textColor,
           strokeWidth: SketchDesignTokens.strokeStandard,
         );
     }
