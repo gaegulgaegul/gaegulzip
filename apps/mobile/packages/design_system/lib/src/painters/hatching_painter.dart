@@ -85,11 +85,19 @@ class HatchingPainter extends CustomPainter {
     for (int i = -numLines; i <= numLines; i++) {
       final offset = i * spacing;
 
-      // 각도 45도 선 계산
-      final startX = offset;
-      final startY = 0.0;
-      final endX = offset + diagonal;
-      final endY = diagonal;
+      // angle 각도 방향으로 선 계산
+      final cosA = cos(angle);
+      final sinA = sin(angle);
+
+      // 법선 방향(angle에 수직)으로 offset 이동
+      final perpX = -sinA * offset;
+      final perpY = cosA * offset;
+
+      // angle 방향으로 선 그리기
+      final startX = perpX;
+      final startY = perpY;
+      final endX = perpX + cosA * diagonal;
+      final endY = perpY + sinA * diagonal;
 
       final start = Offset(startX, startY);
       final end = Offset(endX, endY);
