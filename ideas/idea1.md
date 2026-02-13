@@ -9,9 +9,15 @@ Next.js(App Router) + TypeScript + Tailwind CSS + **shadcn/ui**로 **"탈모상"
 ### 핵심 바이럴 컨셉
 영화 "관상"의 명대사 **"내가 왕이 될 상인가?"**를 패러디한 **"내가 탈모가 될 상인가?"**가 앱의 메인 카피이자 바이럴 훅.
 - 메인 타이틀: **탈모상**
-- 메인 카피: **"내가 탈모가 될 상인가?"**
+- 메인 카피: **"이보시오 관상가 양반, 내가 탈모가 될 상인가?"**
+- 짧은 버전 (공유용): **"내가 탈모가 될 상인가?"**
 - 결과 화면에서 관상 보듯이 판결을 내리는 톤 (예: "그대의 상은... 탈모가 될 상이니라 🪨", "이 상은... 아직 숲이로다 🌳", "두피의 기운이 심상치 않도다...")
 - 전체적으로 사극 말투 + 점술가 느낌을 유머러스하게 섞어서 사용
+
+---
+
+## 프로젝트 위치 및 명칭
+- apps/web/talmosang
 
 ---
 
@@ -23,6 +29,7 @@ Next.js(App Router) + TypeScript + Tailwind CSS + **shadcn/ui**로 **"탈모상"
 - **UI 컴포넌트**: shadcn/ui (Button, Card, Progress, Badge, Dialog, Skeleton 등 적극 활용)
 - **AI**: Google Gemini API (무료 티어)
 - **배포**: Vercel
+- **광고**: Google AdSense
 - **기타**: 외부 라이브러리 최소화
 
 ---
@@ -80,17 +87,14 @@ https://www.al-murphy.com/?ref=godly
 
 ---
 
-## 프로젝트 위치 및 명칭
-- apps/web/talmosang 
-
----
-
 ## 프로젝트 구조
 
 ```
 app/
-├── layout.tsx          # 기본 레이아웃 (폰트, 메타데이터, 노이즈 오버레이)
+├── layout.tsx          # 기본 레이아웃 (폰트, 메타데이터, 노이즈 오버레이, AdSense 스크립트)
 ├── page.tsx            # 메인 페이지 (업로드 → 분석 중 → 결과 3단계를 상태로 관리)
+├── privacy/
+│   └── page.tsx        # 개인정보처리방침 (AdSense 필수)
 ├── api/
 │   ├── analyze/
 │   │   └── route.ts    # Gemini 2.5 Flash Vision - 두피 분석
@@ -99,10 +103,11 @@ app/
 ├── components/
 │   ├── UploadSection.tsx    # 사진 업로드 UI
 │   ├── LoadingSection.tsx   # 분석 중 로딩 화면
-│   └── ResultSection.tsx    # 결과 카드 + 시뮬레이션 이미지
+│   ├── ResultSection.tsx    # 결과 카드 + 시뮬레이션 이미지
+│   └── AdBanner.tsx         # Google AdSense 광고 컴포넌트
 ├── components/ui/           # shadcn/ui 컴포넌트들
 └── globals.css              # 노이즈 텍스처, 손글씨 밑줄 등 커스텀 CSS
-.env.local                   # GEMINI_API_KEY=your_key_here
+.env.local                   # GEMINI_API_KEY, NEXT_PUBLIC_ADSENSE_ID
 ```
 
 ---
@@ -112,7 +117,7 @@ app/
 ### 1단계: 메인 업로드 화면 (UploadSection)
 
 - 앱 타이틀: "탈모상" (손글씨 폰트, 살짝 기울어짐, 큰 사이즈)
-- 메인 카피: "내가 탈모가 될 상인가?" (사극풍 서체 느낌, 임팩트 있게)
+- 메인 카피: "이보시오 관상가 양반, 내가 탈모가 될 상인가?" (사극풍 서체 느낌, 임팩트 있게)
 - 서브카피: "AI 관상가가 그대의 모발 운명을 점지하리라" (사극 말투)
 - 재미있는 일러스트/데코 요소가 타이틀 주변에 배치 (별, 모발 아이콘 등 SVG)
 - 사진 업로드 영역:
@@ -300,6 +305,48 @@ Google AI Studio(https://aistudio.google.com/apikey)에서 무료 발급.
 
 ---
 
+## Google AdSense 광고 설정
+
+### 스크립트 삽입
+- `layout.tsx`의 `<head>`에 AdSense 스크립트 삽입:
+  ```html
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+  ```
+- `ca-pub-` 뒤의 ID는 환경변수로 관리: `NEXT_PUBLIC_ADSENSE_ID`
+
+### 광고 배치 위치 (UX를 해치지 않는 선에서)
+
+1. **메인 화면 하단** (업로드 영역 아래)
+  - 배너 광고 (728x90 데스크톱 / 320x100 모바일)
+  - 면책 고지와 업로드 영역 사이
+
+2. **결과 카드와 시뮬레이션 이미지 사이**
+  - 인피드 광고 또는 네이티브 광고
+  - 분석 카드를 다 읽고 시뮬레이션 이미지로 넘어가기 전 자연스러운 위치
+
+3. **결과 화면 최하단** (공유 버튼 아래)
+  - 배너 광고
+  - "다시 관상 보기" 버튼 아래에 배치
+
+### 광고 컴포넌트
+- `components/AdBanner.tsx` — 재사용 가능한 AdSense 광고 컴포넌트
+- props: `slot` (광고 슬롯 ID), `format` (auto/rectangle/horizontal), `responsive` (boolean)
+- 광고 로드 실패 시 빈 공간 없이 자연스럽게 collapse
+
+### 주의사항
+- 분석 중(로딩) 화면에는 광고 넣지 않을 것 (사용자 경험 방해)
+- 업로드 영역 바로 위에 광고 넣지 않을 것 (실수 클릭 유발 → AdSense 정책 위반 가능)
+- AdSense 승인 전에는 빈 슬롯으로 두되, 레이아웃 공간은 확보해둘 것
+- 개인정보처리방침(Privacy Policy) 페이지 필요 — `/app/privacy/page.tsx` 추가
+
+### 환경변수 추가
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+NEXT_PUBLIC_ADSENSE_ID=ca-pub-XXXXXXXXXXXXXXXX
+```
+
+---
+
 ## 추후 작업 (v2)
 
 ### 인트로 애니메이션: "관상" 명장면 패러디
@@ -313,9 +360,10 @@ Google AI Studio(https://aistudio.google.com/apikey)에서 무료 발급.
 - 압도적인 카리스마 + 웅장한 음악 + 클로즈업 연출
 
 **패러디 버전 (탈모상 앱)**:
-- 사극풍 캐릭터(관상가)가 사용자가 업로드한 사진을 받아들고
-- 사진을 찬찬히 살펴보며 두루마리를 펼치는 연출
-- 캐릭터가 사용자에게 묻는 말풍선: **"어찌, 내가 탈모가 될 상인가?"**
+- 사극풍 캐릭터(수양대군 느낌의 사용자 아바타)가 관상가에게 다가가는 연출
+- 말풍선 1: **"이보시오 관상가 양반!"**
+- 관상가가 사용자의 사진을 받아들고 찬찬히 살펴보는 연출
+- 말풍선 2: **"어찌, 내가 탈모가 될 상인가?"**
 - 이후 분석 화면으로 자연스럽게 전환
 
 **구현 방향 (3가지 옵션 중 택 1)**:
