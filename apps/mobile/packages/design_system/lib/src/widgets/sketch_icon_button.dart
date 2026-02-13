@@ -226,6 +226,9 @@ class _SketchBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
+    final effectiveBadgeColor = sketchTheme?.badgeColor ?? SketchDesignTokens.error;
+    final effectiveBadgeTextColor = sketchTheme?.badgeTextColor ?? Colors.white;
     final displayCount = count > 99 ? '99+' : count.toString();
 
     return Container(
@@ -234,8 +237,8 @@ class _SketchBadge extends StatelessWidget {
         minHeight: 20,
       ),
       child: Container(
-        decoration: const BoxDecoration(
-          color: SketchDesignTokens.error,
+        decoration: BoxDecoration(
+          color: effectiveBadgeColor,
           shape: BoxShape.circle,
         ),
         child: Center(
@@ -243,10 +246,10 @@ class _SketchBadge extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             child: Text(
               displayCount,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: effectiveBadgeTextColor,
                 height: 1.0,
               ),
             ),

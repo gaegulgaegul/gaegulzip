@@ -1,6 +1,8 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../theme/sketch_theme_extension.dart';
+
 /// 아이콘 위치.
 enum SketchLinkIconPosition {
   /// 텍스트 앞.
@@ -101,16 +103,19 @@ class _SketchLinkState extends State<SketchLink> {
 
   @override
   Widget build(BuildContext context) {
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
+    final baseLinkColor = sketchTheme?.linkColor ?? SketchDesignTokens.linkBlue;
+
     final effectiveColor = widget.color ??
         (widget.isVisited
-            ? SketchDesignTokens.linkBlue.withValues(alpha: 0.7)
-            : SketchDesignTokens.linkBlue);
+            ? baseLinkColor.withValues(alpha: 0.7)
+            : baseLinkColor);
 
     final effectiveFontSize = widget.fontSize ?? SketchDesignTokens.fontSizeBase;
 
     // 상태별 스타일 결정
     final textColor = _isPressed || _isHovered
-        ? SketchDesignTokens.linkBlue.withValues(alpha: 0.7)
+        ? baseLinkColor.withValues(alpha: 0.7)
         : effectiveColor;
 
     final decorationStyle = _isPressed || _isHovered
@@ -120,9 +125,9 @@ class _SketchLinkState extends State<SketchLink> {
     final decorationThickness = _isPressed || _isHovered ? 1.5 : 1.0;
 
     final backgroundColor = _isPressed
-        ? SketchDesignTokens.linkBlue.withValues(alpha: 0.15)
+        ? baseLinkColor.withValues(alpha: 0.15)
         : (_isHovered
-            ? SketchDesignTokens.linkBlue.withValues(alpha: 0.08)
+            ? baseLinkColor.withValues(alpha: 0.08)
             : Colors.transparent);
 
     return GestureDetector(

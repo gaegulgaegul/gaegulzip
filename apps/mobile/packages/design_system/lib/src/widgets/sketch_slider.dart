@@ -311,8 +311,8 @@ class _SketchSliderState extends State<SketchSlider> {
                           ),
                           child: Text(
                             widget.label!,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: sketchTheme?.fillColor ?? Colors.white,
                               fontSize: SketchDesignTokens.fontSizeXs,
                             ),
                           ),

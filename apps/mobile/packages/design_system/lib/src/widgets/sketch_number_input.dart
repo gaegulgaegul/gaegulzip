@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../theme/sketch_theme_extension.dart';
 import 'sketch_icon_button.dart';
 import 'sketch_input.dart';
 
@@ -175,17 +176,19 @@ class _SketchNumberInputState extends State<SketchNumberInput> {
 
   @override
   Widget build(BuildContext context) {
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label != null) ...[
           Text(
             widget.label!,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: SketchDesignTokens.fontFamilyHand,
               fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
               fontSize: SketchDesignTokens.fontSizeSm,
-              color: SketchDesignTokens.textSecondary,
+              color: sketchTheme?.textSecondaryColor ?? SketchDesignTokens.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
