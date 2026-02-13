@@ -95,6 +95,47 @@ class SketchCirclePainter extends CustomPainter {
     this.enableNoise = false,
   }) : assert(segments >= 8, 'Segments must be at least 8');
 
+  /// 외부에서 ClipPath에 사용할 수 있도록 경로를 생성하는 정적 메서드.
+  ///
+  /// ClipPath 위젯에서 컨텐츠를 스케치 스타일 원형으로 클리핑할 때 사용.
+  ///
+  /// **사용법:**
+  /// ```dart
+  /// ClipPath(
+  ///   clipper: _SketchClipper(
+  ///     SketchCirclePainter.createClipPath(
+  ///       size: Size(100, 100),
+  ///       roughness: 0.8,
+  ///       seed: 42,
+  ///       segments: 16,
+  ///     ),
+  ///   ),
+  ///   child: Image.network(imageUrl),
+  /// )
+  /// ```
+  static Path createClipPath({
+    required Size size,
+    required double roughness,
+    required int seed,
+    int segments = 16,
+    double strokeWidth = 0,
+  }) {
+    final random = Random(seed);
+    final inset = strokeWidth / 2;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radiusX = size.width / 2 - inset;
+    final radiusY = size.height / 2 - inset;
+
+    return _createIrregularCircleStatic(
+      center,
+      radiusX,
+      radiusY,
+      random,
+      roughness,
+      segments,
+    );
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final random = Random(seed);
@@ -108,7 +149,14 @@ class SketchCirclePainter extends CustomPainter {
         ..color = fillColor
         ..style = PaintingStyle.fill;
 
-      final fillPath = _createIrregularCircle(center, radiusX, radiusY, random);
+      final fillPath = _createIrregularCircleStatic(
+        center,
+        radiusX,
+        radiusY,
+        random,
+        roughness,
+        segments,
+      );
       canvas.drawPath(fillPath, fillPaint);
 
       // 활성화된 경우 노이즈 텍스처 그리기
@@ -125,22 +173,26 @@ class SketchCirclePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     for (int i = 0; i < 2; i++) {
-      final borderPath = _createIrregularCircle(
+      final borderPath = _createIrregularCircleStatic(
         center,
         radiusX - strokeWidth / 2,
         radiusY - strokeWidth / 2,
         Random(seed + i * 100),
+        roughness,
+        segments,
       );
       canvas.drawPath(borderPath, borderPaint);
     }
   }
 
-  /// 이차 베지어 곡선을 사용하여 불규칙한 원 경로 생성.
-  Path _createIrregularCircle(
+  /// 이차 베지어 곡선을 사용하여 불규칙한 원 경로 생성 (정적 버전).
+  static Path _createIrregularCircleStatic(
     Offset center,
     double radiusX,
     double radiusY,
     Random random,
+    double roughness,
+    int segments,
   ) {
     final path = Path();
 
@@ -157,19 +209,15 @@ class SketchCirclePainter extends CustomPainter {
     }
 
     // 타원 주변의 점들 생성
-    Offset? firstPoint;
-
     for (int i = 0; i <= segments; i++) {
       final angle = (i / segments) * 2 * pi;
       final point = addRoughness(angle, radiusX, radiusY);
 
       if (i == 0) {
-        firstPoint = point;
         path.moveTo(point.dx, point.dy);
       } else {
         // 더 부드러운 곡선을 위한 제어점 사용
         final prevAngle = ((i - 1) / segments) * 2 * pi;
-        final prevPoint = addRoughness(prevAngle, radiusX, radiusY);
 
         // 이전 점과 현재 점 사이의 제어점
         final controlAngle = (prevAngle + angle) / 2;

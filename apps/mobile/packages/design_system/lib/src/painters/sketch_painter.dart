@@ -72,6 +72,45 @@ class SketchPainter extends CustomPainter {
     this.borderRadius = SketchDesignTokens.irregularBorderRadius,
   });
 
+  /// 외부에서 ClipPath에 사용할 수 있도록 경로를 생성하는 정적 메서드.
+  ///
+  /// ClipPath 위젯에서 컨텐츠를 스케치 스타일 둥근 사각형으로 클리핑할 때 사용.
+  ///
+  /// **사용법:**
+  /// ```dart
+  /// ClipPath(
+  ///   clipper: _SketchClipper(
+  ///     SketchPainter.createClipPath(
+  ///       size: Size(100, 100),
+  ///       roughness: 0.8,
+  ///       seed: 42,
+  ///       borderRadius: 6.0,
+  ///       strokeWidth: 2.0,
+  ///     ),
+  ///   ),
+  ///   child: Image.network(imageUrl),
+  /// )
+  /// ```
+  static Path createClipPath({
+    required Size size,
+    required double roughness,
+    required int seed,
+    required double borderRadius,
+    double strokeWidth = 0,
+  }) {
+    final random = Random(seed);
+    final inset = strokeWidth / 2;
+    final rect = Rect.fromLTWH(
+      inset,
+      inset,
+      size.width - inset * 2,
+      size.height - inset * 2,
+    );
+    final r = min(borderRadius, min(rect.width, rect.height) / 2);
+
+    return _createSketchPathStatic(rect, r, random, roughness);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final random = Random(seed);
@@ -85,7 +124,7 @@ class SketchPainter extends CustomPainter {
     final r = min(borderRadius, min(rect.width, rect.height) / 2);
 
     // 스케치 스타일 경로 생성
-    final sketchPath = _createSketchPath(rect, r, random);
+    final sketchPath = _createSketchPathStatic(rect, r, random, roughness);
 
     // 1. 채우기
     final fillPaint = Paint()
@@ -133,11 +172,16 @@ class SketchPainter extends CustomPainter {
     }
   }
 
-  /// 손으로 그린 스타일의 둥근 사각형 경로를 생성함.
+  /// 손으로 그린 스타일의 둥근 사각형 경로를 생성함 (정적 버전).
   ///
   /// 기본 RRect 경로를 따라 포인트를 균등 샘플링하고,
   /// 법선 방향으로 약간의 무작위 변위를 추가하여 스케치 느낌을 만듦.
-  Path _createSketchPath(Rect rect, double radius, Random random) {
+  static Path _createSketchPathStatic(
+    Rect rect,
+    double radius,
+    Random random,
+    double roughness,
+  ) {
     if (roughness <= 0.01) {
       return Path()
         ..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)));

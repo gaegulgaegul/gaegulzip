@@ -10,6 +10,7 @@ export 'src/painters/x_cross_painter.dart';
 export 'src/painters/sketch_snackbar_icon_painter.dart';
 export 'src/painters/sketch_x_close_painter.dart';
 export 'src/painters/hatching_painter.dart';
+export 'src/painters/sketch_tab_painter.dart';
 
 // Theme
 export 'src/theme/sketch_theme_extension.dart';
