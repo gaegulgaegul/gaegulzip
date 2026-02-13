@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../painters/sketch_line_painter.dart';
 import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
@@ -21,6 +24,9 @@ enum SketchInputMode {
 
   /// 날짜+시간 입력 (readOnly).
   datetime,
+
+  /// 숫자 입력 (위/아래 chevron 버튼, min/max/step).
+  number,
 }
 
 /// 손으로 그린 스케치 스타일 모양의 텍스트 입력 필드.
@@ -148,6 +154,29 @@ class SketchInput extends StatefulWidget {
   /// search 모드에서 지우기 버튼 표시 여부 (기본값: search 모드일 때 true).
   final bool? showClearButton;
 
+  // ── Number 모드 전용 ──
+
+  /// 현재 숫자 값 (number 모드 필수).
+  final double? numberValue;
+
+  /// 숫자 변경 콜백 (number 모드 필수).
+  final ValueChanged<double>? onNumberChanged;
+
+  /// 최소값.
+  final double? min;
+
+  /// 최대값.
+  final double? max;
+
+  /// 증감 단위 (기본 1.0).
+  final double step;
+
+  /// 소수점 자릿수 (기본 0).
+  final int decimalPlaces;
+
+  /// 접미사 텍스트 (예: "kg", "회").
+  final String? suffix;
+
   const SketchInput({
     super.key,
     this.mode = SketchInputMode.defaultMode,
@@ -179,6 +208,13 @@ class SketchInput extends StatefulWidget {
     this.showBorder = true,
     this.onTap,
     this.showClearButton,
+    this.numberValue,
+    this.onNumberChanged,
+    this.min,
+    this.max,
+    this.step = 1.0,
+    this.decimalPlaces = 0,
+    this.suffix,
   });
 
   @override
@@ -194,11 +230,15 @@ class _SketchInputState extends State<SketchInput> {
   late TextEditingController _effectiveController;
   bool _isControllerInternal = false;
 
+  // number 모드 전용 controller
+  TextEditingController? _numberController;
+
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(_onFocusChange);
     _initController();
+    _initNumberController();
   }
 
   void _initController() {
@@ -213,6 +253,14 @@ class _SketchInputState extends State<SketchInput> {
     _hasText = _effectiveController.text.isNotEmpty;
   }
 
+  void _initNumberController() {
+    if (widget.mode == SketchInputMode.number && widget.numberValue != null) {
+      _numberController = TextEditingController(
+        text: _formatNumberValue(widget.numberValue!),
+      );
+    }
+  }
+
   @override
   void didUpdateWidget(covariant SketchInput oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -223,6 +271,15 @@ class _SketchInputState extends State<SketchInput> {
       }
       _initController();
     }
+    // number 모드 값 동기화
+    if (widget.mode == SketchInputMode.number) {
+      if (_numberController == null) {
+        _initNumberController();
+      } else if (oldWidget.numberValue != widget.numberValue) {
+        final clamped = _clampNumberValue(widget.numberValue ?? 0);
+        _numberController!.text = _formatNumberValue(clamped);
+      }
+    }
   }
 
   @override
@@ -232,6 +289,7 @@ class _SketchInputState extends State<SketchInput> {
     if (_isControllerInternal) {
       _effectiveController.dispose();
     }
+    _numberController?.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -255,8 +313,65 @@ class _SketchInputState extends State<SketchInput> {
       widget.mode == SketchInputMode.time ||
       widget.mode == SketchInputMode.datetime;
 
+  // ── Number 모드 헬퍼 ──
+
+  /// 숫자를 지정된 소수점 자릿수에 맞춰 포맷팅.
+  String _formatNumberValue(double value) {
+    if (widget.decimalPlaces == 0) {
+      return value.toInt().toString();
+    }
+    return value.toStringAsFixed(widget.decimalPlaces);
+  }
+
+  /// 값을 min/max 범위로 제한.
+  double _clampNumberValue(double value) {
+    if (widget.min != null && value < widget.min!) return widget.min!;
+    if (widget.max != null && value > widget.max!) return widget.max!;
+    return value;
+  }
+
+  /// 증가 가능 여부.
+  bool get _canIncrement {
+    return widget.max == null ||
+        (widget.numberValue ?? 0) < widget.max!;
+  }
+
+  /// 감소 가능 여부.
+  bool get _canDecrement {
+    return widget.min == null ||
+        (widget.numberValue ?? 0) > widget.min!;
+  }
+
+  /// 증가 동작.
+  void _incrementNumber() {
+    final current = widget.numberValue ?? 0;
+    final newValue = _clampNumberValue(current + widget.step);
+    widget.onNumberChanged?.call(newValue);
+  }
+
+  /// 감소 동작.
+  void _decrementNumber() {
+    final current = widget.numberValue ?? 0;
+    final newValue = _clampNumberValue(current - widget.step);
+    widget.onNumberChanged?.call(newValue);
+  }
+
+  /// 텍스트 입력에서 숫자 파싱.
+  void _onNumberTextChanged(String text) {
+    if (text.isEmpty) return;
+    final parsed = double.tryParse(text);
+    if (parsed != null) {
+      widget.onNumberChanged?.call(_clampNumberValue(parsed));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // number 모드는 별도 빌드
+    if (widget.mode == SketchInputMode.number) {
+      return _buildNumberMode(context);
+    }
+
     final sketchTheme = SketchThemeExtension.maybeOf(context);
     final hasError = widget.errorText != null;
 
@@ -413,6 +528,233 @@ class _SketchInputState extends State<SketchInput> {
     );
   }
 
+  /// Number 모드 전용 빌드 — 텍스트 + 세로 구분선 + chevron 버튼 레이아웃.
+  Widget _buildNumberMode(BuildContext context) {
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
+    final hasError = widget.errorText != null;
+
+    final colorSpec = _getColorSpec(
+      sketchTheme,
+      isFocused: _isFocused,
+      hasError: hasError,
+      isDisabled: !widget.enabled,
+    );
+
+    final roughness = sketchTheme?.roughness ?? SketchDesignTokens.roughness;
+    final seed = widget.label?.hashCode ?? widget.hint?.hashCode ?? 0;
+    final chevronColor = widget.enabled
+        ? colorSpec.textColor
+        : colorSpec.hintColor;
+    final disabledChevronColor = colorSpec.hintColor.withValues(alpha: 0.4);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 라벨 (옵셔널, 항상 상단 고정)
+        if (widget.label != null) ...[
+          Text(
+            widget.label!,
+            style: TextStyle(
+              fontFamily: SketchDesignTokens.fontFamilyHand,
+              fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
+              fontSize: SketchDesignTokens.fontSizeSm,
+              fontWeight: FontWeight.w500,
+              color: hasError
+                  ? SketchDesignTokens.error
+                  : (sketchTheme?.textColor ?? SketchDesignTokens.base900),
+            ),
+          ),
+          const SizedBox(height: 6),
+        ],
+
+        // Number Input 컨테이너
+        CustomPaint(
+          painter: SketchPainter(
+            fillColor: colorSpec.fillColor,
+            borderColor: colorSpec.borderColor,
+            strokeWidth: colorSpec.strokeWidth,
+            roughness: roughness,
+            seed: seed,
+            enableNoise: true,
+            showBorder: widget.showBorder,
+            borderRadius: SketchDesignTokens.irregularBorderRadius,
+          ),
+          child: SizedBox(
+            height: 44.0,
+            child: Row(
+              children: [
+                // 텍스트 입력 영역
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: SketchDesignTokens.spacingMd,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _numberController,
+                            focusNode: _focusNode,
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: widget.decimalPlaces > 0,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(widget.decimalPlaces > 0
+                                    ? r'^\d*\.?\d*$'
+                                    : r'^\d*$'),
+                              ),
+                            ],
+                            enabled: widget.enabled,
+                            textAlign: widget.textAlign,
+                            style: widget.style ??
+                                TextStyle(
+                                  fontFamily: SketchDesignTokens.fontFamilyHand,
+                                  fontFamilyFallback:
+                                      SketchDesignTokens.fontFamilyHandFallback,
+                                  fontSize: SketchDesignTokens.fontSizeBase,
+                                  color: colorSpec.textColor,
+                                ),
+                            decoration: InputDecoration(
+                              hintText: widget.hint ?? '0',
+                              hintStyle: TextStyle(
+                                fontFamily: SketchDesignTokens.fontFamilyHand,
+                                fontFamilyFallback:
+                                    SketchDesignTokens.fontFamilyHandFallback,
+                                color: colorSpec.hintColor,
+                                fontSize: SketchDesignTokens.fontSizeBase,
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                              isDense: true,
+                              counterText: '',
+                            ),
+                            onChanged: _onNumberTextChanged,
+                          ),
+                        ),
+                        if (widget.suffix != null) ...[
+                          const SizedBox(width: SketchDesignTokens.spacingXs),
+                          Text(
+                            widget.suffix!,
+                            style: TextStyle(
+                              fontFamily: SketchDesignTokens.fontFamilyMono,
+                              fontSize: SketchDesignTokens.fontSizeSm,
+                              color: colorSpec.hintColor,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+
+                // 세로 구분선 (스케치 스타일)
+                CustomPaint(
+                  size: const Size(3, 44),
+                  painter: SketchLinePainter(
+                    start: const Offset(1.5, 4),
+                    end: const Offset(1.5, 40),
+                    color: colorSpec.borderColor,
+                    strokeWidth: colorSpec.strokeWidth * 0.7,
+                    roughness: roughness,
+                    seed: seed + 1,
+                  ),
+                ),
+
+                // Chevron 버튼 영역
+                SizedBox(
+                  width: 48,
+                  child: Column(
+                    children: [
+                      // 증가 버튼 (위)
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: widget.enabled && _canIncrement
+                              ? _incrementNumber
+                              : null,
+                          child: Center(
+                            child: CustomPaint(
+                              size: const Size(14, 8),
+                              painter: _ChevronPainter(
+                                color: widget.enabled && _canIncrement
+                                    ? chevronColor
+                                    : disabledChevronColor,
+                                strokeWidth: colorSpec.strokeWidth * 0.6,
+                                roughness: roughness,
+                                seed: seed + 2,
+                                isUp: true,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // 가로 구분선
+                      CustomPaint(
+                        size: const Size(48, 2),
+                        painter: SketchLinePainter(
+                          start: const Offset(4, 1),
+                          end: const Offset(44, 1),
+                          color: colorSpec.borderColor,
+                          strokeWidth: SketchDesignTokens.strokeStandard * 0.7,
+                          roughness: roughness,
+                          seed: seed + 3,
+                        ),
+                      ),
+
+                      // 감소 버튼 (아래)
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: widget.enabled && _canDecrement
+                              ? _decrementNumber
+                              : null,
+                          child: Center(
+                            child: CustomPaint(
+                              size: const Size(14, 8),
+                              painter: _ChevronPainter(
+                                color: widget.enabled && _canDecrement
+                                    ? chevronColor
+                                    : disabledChevronColor,
+                                strokeWidth: colorSpec.strokeWidth * 0.6,
+                                roughness: roughness,
+                                seed: seed + 4,
+                                isUp: false,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // 도움말 텍스트 또는 에러 텍스트
+        if (widget.errorText != null || widget.helperText != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            widget.errorText ?? widget.helperText!,
+            style: TextStyle(
+              fontFamily: SketchDesignTokens.fontFamilyHand,
+              fontFamilyFallback: SketchDesignTokens.fontFamilyHandFallback,
+              fontSize: SketchDesignTokens.fontSizeXs,
+              color: hasError
+                  ? SketchDesignTokens.error
+                  : (sketchTheme?.textSecondaryColor ??
+                      SketchDesignTokens.base600),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   double _calculateHeight() {
     if (widget.maxLines == null) {
       return 120.0;
@@ -477,6 +819,10 @@ class _SketchInputState extends State<SketchInput> {
           hint: widget.hint,
           readOnly: widget.readOnly,
         );
+
+      case SketchInputMode.number:
+        // number 모드는 build()에서 별도 분기하므로 도달 불가.
+        return const _ModeDefaults();
     }
   }
 
@@ -575,4 +921,82 @@ class _ColorSpec {
     required this.iconColor,
     required this.strokeWidth,
   });
+}
+
+/// 스케치 스타일 chevron(꺾쇠) 화살표 페인터.
+class _ChevronPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double roughness;
+  final int seed;
+  final bool isUp;
+
+  _ChevronPainter({
+    required this.color,
+    required this.strokeWidth,
+    required this.roughness,
+    required this.seed,
+    required this.isUp,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+
+    final rng = Random(seed);
+    final rx = roughness * 0.8;
+
+    // chevron 꼭짓점 좌표
+    final midX = size.width / 2;
+
+    double leftX, leftY, tipX, tipY, rightX, rightY;
+
+    if (isUp) {
+      // ^ 모양
+      leftX = 0;
+      leftY = size.height;
+      tipX = midX;
+      tipY = 0;
+      rightX = size.width;
+      rightY = size.height;
+    } else {
+      // v 모양
+      leftX = 0;
+      leftY = 0;
+      tipX = midX;
+      tipY = size.height;
+      rightX = size.width;
+      rightY = 0;
+    }
+
+    // 손그림 느낌의 미세 떨림 적용
+    final path = Path()
+      ..moveTo(
+        leftX + (rng.nextDouble() - 0.5) * rx,
+        leftY + (rng.nextDouble() - 0.5) * rx,
+      )
+      ..lineTo(
+        tipX + (rng.nextDouble() - 0.5) * rx,
+        tipY + (rng.nextDouble() - 0.5) * rx,
+      )
+      ..lineTo(
+        rightX + (rng.nextDouble() - 0.5) * rx,
+        rightY + (rng.nextDouble() - 0.5) * rx,
+      );
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ChevronPainter oldDelegate) =>
+      color != oldDelegate.color ||
+      strokeWidth != oldDelegate.strokeWidth ||
+      roughness != oldDelegate.roughness ||
+      seed != oldDelegate.seed ||
+      isUp != oldDelegate.isUp;
 }
