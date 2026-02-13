@@ -13,7 +13,8 @@
     "test:server": "turbo run test --filter=gaegulzip-server",
     "mobile:bootstrap": "cd apps/mobile && melos bootstrap",
     "mobile:generate": "cd apps/mobile && melos generate",
-    "mobile:clean": "cd apps/mobile && melos clean"
+    "mobile:clean": "cd apps/mobile && melos clean",
+    "ios": "xcrun simctl boot AE1F6125-6BD6-441A-B770-2B6EBA775153 2>/dev/null; open -a Simulator"
   },
   "devDependencies": {
     "turbo": "latest"
