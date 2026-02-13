@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
 import '../enums/sketch_nav_label_behavior.dart';
+import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 스케치 스타일 하단 네비게이션 바 (2~5개 항목 권장)
@@ -100,7 +101,7 @@ class SketchBottomNavigationBar extends StatelessWidget {
     required this.items,
     required this.currentIndex,
     required this.onTap,
-    this.height = 64.0,
+    this.height = 68.0,
     this.selectedColor,
     this.unselectedColor,
     this.labelBehavior = SketchNavLabelBehavior.onlyShowSelected,
@@ -116,35 +117,43 @@ class SketchBottomNavigationBar extends StatelessWidget {
     final effectiveSelectedColor = selectedColor ?? SketchDesignTokens.accentPrimary;
     final effectiveUnselectedColor = unselectedColor ?? theme.textSecondaryColor;
 
-    return Container(
-      height: height,
-      decoration: BoxDecoration(
-        color: theme.fillColor,
-        border: showBorder
-            ? Border(
-                top: BorderSide(
-                  color: theme.borderColor,
-                  width: 1.0,
-                ),
-              )
-            : null,
+    return CustomPaint(
+      painter: SketchPainter(
+        fillColor: theme.fillColor,
+        borderColor: theme.borderColor,
+        strokeWidth: SketchDesignTokens.strokeBold,
+        roughness: theme.roughness,
+        bowing: theme.bowing,
+        seed: 42,
+        enableNoise: true,
+        showBorder: showBorder,
+        borderRadius: SketchDesignTokens.irregularBorderRadius,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (index) {
-          final item = items[index];
-          final isSelected = index == currentIndex;
+      child: SizedBox(
+        height: height,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: SketchDesignTokens.strokeBold / 2,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(items.length, (index) {
+              final item = items[index];
+              final isSelected = index == currentIndex;
 
-          return _buildNavItem(
-            item: item,
-            isSelected: isSelected,
-            selectedColor: effectiveSelectedColor,
-            unselectedColor: effectiveUnselectedColor,
-            badgeBorderColor: theme.fillColor,
-            showLabel: _shouldShowLabel(index),
-            onTap: () => onTap(index),
-          );
-        }),
+              return _buildNavItem(
+                item: item,
+                isSelected: isSelected,
+                selectedColor: effectiveSelectedColor,
+                unselectedColor: effectiveUnselectedColor,
+                badgeBorderColor: theme.fillColor,
+                theme: theme,
+                showLabel: _shouldShowLabel(index),
+                onTap: () => onTap(index),
+              );
+            }),
+          ),
+        ),
       ),
     );
   }
@@ -168,6 +177,7 @@ class SketchBottomNavigationBar extends StatelessWidget {
     required Color selectedColor,
     required Color unselectedColor,
     required Color badgeBorderColor,
+    required SketchThemeExtension theme,
     required bool showLabel,
     required VoidCallback onTap,
   }) {
@@ -183,7 +193,7 @@ class SketchBottomNavigationBar extends StatelessWidget {
           button: true,
           child: Container(
             color: Colors.transparent, // 터치 영역 확보
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -194,19 +204,19 @@ class SketchBottomNavigationBar extends StatelessWidget {
                   children: [
                     Icon(
                       icon,
-                      size: isSelected ? 28 : 24,
+                      size: isSelected ? 26 : 24,
                       color: color,
                     ),
                     if (item.badgeCount != null && item.badgeCount! > 0)
                       Positioned(
                         right: -4,
                         top: -4,
-                        child: _buildBadge(item.badgeCount!, badgeBorderColor),
+                        child: _buildBadge(item.badgeCount!, badgeBorderColor, theme),
                       ),
                   ],
                 ),
                 if (showLabel) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     item.label,
                     style: TextStyle(
@@ -229,7 +239,7 @@ class SketchBottomNavigationBar extends StatelessWidget {
   }
 
   /// 배지를 빌드함.
-  Widget _buildBadge(int count, Color backgroundColor) {
+  Widget _buildBadge(int count, Color borderColor, SketchThemeExtension theme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       constraints: const BoxConstraints(
@@ -237,19 +247,19 @@ class SketchBottomNavigationBar extends StatelessWidget {
         minHeight: 16,
       ),
       decoration: BoxDecoration(
-        color: SketchDesignTokens.error,
+        color: theme.badgeColor,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: backgroundColor,
+          color: borderColor,
           width: 1.5,
         ),
       ),
       child: Text(
         count > 99 ? '99+' : count.toString(),
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: SketchDesignTokens.fontFamilyMono,
           fontSize: 10,
-          color: SketchDesignTokens.white,
+          color: theme.badgeTextColor,
           fontWeight: FontWeight.w600,
         ),
         textAlign: TextAlign.center,

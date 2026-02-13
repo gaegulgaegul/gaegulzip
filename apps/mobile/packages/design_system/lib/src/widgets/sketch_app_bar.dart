@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 import 'sketch_icon_button.dart';
 
@@ -109,12 +110,21 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   /// 손그림 테두리 표시 여부.
   ///
-  /// true이면 앱 바 하단에 손으로 그린 듯한 테두리를 추가함.
-  /// 현재는 미구현 상태이며, 향후 SketchPainter를 사용하여 구현 예정.
+  /// true이면 SketchPainter 기반의 2-pass 렌더링으로 손으로 그린 듯한 테두리를 추가함.
+  /// false이면 기존 BoxDecoration 방식 사용 (하위 호환).
   final bool showSketchBorder;
 
   /// 앱 바 높이.
   final double height;
+
+  /// 스케치 테두리의 두께 (null이면 테마 기본값 사용).
+  final double? strokeWidth;
+
+  /// 스케치 거칠기 (null이면 테마 기본값 사용).
+  final double? roughness;
+
+  /// 스케치 렌더링 시드 (재현 가능한 무작위성).
+  final int seed;
 
   const SketchAppBar({
     super.key,
@@ -127,6 +137,9 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.showShadow = true,
     this.showSketchBorder = false,
     this.height = 56.0,
+    this.strokeWidth,
+    this.roughness,
+    this.seed = 100,
   });
 
   @override
@@ -137,25 +150,17 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
     final theme = SketchThemeExtension.maybeOf(context);
     final effectiveBgColor = backgroundColor ?? theme?.fillColor ?? SketchDesignTokens.white;
     final effectiveFgColor = foregroundColor ?? theme?.textColor ?? SketchDesignTokens.textPrimary;
+    final effectiveBorderColor = theme?.borderColor ?? SketchDesignTokens.base900;
+    final effectiveStrokeWidth = strokeWidth ?? theme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
+    final effectiveRoughness = roughness ?? theme?.roughness ?? SketchDesignTokens.roughness;
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
-    Widget appBarContent = Container(
+    // 앱바 컨텐츠 위젯 (leading + title + actions)
+    final contentWidget = Container(
       padding: EdgeInsets.only(
         top: statusBarHeight,
         left: SketchDesignTokens.spacingSm,
         right: SketchDesignTokens.spacingSm,
-      ),
-      decoration: BoxDecoration(
-        color: effectiveBgColor,
-        boxShadow: showShadow
-            ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  offset: const Offset(0, 2),
-                  blurRadius: 4,
-                ),
-              ]
-            : null,
       ),
       child: SizedBox(
         height: height,
@@ -193,6 +198,74 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
 
-    return appBarContent;
+    // showSketchBorder: false (기존 방식)
+    if (!showSketchBorder) {
+      return Container(
+        decoration: BoxDecoration(
+          color: effectiveBgColor,
+          boxShadow: showShadow
+              ? [
+                  BoxShadow(
+                    color: theme?.shadowColor ?? Colors.black.withValues(alpha: 0.1),
+                    offset: const Offset(0, 2),
+                    blurRadius: 4,
+                  ),
+                ]
+              : null,
+        ),
+        child: contentWidget,
+      );
+    }
+
+    // showSketchBorder: true (새 방식 - 2-pass SketchPainter)
+    final containerStrokeWidth = effectiveStrokeWidth * 1.5;
+    final containerRoughness = effectiveRoughness * 1.75;
+
+    return Stack(
+      children: [
+        // 그림자 레이어 (showShadow: true일 때만)
+        if (showShadow)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: theme?.shadowColor ?? Colors.black.withValues(alpha: 0.1),
+                    offset: const Offset(0, 2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+        // 스케치 테두리 레이어 (2-pass CustomPaint)
+        CustomPaint(
+          painter: SketchPainter(
+            fillColor: effectiveBgColor,
+            borderColor: effectiveBorderColor,
+            strokeWidth: containerStrokeWidth,
+            roughness: containerRoughness,
+            seed: seed,
+            enableNoise: true,
+            showBorder: true,
+            borderRadius: 0.0, // 앱바는 직각
+          ),
+          child: CustomPaint(
+            painter: SketchPainter(
+              fillColor: Colors.transparent,
+              borderColor: effectiveBorderColor,
+              strokeWidth: containerStrokeWidth,
+              roughness: containerRoughness,
+              seed: seed + 50,
+              enableNoise: false,
+              showBorder: true,
+              borderRadius: 0.0, // 앱바는 직각
+            ),
+            child: contentWidget,
+          ),
+        ),
+      ],
+    );
   }
 }

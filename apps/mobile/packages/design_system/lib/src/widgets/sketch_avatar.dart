@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 
 import '../enums/sketch_avatar_shape.dart';
 import '../enums/sketch_avatar_size.dart';
+import '../painters/sketch_circle_painter.dart';
+import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
-import 'sketch_image_placeholder.dart';
 
 /// 손으로 그린 스케치 스타일의 아바타 위젯
 ///
@@ -95,6 +96,9 @@ class SketchAvatar extends StatelessWidget {
   /// 테두리 표시 여부.
   final bool showBorder;
 
+  /// 아이콘 색상 (플레이스홀더 아이콘).
+  final Color? iconColor;
+
   const SketchAvatar({
     super.key,
     this.imageUrl,
@@ -109,6 +113,7 @@ class SketchAvatar extends StatelessWidget {
     this.strokeWidth,
     this.onTap,
     this.showBorder = true,
+    this.iconColor,
   });
 
   @override
@@ -120,40 +125,46 @@ class SketchAvatar extends StatelessWidget {
     final effectiveStrokeWidth = strokeWidth ?? sizeConfig.borderWidth;
     final effectiveBorderColor = borderColor ??
         sketchTheme?.borderColor ??
-        SketchDesignTokens.base700;
+        SketchDesignTokens.base900;
+
+    // seed 생성
+    final seed = _generateSeed();
 
     // 아바타 컨텐츠
-    Widget avatar = _buildAvatarContent(context, sizeConfig);
-
-    // 형태에 따른 클리핑
-    if (shape == SketchAvatarShape.circle) {
-      avatar = ClipOval(child: avatar);
-    } else {
-      avatar = ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: avatar,
-      );
-    }
-
-    // 테두리 적용
-    avatar = Container(
-      width: size.size,
-      height: size.size,
-      decoration: BoxDecoration(
-        border: showBorder
-            ? Border.all(
-                color: effectiveBorderColor,
-                width: effectiveStrokeWidth,
-              )
-            : null,
-        shape: shape == SketchAvatarShape.circle
-            ? BoxShape.circle
-            : BoxShape.rectangle,
-        borderRadius: shape == SketchAvatarShape.circle
-            ? null
-            : BorderRadius.circular(6),
-      ),
-      child: avatar,
+    Widget avatar = Stack(
+      children: [
+        // 스케치 테두리 (showBorder가 true일 때만)
+        if (showBorder)
+          CustomPaint(
+            painter: shape == SketchAvatarShape.circle
+                ? SketchCirclePainter(
+                    fillColor: Colors.transparent,
+                    borderColor: effectiveBorderColor,
+                    strokeWidth: effectiveStrokeWidth,
+                    roughness: 0.8,
+                    seed: seed,
+                    segments: 16,
+                    enableNoise: false,
+                  )
+                : SketchPainter(
+                    fillColor: Colors.transparent,
+                    borderColor: effectiveBorderColor,
+                    strokeWidth: effectiveStrokeWidth,
+                    roughness: 0.8,
+                    bowing: 0.5,
+                    seed: seed,
+                    enableNoise: false,
+                    showBorder: true,
+                    borderRadius: 6.0,
+                  ),
+            child: SizedBox(
+              width: size.size,
+              height: size.size,
+            ),
+          ),
+        // 클리핑된 컨텐츠
+        _buildClippedContent(context, sizeConfig, seed),
+      ],
     );
 
     // 탭 가능하면 GestureDetector로 감싸기
@@ -167,6 +178,51 @@ class SketchAvatar extends StatelessWidget {
     return avatar;
   }
 
+  /// 스케치 경로로 클리핑된 컨텐츠 빌드
+  Widget _buildClippedContent(BuildContext context, _SizeConfig config, int seed) {
+    final clippingPath = shape == SketchAvatarShape.circle
+        ? SketchCirclePainter.createClipPath(
+            size: Size(size.size, size.size),
+            roughness: 0.8,
+            seed: seed,
+            segments: 16,
+            strokeWidth: strokeWidth ?? config.borderWidth,
+          )
+        : SketchPainter.createClipPath(
+            size: Size(size.size, size.size),
+            roughness: 0.8,
+            seed: seed,
+            borderRadius: 6.0,
+            strokeWidth: strokeWidth ?? config.borderWidth,
+          );
+
+    return ClipPath(
+      clipper: _SketchClipper(clippingPath),
+      child: _buildAvatarContent(context, config),
+    );
+  }
+
+  /// 이미지 URL 또는 이니셜 기반 일관된 seed 생성.
+  int _generateSeed() {
+    // 1. 이미지 URL이 있으면 URL hashCode 사용
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return imageUrl!.hashCode.abs() % 10000;
+    }
+
+    // 2. Asset 경로가 있으면 경로 hashCode 사용
+    if (assetPath != null && assetPath!.isNotEmpty) {
+      return assetPath!.hashCode.abs() % 10000;
+    }
+
+    // 3. 이니셜이 있으면 이니셜 hashCode 사용
+    if (initials != null && initials!.isNotEmpty) {
+      return initials!.hashCode.abs() % 10000;
+    }
+
+    // 4. 플레이스홀더는 항상 동일한 seed (0)
+    return 0;
+  }
+
   /// 아바타 컨텐츠 빌드 (우선순위: 이미지 > 이니셜 > 플레이스홀더)
   Widget _buildAvatarContent(BuildContext context, _SizeConfig config) {
     // 1. 이미지 URL이 있으면 네트워크 이미지
@@ -178,14 +234,14 @@ class SketchAvatar extends StatelessWidget {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           // 이미지 로딩 실패 시 플레이스홀더
-          return _buildPlaceholder(config);
+          return _buildPlaceholder(context, config);
         },
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) {
             return child;
           }
           // 로딩 중에는 플레이스홀더 표시
-          return _buildPlaceholder(config);
+          return _buildPlaceholder(context, config);
         },
       );
     }
@@ -198,7 +254,7 @@ class SketchAvatar extends StatelessWidget {
         height: size.size,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          return _buildPlaceholder(config);
+          return _buildPlaceholder(context, config);
         },
       );
     }
@@ -209,14 +265,18 @@ class SketchAvatar extends StatelessWidget {
     }
 
     // 4. 모두 없으면 플레이스홀더
-    return _buildPlaceholder(config);
+    return _buildPlaceholder(context, config);
   }
 
   /// 이니셜 렌더링
   Widget _buildInitials(BuildContext context, _SizeConfig config) {
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
     final effectiveBackgroundColor = backgroundColor ??
+        sketchTheme?.fillColor ??
         SketchDesignTokens.accentSecondaryLight;
-    final effectiveTextColor = textColor ?? Colors.white;
+    final effectiveTextColor = textColor ??
+        sketchTheme?.textColor ??
+        Colors.white;
 
     return Container(
       width: size.size,
@@ -237,48 +297,68 @@ class SketchAvatar extends StatelessWidget {
     );
   }
 
-  /// 플레이스홀더 렌더링 (X-cross 패턴)
-  Widget _buildPlaceholder(_SizeConfig config) {
-    return SketchImagePlaceholder(
+  /// 플레이스홀더 렌더링 (사람 아이콘)
+  Widget _buildPlaceholder(BuildContext context, _SizeConfig config) {
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
+    final effectiveBackgroundColor = backgroundColor ??
+        sketchTheme?.fillColor ??
+        SketchDesignTokens.base100;
+    final effectiveIconColor = iconColor ??
+        sketchTheme?.iconColor ??
+        SketchDesignTokens.base600;
+
+    return Container(
       width: size.size,
       height: size.size,
-      centerIcon: placeholderIcon ?? Icons.person_outline,
-      showBorder: false, // 외부에 이미 테두리가 있음
+      color: effectiveBackgroundColor,
+      child: Center(
+        child: Icon(
+          placeholderIcon ?? Icons.person,
+          size: config.iconSize,
+          color: effectiveIconColor,
+        ),
+      ),
     );
   }
 
   /// 크기별 스타일 설정 가져오기
   _SizeConfig _getSizeConfig(SketchAvatarSize size) {
     switch (size) {
-      case SketchAvatarSize.xs:
+      case SketchAvatarSize.xs: // 24px
         return const _SizeConfig(
           fontSize: 10,
-          borderWidth: 1.0,
+          borderWidth: 1.5,
+          iconSize: 9.6, // 24 * 0.4
         );
-      case SketchAvatarSize.sm:
+      case SketchAvatarSize.sm: // 32px
         return const _SizeConfig(
           fontSize: 14,
-          borderWidth: 1.5,
+          borderWidth: 2.0,
+          iconSize: 12.8, // 32 * 0.4
         );
-      case SketchAvatarSize.md:
+      case SketchAvatarSize.md: // 40px
         return const _SizeConfig(
           fontSize: 18,
-          borderWidth: 2.0,
+          borderWidth: 2.5,
+          iconSize: 16, // 40 * 0.4
         );
-      case SketchAvatarSize.lg:
+      case SketchAvatarSize.lg: // 56px
         return const _SizeConfig(
           fontSize: 20,
-          borderWidth: 2.0,
+          borderWidth: 2.5,
+          iconSize: 22.4, // 56 * 0.4
         );
-      case SketchAvatarSize.xl:
+      case SketchAvatarSize.xl: // 80px
         return const _SizeConfig(
           fontSize: 28,
-          borderWidth: 2.5,
+          borderWidth: 3.0,
+          iconSize: 32, // 80 * 0.4
         );
-      case SketchAvatarSize.xxl:
+      case SketchAvatarSize.xxl: // 120px
         return const _SizeConfig(
           fontSize: 36,
-          borderWidth: 3.0,
+          borderWidth: 3.5,
+          iconSize: 48, // 120 * 0.4
         );
     }
   }
@@ -312,9 +392,24 @@ class SketchAvatar extends StatelessWidget {
 class _SizeConfig {
   final double fontSize;
   final double borderWidth;
+  final double iconSize;
 
   const _SizeConfig({
     required this.fontSize,
     required this.borderWidth,
+    required this.iconSize,
   });
+}
+
+/// ClipPath용 CustomClipper.
+class _SketchClipper extends CustomClipper<Path> {
+  final Path path;
+
+  _SketchClipper(this.path);
+
+  @override
+  Path getClip(Size size) => path;
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
