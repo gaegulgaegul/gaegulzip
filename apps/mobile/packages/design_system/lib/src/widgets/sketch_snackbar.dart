@@ -43,7 +43,12 @@ class SketchSnackbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sketchTheme = SketchThemeExtension.of(context);
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
+    final borderColor =
+        sketchTheme?.borderColor ?? SketchDesignTokens.base900;
+    final roughness = sketchTheme?.roughness ?? SketchDesignTokens.roughness;
+    final bowing = sketchTheme?.bowing ?? 0.5;
+    final textColor = sketchTheme?.textColor ?? SketchDesignTokens.base900;
     final bgColor = _getBgColor(sketchTheme);
 
     return Semantics(
@@ -52,10 +57,10 @@ class SketchSnackbar extends StatelessWidget {
       child: CustomPaint(
         painter: SketchPainter(
           fillColor: bgColor,
-          borderColor: sketchTheme.borderColor,
+          borderColor: borderColor,
           strokeWidth: SketchDesignTokens.strokeBold,
-          roughness: sketchTheme.roughness,
-          bowing: sketchTheme.bowing,
+          roughness: roughness,
+          bowing: bowing,
           borderRadius: 16.0,
           enableNoise: true,
           showBorder: true,
@@ -70,10 +75,10 @@ class SketchSnackbar extends StatelessWidget {
               CustomPaint(
                 painter: SketchSnackbarIconPainter(
                   type: type,
-                  iconColor: sketchTheme.borderColor,
+                  iconColor: borderColor,
                   size: 32.0,
                   strokeWidth: 2.0,
-                  roughness: sketchTheme.roughness,
+                  roughness: roughness,
                   seed: type.index,
                 ),
                 size: const Size(32, 32),
@@ -88,7 +93,7 @@ class SketchSnackbar extends StatelessWidget {
                     fontFamilyFallback:
                         SketchDesignTokens.fontFamilyHandFallback,
                     fontSize: 14.0,
-                    color: sketchTheme.textColor,
+                    color: textColor,
                     height: 1.4,
                   ),
                   maxLines: 3,
@@ -116,17 +121,17 @@ class SketchSnackbar extends StatelessWidget {
     }
   }
 
-  /// 타입별 배경색 조회
-  Color _getBgColor(SketchThemeExtension theme) {
+  /// 타입별 배경색 조회 (null-safe 폴백 적용)
+  Color _getBgColor(SketchThemeExtension? theme) {
     switch (type) {
       case SnackbarType.success:
-        return theme.successSnackbarBgColor;
+        return theme?.successSnackbarBgColor ?? const Color(0xFFD4EDDA);
       case SnackbarType.info:
-        return theme.infoSnackbarBgColor;
+        return theme?.infoSnackbarBgColor ?? const Color(0xFFD6EEFF);
       case SnackbarType.warning:
-        return theme.warningSnackbarBgColor;
+        return theme?.warningSnackbarBgColor ?? const Color(0xFFFFF9D6);
       case SnackbarType.error:
-        return theme.errorSnackbarBgColor;
+        return theme?.errorSnackbarBgColor ?? const Color(0xFFFFE0E0);
     }
   }
 }
