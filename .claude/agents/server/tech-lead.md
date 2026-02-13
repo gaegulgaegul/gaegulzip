@@ -125,8 +125,8 @@ model: sonnet
 [모듈 구조 설명]
 ```
 src/modules/[feature]/
-├── index.ts        # Router (Junior)
-├── handlers.ts     # Request handlers (Senior)
+├── index.ts        # Router
+├── handlers.ts     # Request handlers
 ├── schema.ts       # Drizzle schema (Schema Designer)
 └── middleware.ts   # Feature-specific middleware (optional)
 ```
@@ -348,4 +348,4 @@ start_review({
 2. **Schema Designer** + **Migration Generator**가 병렬로 DB 작업 수행
 3. 사용자가 마이그레이션 실행 (`pnpm drizzle-kit push`)
 4. **CTO**가 작업 분배 계획(work-plan.md) 작성
-5. **Senior Developer** + **Junior Developer**가 협업 개발 시작
+5. **node-developer**가 구현 시작

@@ -202,7 +202,7 @@ class [Feature]Binding extends Bindings {
 }
 ```
 
-## View 설계 (Junior Developer가 구현)
+## View 설계 (flutter-developer가 구현)
 
 ### [Feature]View
 
@@ -287,7 +287,7 @@ class [Feature]View extends GetView<[Feature]Controller> {
 
 ## API 통합 설계 (필요 시)
 
-### API 모델 (Senior Developer가 구현)
+### API 모델 (flutter-developer가 구현)
 
 **패키지**: SDK 또는 wowa 앱 내부
 - 재사용 가능 → SDK 패키지 (예: `packages/weather_sdk/lib/src/models/weather_model.dart`)
@@ -313,7 +313,7 @@ class WeatherModel with _$WeatherModel {
 }
 ```
 
-### API 클라이언트 (Senior Developer가 구현)
+### API 클라이언트 (flutter-developer가 구현)
 
 **패키지**: SDK 또는 wowa 앱 내부
 - 재사용 가능 → SDK 패키지 (예: `packages/weather_sdk/lib/src/weather_api_client.dart`)
@@ -354,7 +354,7 @@ class WeatherRepository {
 }
 ```
 
-### build_runner 실행 (Senior가 실행)
+### build_runner 실행 (flutter-developer가 실행)
 ```bash
 cd /Users/lms/dev/repository/app_gaegulzip
 melos generate
@@ -465,20 +465,14 @@ core (foundation)
 
 ## 작업 분배 계획 (CTO가 참조)
 
-### Senior Developer 작업
+### flutter-developer 작업
 1. API 모델 작성 (SDK 패키지 또는 wowa 앱 내부) - API 필요 시
 2. Dio 클라이언트 구현 (SDK 패키지 또는 wowa 앱 내부)
 3. melos generate 실행
 4. Controller + 비즈니스 로직 (apps/wowa/)
 5. Binding 작성 (apps/wowa/)
-
-### Junior Developer 작업
-1. View + UI 위젯 (apps/wowa/)
-2. Routing 업데이트 (app_routes.dart, app_pages.dart)
-
-### 작업 의존성
-- Junior는 Senior의 Controller 완성 후 시작
-- Controller 메서드, .obs 변수 정확히 일치시켜야 함
+6. View + UI 위젯 (apps/wowa/)
+7. Routing 업데이트 (app_routes.dart, app_pages.dart)
 
 ## 검증 기준
 
@@ -542,7 +536,7 @@ mcp__plugin_interactive-review_interactive_review__start_review({
 ## 주의사항
 
 1. **구현 가능성**: Flutter + GetX로 구현 가능한 설계
-2. **명확성**: Senior/Junior가 즉시 작업 가능한 수준
+2. **명확성**: flutter-developer가 즉시 작업 가능한 수준
 3. **일관성**: 기존 코드 패턴과 일관성 유지
 4. **확장성**: 향후 기능 추가 고려
 
