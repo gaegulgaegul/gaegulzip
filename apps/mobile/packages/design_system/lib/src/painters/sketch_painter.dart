@@ -156,7 +156,7 @@ class SketchPainter extends CustomPainter {
 
     // 약 6px마다 포인트 하나 샘플링
     final numPoints = (totalLength / 6).round().clamp(20, 200);
-    final maxJitter = roughness * 0.6;
+    final maxJitter = roughness * 1.0;
 
     final points = <Offset>[];
 
