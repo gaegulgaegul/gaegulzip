@@ -108,14 +108,14 @@ class _SketchLinkState extends State<SketchLink> {
 
     final effectiveColor = widget.color ??
         (widget.isVisited
-            ? baseLinkColor.withValues(alpha: 0.7)
+            ? baseLinkColor.withAlpha(179)
             : baseLinkColor);
 
     final effectiveFontSize = widget.fontSize ?? SketchDesignTokens.fontSizeBase;
 
     // 상태별 스타일 결정
     final textColor = _isPressed || _isHovered
-        ? baseLinkColor.withValues(alpha: 0.7)
+        ? baseLinkColor.withAlpha(179)
         : effectiveColor;
 
     final decorationStyle = _isPressed || _isHovered
@@ -125,9 +125,9 @@ class _SketchLinkState extends State<SketchLink> {
     final decorationThickness = _isPressed || _isHovered ? 1.5 : 1.0;
 
     final backgroundColor = _isPressed
-        ? baseLinkColor.withValues(alpha: 0.15)
+        ? baseLinkColor.withAlpha(38)
         : (_isHovered
-            ? baseLinkColor.withValues(alpha: 0.08)
+            ? baseLinkColor.withAlpha(20)
             : Colors.transparent);
 
     return GestureDetector(

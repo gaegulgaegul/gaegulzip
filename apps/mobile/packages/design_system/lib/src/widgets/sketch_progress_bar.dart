@@ -466,8 +466,8 @@ class _SketchLinearProgressPainter extends CustomPainter {
     // 밝은 배경에는 검정 점, 어두운 배경에는 흰 점
     final isLight = baseColor.computeLuminance() > 0.5;
     final dotColor = isLight
-        ? Colors.black.withValues(alpha: SketchDesignTokens.noiseIntensity)
-        : Colors.white.withValues(alpha: SketchDesignTokens.noiseIntensity);
+        ? Colors.black.withAlpha((SketchDesignTokens.noiseIntensity * 255).round())
+        : Colors.white.withAlpha((SketchDesignTokens.noiseIntensity * 255).round());
 
     final noisePaint = Paint()
       ..color = dotColor

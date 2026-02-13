@@ -206,7 +206,7 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
           boxShadow: showShadow
               ? [
                   BoxShadow(
-                    color: theme?.shadowColor ?? Colors.black.withValues(alpha: 0.1),
+                    color: theme?.shadowColor ?? Colors.black.withAlpha(26),
                     offset: const Offset(0, 2),
                     blurRadius: 4,
                   ),
@@ -231,7 +231,7 @@ class SketchAppBar extends StatelessWidget implements PreferredSizeWidget {
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
-                    color: theme?.shadowColor ?? Colors.black.withValues(alpha: 0.1),
+                    color: theme?.shadowColor ?? Colors.black.withAlpha(26),
                     offset: const Offset(0, 2),
                     blurRadius: 4,
                   ),

@@ -214,7 +214,7 @@ class _SketchDropdownState<T> extends State<SketchDropdown<T>> {
                             horizontal: SketchDesignTokens.spacingMd,
                           ),
                           color: isSelected
-                              ? effectiveTextColor.withValues(alpha: 0.08)
+                              ? effectiveTextColor.withAlpha(20)
                               : Colors.transparent,
                           child: Align(
                             alignment: Alignment.centerLeft,

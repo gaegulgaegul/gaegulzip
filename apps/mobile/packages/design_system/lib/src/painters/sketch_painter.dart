@@ -155,7 +155,7 @@ class SketchPainter extends CustomPainter {
   /// 종이 같은 질감을 위한 미묘한 노이즈 텍스처를 그림.
   void _drawNoiseTexture(Canvas canvas, Size size) {
     final noisePaint = Paint()
-      ..color = Colors.black.withValues(alpha: SketchDesignTokens.noiseIntensity)
+      ..color = Colors.black.withAlpha((SketchDesignTokens.noiseIntensity * 255).round())
       ..style = PaintingStyle.fill;
 
     final random = Random(seed + 1000); // 노이즈용 다른 시드

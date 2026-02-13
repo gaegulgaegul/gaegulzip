@@ -545,7 +545,7 @@ class _SketchInputState extends State<SketchInput> {
     final chevronColor = widget.enabled
         ? colorSpec.textColor
         : colorSpec.hintColor;
-    final disabledChevronColor = colorSpec.hintColor.withValues(alpha: 0.4);
+    final disabledChevronColor = colorSpec.hintColor.withAlpha(102);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -602,8 +602,8 @@ class _SketchInputState extends State<SketchInput> {
                             inputFormatters: [
                               FilteringTextInputFormatter.allow(
                                 RegExp(widget.decimalPlaces > 0
-                                    ? r'^\d*\.?\d*$'
-                                    : r'^\d*$'),
+                                    ? r'^-?\d*\.?\d*$'
+                                    : r'^-?\d*$'),
                               ),
                             ],
                             enabled: widget.enabled,
