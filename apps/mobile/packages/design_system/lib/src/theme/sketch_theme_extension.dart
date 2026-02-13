@@ -90,6 +90,18 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
   /// 그림자 색상.
   final Color shadowColor;
 
+  /// Snackbar 배경 색상 (Success 타입).
+  final Color successSnackbarBgColor;
+
+  /// Snackbar 배경 색상 (Info 타입).
+  final Color infoSnackbarBgColor;
+
+  /// Snackbar 배경 색상 (Warning 타입).
+  final Color warningSnackbarBgColor;
+
+  /// Snackbar 배경 색상 (Error 타입).
+  final Color errorSnackbarBgColor;
+
   /// 커스텀 또는 기본값으로 스케치 테마 확장을 생성함.
   const SketchThemeExtension({
     this.strokeWidth = SketchDesignTokens.strokeStandard,
@@ -109,6 +121,10 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
     this.shadowOffset = SketchDesignTokens.shadowOffsetMd,
     this.shadowBlur = SketchDesignTokens.shadowBlurMd,
     this.shadowColor = SketchDesignTokens.shadowColor,
+    this.successSnackbarBgColor = const Color(0xFFD4EDDA), // 연한 민트
+    this.infoSnackbarBgColor = const Color(0xFFD6EEFF), // 연한 하늘
+    this.warningSnackbarBgColor = const Color(0xFFFFF9D6), // 연한 레몬
+    this.errorSnackbarBgColor = const Color(0xFFFFE0E0), // 연한 분홍
   });
 
   /// 라이트 테마 변형을 생성함.
@@ -125,6 +141,10 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       disabledFillColor: Color(0xFFF7F7F7), // base100
       disabledBorderColor: Color(0xFFDCDCDC), // base300
       disabledTextColor: Color(0xFF8E8E8E), // base500
+      successSnackbarBgColor: Color(0xFFD4EDDA), // 연한 민트
+      infoSnackbarBgColor: Color(0xFFD6EEFF), // 연한 하늘
+      warningSnackbarBgColor: Color(0xFFFFF9D6), // 연한 레몬
+      errorSnackbarBgColor: Color(0xFFFFE0E0), // 연한 분홍
     );
   }
 
@@ -143,6 +163,10 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       disabledBorderColor: Color(0xFF5E5E5E), // outlinePrimaryDark
       disabledTextColor: Color(0xFF6E6E6E), // textDisabledDark
       shadowColor: Color(0x40000000), // 다크 모드용 더 어두운 그림자
+      successSnackbarBgColor: Color(0xFF1B3B2A), // 진한 초록
+      infoSnackbarBgColor: Color(0xFF0C2D4A), // 진한 네이비
+      warningSnackbarBgColor: Color(0xFF3B3515), // 진한 올리브
+      errorSnackbarBgColor: Color(0xFF4A1B1B), // 진한 마룬
     );
   }
 
@@ -211,6 +235,10 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
     Offset? shadowOffset,
     double? shadowBlur,
     Color? shadowColor,
+    Color? successSnackbarBgColor,
+    Color? infoSnackbarBgColor,
+    Color? warningSnackbarBgColor,
+    Color? errorSnackbarBgColor,
   }) {
     return SketchThemeExtension(
       strokeWidth: strokeWidth ?? this.strokeWidth,
@@ -230,6 +258,10 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       shadowOffset: shadowOffset ?? this.shadowOffset,
       shadowBlur: shadowBlur ?? this.shadowBlur,
       shadowColor: shadowColor ?? this.shadowColor,
+      successSnackbarBgColor: successSnackbarBgColor ?? this.successSnackbarBgColor,
+      infoSnackbarBgColor: infoSnackbarBgColor ?? this.infoSnackbarBgColor,
+      warningSnackbarBgColor: warningSnackbarBgColor ?? this.warningSnackbarBgColor,
+      errorSnackbarBgColor: errorSnackbarBgColor ?? this.errorSnackbarBgColor,
     );
   }
 
@@ -260,6 +292,10 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       shadowOffset: Offset.lerp(shadowOffset, other.shadowOffset, t)!,
       shadowBlur: lerpDouble(shadowBlur, other.shadowBlur, t)!,
       shadowColor: Color.lerp(shadowColor, other.shadowColor, t)!,
+      successSnackbarBgColor: Color.lerp(successSnackbarBgColor, other.successSnackbarBgColor, t)!,
+      infoSnackbarBgColor: Color.lerp(infoSnackbarBgColor, other.infoSnackbarBgColor, t)!,
+      warningSnackbarBgColor: Color.lerp(warningSnackbarBgColor, other.warningSnackbarBgColor, t)!,
+      errorSnackbarBgColor: Color.lerp(errorSnackbarBgColor, other.errorSnackbarBgColor, t)!,
     );
   }
 
@@ -327,7 +363,11 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
         other.disabledTextColor == disabledTextColor &&
         other.shadowOffset == shadowOffset &&
         other.shadowBlur == shadowBlur &&
-        other.shadowColor == shadowColor;
+        other.shadowColor == shadowColor &&
+        other.successSnackbarBgColor == successSnackbarBgColor &&
+        other.infoSnackbarBgColor == infoSnackbarBgColor &&
+        other.warningSnackbarBgColor == warningSnackbarBgColor &&
+        other.errorSnackbarBgColor == errorSnackbarBgColor;
   }
 
   @override
@@ -350,6 +390,10 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
       shadowOffset,
       shadowBlur,
       shadowColor,
+      successSnackbarBgColor,
+      infoSnackbarBgColor,
+      warningSnackbarBgColor,
+      errorSnackbarBgColor,
     ]);
   }
 
@@ -372,7 +416,11 @@ class SketchThemeExtension extends ThemeExtension<SketchThemeExtension> {
         'disabledTextColor: $disabledTextColor, '
         'shadowOffset: $shadowOffset, '
         'shadowBlur: $shadowBlur, '
-        'shadowColor: $shadowColor'
+        'shadowColor: $shadowColor, '
+        'successSnackbarBgColor: $successSnackbarBgColor, '
+        'infoSnackbarBgColor: $infoSnackbarBgColor, '
+        'warningSnackbarBgColor: $warningSnackbarBgColor, '
+        'errorSnackbarBgColor: $errorSnackbarBgColor'
         ')';
   }
 }
