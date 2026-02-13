@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손으로 그린 스케치 스타일 모양의 카드 widget.
@@ -115,6 +116,9 @@ class SketchCard extends StatefulWidget {
   /// 카드 주위의 여백 (스케치 테두리 외부).
   final EdgeInsetsGeometry? margin;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchCard({
     super.key,
     this.header,
@@ -131,6 +135,7 @@ class SketchCard extends StatefulWidget {
     this.width,
     this.height,
     this.margin,
+    this.showBorder = true,
   }) : assert(elevation >= 0 && elevation <= 3, 'Elevation must be between 0 and 3');
 
   @override
@@ -157,25 +162,36 @@ class _SketchCardState extends State<SketchCard> {
       width: widget.width,
       height: widget.height,
       margin: widget.margin,
-      decoration: BoxDecoration(
-        color: effectiveFillColor,
-        border: Border.all(
-          color: effectiveBorderColor,
-          width: effectiveStrokeWidth,
-        ),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: elevationSpec.shadowBlur > 0
-            ? [
+      decoration: elevationSpec.shadowBlur > 0
+          ? BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                  SketchDesignTokens.irregularBorderRadius),
+              boxShadow: [
                 BoxShadow(
                   offset: elevationSpec.shadowOffset,
                   blurRadius: elevationSpec.shadowBlur,
                   color: elevationSpec.shadowColor,
                 ),
-              ]
-            : null,
+              ],
+            )
+          : null,
+      child: CustomPaint(
+        painter: SketchPainter(
+          fillColor: effectiveFillColor,
+          borderColor: effectiveBorderColor,
+          strokeWidth: effectiveStrokeWidth,
+          roughness:
+              sketchTheme?.roughness ?? SketchDesignTokens.roughness,
+          seed: 0,
+          enableNoise: true,
+          showBorder: widget.showBorder,
+          borderRadius: SketchDesignTokens.irregularBorderRadius,
+        ),
+        child: Padding(
+          padding: effectivePadding,
+          child: _buildCardLayout(),
+        ),
       ),
-      padding: effectivePadding,
-      child: _buildCardLayout(),
     );
 
     if (widget.onTap != null) {
@@ -236,19 +252,19 @@ class _SketchCardState extends State<SketchCard> {
         return _ElevationSpec(
           shadowOffset: const Offset(0, 2),
           shadowBlur: 4.0,
-          shadowColor: SketchDesignTokens.shadowColor.withValues(alpha: 0.1),
+          shadowColor: SketchDesignTokens.shadowColor.withAlpha(26),
         );
       case 2:
         return _ElevationSpec(
           shadowOffset: const Offset(0, 4),
           shadowBlur: 8.0,
-          shadowColor: SketchDesignTokens.shadowColor.withValues(alpha: 0.15),
+          shadowColor: SketchDesignTokens.shadowColor.withAlpha(38),
         );
       case 3:
         return _ElevationSpec(
           shadowOffset: const Offset(0, 8),
           shadowBlur: 16.0,
-          shadowColor: SketchDesignTokens.shadowColor.withValues(alpha: 0.2),
+          shadowColor: SketchDesignTokens.shadowColor.withAlpha(51),
         );
       default:
         return const _ElevationSpec(

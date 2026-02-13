@@ -1,11 +1,13 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import '../painters/x_cross_painter.dart';
+import '../theme/sketch_theme_extension.dart';
 
 /// Frame0 시그니처 X-cross 패턴 이미지 플레이스홀더
 ///
 /// 이미지가 아직 로드되지 않았거나 없는 경우 표시하는 위젯.
 /// X-cross 패턴으로 "이미지 영역"을 시각적으로 표현함.
+/// 가변 두께(tapered stroke)로 마커/펜 질감을 재현함.
 ///
 /// **기본 사용법:**
 /// ```dart
@@ -26,13 +28,13 @@ class SketchImagePlaceholder extends StatelessWidget {
   /// 플레이스홀더 높이
   final double? height;
 
-  /// X-cross 라인 색상 (기본: base500)
+  /// 스트로크 색상 (테두리 + 대각선 통합, 기본: 테마 textColor)
   final Color? lineColor;
 
   /// 선 두께 (기본: 2.0)
   final double strokeWidth;
 
-  /// 배경 색상 (기본: base100)
+  /// 배경 색상 (기본: 테마 fillColor)
   final Color? backgroundColor;
 
   /// 거칠기 계수 (기본: 0.8) - 손그림 흔들림 정도
@@ -40,9 +42,6 @@ class SketchImagePlaceholder extends StatelessWidget {
 
   /// 테두리 표시 여부 (기본: true)
   final bool showBorder;
-
-  /// 테두리 색상 (기본: base300)
-  final Color? borderColor;
 
   /// 중앙에 표시할 아이콘 (선택적)
   final IconData? centerIcon;
@@ -56,7 +55,6 @@ class SketchImagePlaceholder extends StatelessWidget {
     this.backgroundColor,
     this.roughness = 0.8,
     this.showBorder = true,
-    this.borderColor,
     this.centerIcon,
   });
 
@@ -67,7 +65,6 @@ class SketchImagePlaceholder extends StatelessWidget {
     this.backgroundColor,
     this.roughness = 0.8,
     this.showBorder = true,
-    this.borderColor,
     this.centerIcon,
   })  : width = 40,
         height = 40,
@@ -80,7 +77,6 @@ class SketchImagePlaceholder extends StatelessWidget {
     this.backgroundColor,
     this.roughness = 0.8,
     this.showBorder = true,
-    this.borderColor,
     this.centerIcon = Icons.person_outline,
   })  : width = 80,
         height = 80,
@@ -93,7 +89,6 @@ class SketchImagePlaceholder extends StatelessWidget {
     this.backgroundColor,
     this.roughness = 0.8,
     this.showBorder = true,
-    this.borderColor,
     this.centerIcon,
   })  : width = 120,
         height = 120,
@@ -106,7 +101,6 @@ class SketchImagePlaceholder extends StatelessWidget {
     this.backgroundColor,
     this.roughness = 0.8,
     this.showBorder = true,
-    this.borderColor,
     this.centerIcon,
   })  : width = 200,
         height = 200,
@@ -114,37 +108,32 @@ class SketchImagePlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 색상 기본값 적용
-    final effectiveLineColor = lineColor ?? SketchDesignTokens.base500;
-    final effectiveBgColor = backgroundColor ?? SketchDesignTokens.base100;
-    final effectiveBorderColor = borderColor ?? SketchDesignTokens.base300;
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
+
+    // 테두리와 대각선을 동일 색상으로 통합 (레퍼런스 디자인 기준)
+    // textColor: Light=0xFF343434(검정), Dark=0xFFF5F5F5(흰색)
+    final effectiveStrokeColor =
+        lineColor ?? sketchTheme?.textColor ?? SketchDesignTokens.base900;
+    final effectiveBgColor =
+        backgroundColor ?? sketchTheme?.fillColor ?? SketchDesignTokens.base100;
 
     // 접근성: 스크린 리더에 "이미지 플레이스홀더"로 읽힘
     return Semantics(
       label: '이미지 플레이스홀더',
-      child: Container(
+      child: SizedBox(
         width: width,
         height: height,
-        decoration: showBorder
-            ? BoxDecoration(
-                border: Border.all(
-                  color: effectiveBorderColor,
-                  width: strokeWidth,
-                ),
-                borderRadius: BorderRadius.circular(4),
-              )
-            : null,
         child: Stack(
           children: [
-            // X-cross 패턴 렌더링
+            // X-cross 패턴 렌더링 (배경 + 테두리 + 대각선 모두 포함)
             Positioned.fill(
               child: CustomPaint(
                 painter: XCrossPainter(
-                  lineColor: effectiveLineColor,
+                  lineColor: effectiveStrokeColor,
                   backgroundColor: effectiveBgColor,
-                  borderColor: effectiveBorderColor,
                   strokeWidth: strokeWidth,
                   roughness: roughness,
+                  showBorder: showBorder,
                 ),
               ),
             ),
@@ -155,7 +144,7 @@ class SketchImagePlaceholder extends StatelessWidget {
                 child: Icon(
                   centerIcon,
                   size: _calculateIconSize(),
-                  color: effectiveLineColor,
+                  color: effectiveStrokeColor,
                 ),
               ),
           ],
@@ -166,7 +155,6 @@ class SketchImagePlaceholder extends StatelessWidget {
 
   /// 아이콘 크기 계산 — 컨테이너 크기의 30%
   double _calculateIconSize() {
-    // width와 height 중 작은 값의 30%
     final size = width != null && height != null
         ? (width! < height! ? width! : height!)
         : (width ?? height ?? 100);

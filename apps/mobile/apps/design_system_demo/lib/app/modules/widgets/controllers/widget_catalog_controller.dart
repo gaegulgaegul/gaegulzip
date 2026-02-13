@@ -57,6 +57,10 @@ class WidgetCatalogController extends GetxController {
       description: '체크박스 with tristate 지원',
     ),
     WidgetCatalogItem(
+      name: 'SketchRadio',
+      description: '라디오 버튼 (단일 선택)',
+    ),
+    WidgetCatalogItem(
       name: 'SketchSlider',
       description: '드래그 슬라이더',
     ),
@@ -71,6 +75,38 @@ class WidgetCatalogController extends GetxController {
     WidgetCatalogItem(
       name: 'SocialLoginButton',
       description: '소셜 로그인 버튼 (4종)',
+    ),
+    WidgetCatalogItem(
+      name: 'SketchSnackbar',
+      description: 'Snackbar 알림 (4가지 타입)',
+    ),
+    WidgetCatalogItem(
+      name: 'SketchTextArea',
+      description: '여러 줄 텍스트 입력 (스케치 스타일)',
+    ),
+    WidgetCatalogItem(
+      name: 'SketchLink',
+      description: '텍스트 링크 (방문/비방문, 아이콘)',
+    ),
+    WidgetCatalogItem(
+      name: 'SketchAvatar',
+      description: '아바타 (이미지/이니셜/플레이스홀더)',
+    ),
+    WidgetCatalogItem(
+      name: 'SketchImagePlaceholder',
+      description: 'X-cross 이미지 플레이스홀더',
+    ),
+    WidgetCatalogItem(
+      name: 'SketchAppBar',
+      description: '앱 바 (그림자, 액션 버튼)',
+    ),
+    WidgetCatalogItem(
+      name: 'SketchTabBar',
+      description: '탭 바 (아이콘, 배지)',
+    ),
+    WidgetCatalogItem(
+      name: 'SketchBottomNavigationBar',
+      description: '하단 네비게이션 바 (배지, 라벨 모드)',
     ),
   ];
 

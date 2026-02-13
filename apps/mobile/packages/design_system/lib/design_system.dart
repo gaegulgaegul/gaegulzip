@@ -7,6 +7,10 @@ export 'src/painters/sketch_line_painter.dart';
 export 'src/painters/sketch_polygon_painter.dart';
 export 'src/painters/animated_sketch_painter.dart';
 export 'src/painters/x_cross_painter.dart';
+export 'src/painters/sketch_snackbar_icon_painter.dart';
+export 'src/painters/sketch_x_close_painter.dart';
+export 'src/painters/hatching_painter.dart';
+export 'src/painters/sketch_tab_painter.dart';
 
 // Theme
 export 'src/theme/sketch_theme_extension.dart';
@@ -19,6 +23,7 @@ export 'src/enums/sketch_avatar_size.dart';
 export 'src/enums/sketch_avatar_shape.dart';
 export 'src/enums/sketch_tab_indicator_style.dart';
 export 'src/enums/sketch_nav_label_behavior.dart';
+export 'src/enums/snackbar_type.dart';
 
 // Widgets
 export 'src/widgets/sketch_container.dart';
@@ -45,3 +50,4 @@ export 'src/widgets/sketch_app_bar.dart';
 export 'src/widgets/sketch_tab_bar.dart';
 export 'src/widgets/sketch_bottom_navigation_bar.dart';
 export 'src/widgets/social_login_button.dart';
+export 'src/widgets/sketch_snackbar.dart';

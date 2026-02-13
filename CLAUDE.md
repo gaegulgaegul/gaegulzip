@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 **모든 대화는 한국어로 진행**
+**TODO(human) 절대 금지! 의사결정이 필요한 부분은 질의응답으로 사용자와 의논**
 
 gaegulzip — TypeScript/Express 백엔드 + Flutter 모바일 + Next.js 웹의 하이브리드 모노레포
 

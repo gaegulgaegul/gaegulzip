@@ -5,7 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// SketchInput 데모
 ///
-/// label, hint, errorText, obscureText, prefix/suffix 속성을 실시간으로 조절할 수 있습니다.
+/// 모드 전환, label, hint, errorText, prefix/suffix 속성을 실시간으로 조절할 수 있습니다.
 class InputDemo extends StatefulWidget {
   const InputDemo({super.key});
 
@@ -15,6 +15,7 @@ class InputDemo extends StatefulWidget {
 
 class _InputDemoState extends State<InputDemo> {
   // 조절 가능한 속성들
+  SketchInputMode _mode = SketchInputMode.defaultMode;
   bool _showLabel = true;
   bool _showHint = true;
   bool _showError = false;
@@ -23,10 +24,19 @@ class _InputDemoState extends State<InputDemo> {
   bool _showSuffix = false;
 
   final _controller = TextEditingController();
+  final _dateController = TextEditingController(text: '2024/09/02');
+  final _timeController = TextEditingController(text: '09:24 AM');
+
+  // Number 모드 상태
+  double _numberValue = 365;
+  double _weightValue = 75.0;
+  double _distanceValue = 5.5;
 
   @override
   void dispose() {
     _controller.dispose();
+    _dateController.dispose();
+    _timeController.dispose();
     super.dispose();
   }
 
@@ -41,6 +51,8 @@ class _InputDemoState extends State<InputDemo> {
           const SizedBox(height: SketchDesignTokens.spacing2Xl),
           _buildControlsSection(),
           const SizedBox(height: SketchDesignTokens.spacing2Xl),
+          _buildModeGallerySection(),
+          const SizedBox(height: SketchDesignTokens.spacing2Xl),
           _buildGallerySection(),
         ],
       ),
@@ -49,6 +61,8 @@ class _InputDemoState extends State<InputDemo> {
 
   /// 실시간 프리뷰 섹션
   Widget _buildPreviewSection() {
+    final isNumber = _mode == SketchInputMode.number;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -61,13 +75,38 @@ class _InputDemoState extends State<InputDemo> {
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
         SketchInput(
-          controller: _controller,
+          mode: _mode,
+          controller: isNumber
+              ? null
+              : _mode == SketchInputMode.date
+                  ? _dateController
+                  : _mode == SketchInputMode.time
+                      ? _timeController
+                      : _controller,
           label: _showLabel ? 'Label' : null,
-          hint: _showHint ? 'Enter text...' : null,
+          hint: _showHint ? null : '',
           errorText: _showError ? 'This field is required' : null,
-          obscureText: _obscureText,
-          prefixIcon: _showPrefix ? const Icon(LucideIcons.user) : null,
-          suffixIcon: _showSuffix ? const Icon(LucideIcons.eye) : null,
+          obscureText: isNumber ? false : _obscureText,
+          prefixIcon:
+              isNumber ? null : (_showPrefix ? const Icon(LucideIcons.user) : null),
+          suffixIcon:
+              isNumber ? null : (_showSuffix ? const Icon(LucideIcons.eye) : null),
+          // Number 모드 전용
+          numberValue: isNumber ? _numberValue : null,
+          onNumberChanged: isNumber
+              ? (v) => setState(() => _numberValue = v)
+              : null,
+          min: isNumber ? 0 : null,
+          max: isNumber ? 999 : null,
+          onTap: _mode == SketchInputMode.date ||
+                  _mode == SketchInputMode.time ||
+                  _mode == SketchInputMode.datetime
+              ? () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Picker would open here')),
+                  );
+                }
+              : null,
         ),
       ],
     );
@@ -87,76 +126,159 @@ class _InputDemoState extends State<InputDemo> {
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Show Label', style: TextStyle(fontSize: SketchDesignTokens.fontSizeBase)),
-            SketchSwitch(
-              value: _showLabel,
-              onChanged: (value) => setState(() => _showLabel = value),
-            ),
-          ],
+        // 모드 선택
+        const Text('Mode',
+            style: TextStyle(
+                fontSize: SketchDesignTokens.fontSizeBase,
+                fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: SketchInputMode.values.map((mode) {
+            final isSelected = _mode == mode;
+            return SketchButton(
+              text: mode.name,
+              style: isSelected
+                  ? SketchButtonStyle.primary
+                  : SketchButtonStyle.outline,
+              size: SketchButtonSize.small,
+              onPressed: () => setState(() => _mode = mode),
+            );
+          }).toList(),
         ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Show Hint', style: TextStyle(fontSize: SketchDesignTokens.fontSizeBase)),
-            SketchSwitch(
-              value: _showHint,
-              onChanged: (value) => setState(() => _showHint = value),
-            ),
-          ],
+        _buildToggleRow(
+            'Show Label', _showLabel, (v) => setState(() => _showLabel = v)),
+        _buildToggleRow(
+            'Show Hint', _showHint, (v) => setState(() => _showHint = v)),
+        _buildToggleRow(
+            'Show Error', _showError, (v) => setState(() => _showError = v)),
+        _buildToggleRow('Obscure Text', _obscureText,
+            (v) => setState(() => _obscureText = v)),
+        _buildToggleRow('Show Prefix Icon', _showPrefix,
+            (v) => setState(() => _showPrefix = v)),
+        _buildToggleRow('Show Suffix Icon', _showSuffix,
+            (v) => setState(() => _showSuffix = v)),
+      ],
+    );
+  }
+
+  Widget _buildToggleRow(
+      String label, bool value, ValueChanged<bool> onChanged) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style:
+                const TextStyle(fontSize: SketchDesignTokens.fontSizeBase)),
+        SketchSwitch(value: value, onChanged: onChanged),
+      ],
+    );
+  }
+
+  /// 모드별 갤러리 섹션
+  Widget _buildModeGallerySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '모드별 갤러리',
+          style: TextStyle(
+            fontSize: SketchDesignTokens.fontSizeLg,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Show Error', style: TextStyle(fontSize: SketchDesignTokens.fontSizeBase)),
-            SketchSwitch(
-              value: _showError,
-              onChanged: (value) => setState(() => _showError = value),
-            ),
-          ],
+        // Search 모드
+        const Text('Search 모드',
+            style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        const SketchInput(
+          mode: SketchInputMode.search,
         ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Obscure Text', style: TextStyle(fontSize: SketchDesignTokens.fontSizeBase)),
-            SketchSwitch(
-              value: _obscureText,
-              onChanged: (value) => setState(() => _obscureText = value),
-            ),
-          ],
+        // Date 모드
+        const Text('Date 모드',
+            style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        SketchInput(
+          mode: SketchInputMode.date,
+          controller: TextEditingController(text: '2024/09/02'),
+          onTap: () {},
         ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Show Prefix Icon', style: TextStyle(fontSize: SketchDesignTokens.fontSizeBase)),
-            SketchSwitch(
-              value: _showPrefix,
-              onChanged: (value) => setState(() => _showPrefix = value),
-            ),
-          ],
+        // Time 모드
+        const Text('Time 모드',
+            style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        SketchInput(
+          mode: SketchInputMode.time,
+          controller: TextEditingController(text: '09:24 AM'),
+          onTap: () {},
         ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Show Suffix Icon', style: TextStyle(fontSize: SketchDesignTokens.fontSizeBase)),
-            SketchSwitch(
-              value: _showSuffix,
-              onChanged: (value) => setState(() => _showSuffix = value),
-            ),
-          ],
+        // DateTime 모드
+        const Text('DateTime 모드',
+            style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        SketchInput(
+          mode: SketchInputMode.datetime,
+          controller:
+              TextEditingController(text: '2024/09/02 09:24 AM'),
+          onTap: () {},
+        ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
+
+        // Number 모드 — 기본
+        const Text('Number 모드 (기본)',
+            style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        SketchInput(
+          mode: SketchInputMode.number,
+          numberValue: _numberValue,
+          onNumberChanged: (v) => setState(() => _numberValue = v),
+        ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
+
+        // Number 모드 — 라벨 + 접미사 + 범위
+        const Text('Number 모드 (라벨, 접미사, 범위)',
+            style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        SketchInput(
+          mode: SketchInputMode.number,
+          label: '무게',
+          numberValue: _weightValue,
+          min: 0,
+          max: 300,
+          suffix: 'kg',
+          onNumberChanged: (v) => setState(() => _weightValue = v),
+        ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
+
+        // Number 모드 — 소수점
+        const Text('Number 모드 (소수점, step)',
+            style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        SketchInput(
+          mode: SketchInputMode.number,
+          label: '거리',
+          numberValue: _distanceValue,
+          step: 0.5,
+          decimalPlaces: 1,
+          suffix: 'km',
+          onNumberChanged: (v) => setState(() => _distanceValue = v),
         ),
       ],
     );
   }
 
-  /// 변형 갤러리 섹션
+  /// 기존 변형 갤러리 섹션
   Widget _buildGallerySection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,7 +301,8 @@ class _InputDemoState extends State<InputDemo> {
         const SizedBox(height: SketchDesignTokens.spacingLg),
 
         // 라벨과 힌트
-        const Text('라벨과 힌트', style: TextStyle(fontWeight: FontWeight.w500)),
+        const Text('라벨과 힌트',
+            style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: SketchDesignTokens.spacingSm),
         const SketchInput(
           label: 'Email',
@@ -188,7 +311,8 @@ class _InputDemoState extends State<InputDemo> {
         const SizedBox(height: SketchDesignTokens.spacingLg),
 
         // 에러 상태
-        const Text('에러 상태', style: TextStyle(fontWeight: FontWeight.w500)),
+        const Text('에러 상태',
+            style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: SketchDesignTokens.spacingSm),
         const SketchInput(
           label: 'Username',
@@ -198,7 +322,8 @@ class _InputDemoState extends State<InputDemo> {
         const SizedBox(height: SketchDesignTokens.spacingLg),
 
         // 비밀번호
-        const Text('비밀번호', style: TextStyle(fontWeight: FontWeight.w500)),
+        const Text('비밀번호',
+            style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: SketchDesignTokens.spacingSm),
         const SketchInput(
           label: 'Password',

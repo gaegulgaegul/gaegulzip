@@ -27,6 +27,9 @@ class SocialLoginButton extends StatelessWidget {
   /// 클릭 이벤트
   final VoidCallback? onPressed;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SocialLoginButton({
     super.key,
     required this.platform,
@@ -35,6 +38,7 @@ class SocialLoginButton extends StatelessWidget {
     this.isLoading = false,
     this.text,
     this.onPressed,
+    this.showBorder = true,
   });
 
   @override
@@ -53,10 +57,12 @@ class SocialLoginButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(spec.borderRadius),
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(
-                color: spec.borderColor,
-                width: spec.borderWidth,
-              ),
+              border: showBorder
+                  ? Border.all(
+                      color: spec.borderColor,
+                      width: spec.borderWidth,
+                    )
+                  : null,
               borderRadius: BorderRadius.circular(spec.borderRadius),
             ),
             padding: EdgeInsets.symmetric(

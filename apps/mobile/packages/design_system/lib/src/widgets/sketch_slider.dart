@@ -1,6 +1,8 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../painters/sketch_circle_painter.dart';
+import '../painters/sketch_line_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손그림 스타일 슬라이더 위젯
@@ -191,9 +193,11 @@ class _SketchSliderState extends State<SketchSlider> {
     final sketchTheme = SketchThemeExtension.maybeOf(context);
     final isDisabled = widget.onChanged == null;
 
-    final effectiveActiveColor = widget.activeColor ?? SketchDesignTokens.base900;
+    final effectiveActiveColor = widget.activeColor ?? sketchTheme?.textColor ?? SketchDesignTokens.base900;
     final effectiveInactiveColor = widget.inactiveColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveThumbColor = widget.thumbColor ?? effectiveActiveColor;
+    final effectiveStrokeWidth = widget.strokeWidth ?? SketchDesignTokens.strokeBold;
+    final effectiveRoughness = sketchTheme?.roughness ?? SketchDesignTokens.roughness;
 
     return Opacity(
       opacity: isDisabled ? SketchDesignTokens.opacityDisabled : 1.0,
@@ -229,45 +233,64 @@ class _SketchSliderState extends State<SketchSlider> {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // 비활성 트랙 (전체)
+                    // 비활성 트랙 (전체) — 스케치 선
                     Positioned(
                       left: 0,
                       right: 0,
                       top: (widget.thumbSize - widget.trackHeight) / 2,
-                      child: Container(
+                      child: SizedBox(
                         height: widget.trackHeight,
-                        width: trackWidth,
-                        decoration: BoxDecoration(
-                          color: effectiveInactiveColor,
-                          borderRadius: BorderRadius.circular(widget.trackHeight / 2),
+                        child: CustomPaint(
+                          painter: SketchLinePainter(
+                            start: Offset(0, widget.trackHeight / 2),
+                            end: Offset(trackWidth, widget.trackHeight / 2),
+                            color: effectiveInactiveColor,
+                            strokeWidth: effectiveStrokeWidth,
+                            roughness: effectiveRoughness,
+                            seed: 0,
+                          ),
                         ),
                       ),
                     ),
 
-                    // 활성 트랙 (채워진 부분)
+                    // 활성 트랙 (채워진 부분) — 스케치 선 + 클립
                     Positioned(
                       left: 0,
+                      right: 0,
                       top: (widget.thumbSize - widget.trackHeight) / 2,
-                      child: Container(
-                        height: widget.trackHeight,
-                        width: thumbPosition,
-                        decoration: BoxDecoration(
-                          color: effectiveActiveColor,
-                          borderRadius: BorderRadius.circular(widget.trackHeight / 2),
+                      child: ClipRect(
+                        clipper: _TrackClipper(clipWidth: thumbPosition),
+                        child: SizedBox(
+                          height: widget.trackHeight,
+                          child: CustomPaint(
+                            painter: SketchLinePainter(
+                              start: Offset(0, widget.trackHeight / 2),
+                              end: Offset(trackWidth, widget.trackHeight / 2),
+                              color: effectiveActiveColor,
+                              strokeWidth: effectiveStrokeWidth,
+                              roughness: effectiveRoughness,
+                              seed: 42,
+                            ),
+                          ),
                         ),
                       ),
                     ),
 
-                    // 썸 (원형 손잡이)
+                    // 썸 (원형 손잡이) — 스케치 원
                     Positioned(
                       left: thumbPosition - widget.thumbSize / 2,
                       top: 0,
-                      child: Container(
+                      child: SizedBox(
                         width: widget.thumbSize,
                         height: widget.thumbSize,
-                        decoration: BoxDecoration(
-                          color: effectiveThumbColor,
-                          shape: BoxShape.circle,
+                        child: CustomPaint(
+                          painter: SketchCirclePainter(
+                            fillColor: effectiveThumbColor,
+                            borderColor: effectiveActiveColor,
+                            strokeWidth: effectiveStrokeWidth,
+                            roughness: effectiveRoughness,
+                            seed: 7,
+                          ),
                         ),
                       ),
                     ),
@@ -283,13 +306,13 @@ class _SketchSliderState extends State<SketchSlider> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: SketchDesignTokens.base900,
+                            color: effectiveActiveColor,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             widget.label!,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: sketchTheme?.fillColor ?? Colors.white,
                               fontSize: SketchDesignTokens.fontSizeXs,
                             ),
                           ),
@@ -304,4 +327,18 @@ class _SketchSliderState extends State<SketchSlider> {
       ),
     );
   }
+}
+
+/// 활성 트랙의 가시 영역을 제어하는 클리퍼.
+class _TrackClipper extends CustomClipper<Rect> {
+  final double clipWidth;
+
+  const _TrackClipper({required this.clipWidth});
+
+  @override
+  Rect getClip(Size size) => Rect.fromLTWH(0, 0, clipWidth, size.height);
+
+  @override
+  bool shouldReclip(covariant _TrackClipper oldClipper) =>
+      clipWidth != oldClipper.clipWidth;
 }

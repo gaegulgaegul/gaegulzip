@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 /// SketchDropdown 데모
 ///
-/// items, hint 속성을 실시간으로 조절할 수 있습니다.
+/// label, items, hint 속성을 실시간으로 조절할 수 있습니다.
 class DropdownDemo extends StatefulWidget {
   const DropdownDemo({super.key});
 
@@ -15,10 +15,12 @@ class DropdownDemo extends StatefulWidget {
 class _DropdownDemoState extends State<DropdownDemo> {
   // 조절 가능한 속성들
   String? _selectedValue;
+  bool _showLabel = true;
 
   // 갤러리 상태
   String? _galleryValue1;
   String? _galleryValue2 = 'B';
+  String? _galleryValue3;
 
   final List<String> _items = [
     '옵션 1',
@@ -59,6 +61,7 @@ class _DropdownDemoState extends State<DropdownDemo> {
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
         SketchDropdown<String>(
+          label: _showLabel ? '카테고리' : null,
           value: _selectedValue,
           items: _items,
           hint: '옵션을 선택하세요',
@@ -88,6 +91,19 @@ class _DropdownDemoState extends State<DropdownDemo> {
           ),
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
+
+        // Label 토글
+        Row(
+          children: [
+            const Text('Label 표시', style: TextStyle(fontWeight: FontWeight.w500)),
+            const Spacer(),
+            SketchSwitch(
+              value: _showLabel,
+              onChanged: (value) => setState(() => _showLabel = value),
+            ),
+          ],
+        ),
+        const SizedBox(height: SketchDesignTokens.spacingMd),
 
         SketchButton(
           text: 'Reset Selection',
@@ -124,6 +140,18 @@ class _DropdownDemoState extends State<DropdownDemo> {
         ),
         const SizedBox(height: SketchDesignTokens.spacingLg),
 
+        // 라벨 포함
+        const Text('라벨 포함', style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: SketchDesignTokens.spacingSm),
+        SketchDropdown<String>(
+          label: 'Label',
+          value: _galleryValue3,
+          items: const ['옵션 A', '옵션 B', '옵션 C'],
+          hint: 'Select',
+          onChanged: (value) => setState(() => _galleryValue3 = value),
+        ),
+        const SizedBox(height: SketchDesignTokens.spacingLg),
+
         // 값이 선택된 상태
         const Text('값이 선택된 상태', style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: SketchDesignTokens.spacingSm),
@@ -138,6 +166,7 @@ class _DropdownDemoState extends State<DropdownDemo> {
         const Text('비활성화', style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: SketchDesignTokens.spacingSm),
         SketchDropdown<String>(
+          label: '비활성화 라벨',
           value: 'C',
           items: const ['A', 'B', 'C', 'D'],
           onChanged: null,

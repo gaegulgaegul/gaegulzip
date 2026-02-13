@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 아이콘 버튼의 모양 변형.
@@ -105,6 +106,9 @@ class SketchIconButton extends StatefulWidget {
   /// 테두리의 스트로크 너비.
   final double? strokeWidth;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
   const SketchIconButton({
     super.key,
     required this.icon,
@@ -118,6 +122,7 @@ class SketchIconButton extends StatefulWidget {
     this.fillColor,
     this.borderColor,
     this.strokeWidth,
+    this.showBorder = true,
   });
 
   @override
@@ -135,7 +140,7 @@ class _SketchIconButtonState extends State<SketchIconButton> {
     final effectiveFillColor = widget.fillColor ?? sketchTheme?.fillColor ?? Colors.transparent;
     final effectiveBorderColor = widget.borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base300;
     final effectiveStrokeWidth = widget.strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
-    final effectiveIconColor = widget.iconColor ?? SketchDesignTokens.base900;
+    final effectiveIconColor = widget.iconColor ?? sketchTheme?.iconColor ?? SketchDesignTokens.base900;
 
     final button = Opacity(
       opacity: isDisabled ? SketchDesignTokens.opacityDisabled : 1.0,
@@ -159,25 +164,29 @@ class _SketchIconButtonState extends State<SketchIconButton> {
               clipBehavior: Clip.none,
               children: [
                 // 버튼
-                Container(
-                  decoration: BoxDecoration(
-                    color: effectiveFillColor,
-                    border: Border.all(
-                      color: effectiveBorderColor,
-                      width: effectiveStrokeWidth,
-                    ),
-                    shape: widget.shape == SketchIconButtonShape.circle
-                        ? BoxShape.circle
-                        : BoxShape.rectangle,
-                    borderRadius: widget.shape == SketchIconButtonShape.square
-                        ? BorderRadius.circular(6)
-                        : null,
+                CustomPaint(
+                  painter: SketchPainter(
+                    fillColor: effectiveFillColor,
+                    borderColor: effectiveBorderColor,
+                    strokeWidth: effectiveStrokeWidth,
+                    roughness: sketchTheme?.roughness ??
+                        SketchDesignTokens.roughness,
+                    seed: widget.icon.hashCode,
+                    enableNoise: true,
+                    showBorder: widget.showBorder,
+                    borderRadius:
+                        widget.shape == SketchIconButtonShape.circle
+                            ? 9999.0
+                            : 6.0,
                   ),
                   child: Center(
                     child: Icon(
                       widget.icon,
                       size: widget.iconSize,
-                      color: isDisabled ? SketchDesignTokens.base500 : effectiveIconColor,
+                      color: isDisabled
+                          ? (sketchTheme?.disabledTextColor ??
+                              SketchDesignTokens.base500)
+                          : effectiveIconColor,
                     ),
                   ),
                 ),
@@ -217,6 +226,9 @@ class _SketchBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sketchTheme = SketchThemeExtension.maybeOf(context);
+    final effectiveBadgeColor = sketchTheme?.badgeColor ?? SketchDesignTokens.error;
+    final effectiveBadgeTextColor = sketchTheme?.badgeTextColor ?? Colors.white;
     final displayCount = count > 99 ? '99+' : count.toString();
 
     return Container(
@@ -225,8 +237,8 @@ class _SketchBadge extends StatelessWidget {
         minHeight: 20,
       ),
       child: Container(
-        decoration: const BoxDecoration(
-          color: SketchDesignTokens.error,
+        decoration: BoxDecoration(
+          color: effectiveBadgeColor,
           shape: BoxShape.circle,
         ),
         child: Center(
@@ -234,10 +246,10 @@ class _SketchBadge extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             child: Text(
               displayCount,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: effectiveBadgeTextColor,
                 height: 1.0,
               ),
             ),

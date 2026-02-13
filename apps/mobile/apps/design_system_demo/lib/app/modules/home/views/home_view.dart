@@ -17,7 +17,7 @@ class HomeView extends GetView<HomeController> {
 
     return Scaffold(
       appBar: _buildAppBar(themeController),
-      body: _buildBody(context),
+      body: _buildBody(themeController),
     );
   }
 
@@ -43,32 +43,39 @@ class HomeView extends GetView<HomeController> {
   }
 
   /// Body 빌드
-  Widget _buildBody(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(SketchDesignTokens.spacingLg),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: SketchDesignTokens.spacingLg,
-          crossAxisSpacing: SketchDesignTokens.spacingLg,
-          childAspectRatio: 1.0,
+  ///
+  /// Obx로 감싸서 SketchThemeController의 isDarkMode 변경을 직접 구독.
+  /// Theme.of(context).extension이 GetX 라우트 내에서 null을 반환하는 문제 우회.
+  Widget _buildBody(SketchThemeController themeController) {
+    return Obx(() {
+      final isDark = themeController.isDarkMode;
+      return Padding(
+        padding: const EdgeInsets.all(SketchDesignTokens.spacingLg),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: SketchDesignTokens.spacingLg,
+            crossAxisSpacing: SketchDesignTokens.spacingLg,
+            childAspectRatio: 1.0,
+          ),
+          itemCount: controller.categories.length,
+          itemBuilder: (context, index) {
+            final category = controller.categories[index];
+            return _buildCategoryCard(isDark, category);
+          },
         ),
-        itemCount: controller.categories.length,
-        itemBuilder: (context, index) {
-          final category = controller.categories[index];
-          return _buildCategoryCard(context, category);
-        },
-      ),
-    );
+      );
+    });
   }
 
   /// 카테고리 카드 빌드
   ///
   /// SketchCard 테두리 없이 깔끔한 카드 스타일 사용.
   /// Frame0 스타일: 컴포넌트만 스케치 테두리, 레이아웃 컨테이너는 깔끔하게.
-  Widget _buildCategoryCard(BuildContext context, CategoryItem category) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF2A2A2A) : SketchDesignTokens.white;
+  Widget _buildCategoryCard(bool isDark, CategoryItem category) {
+    final cardColor = isDark
+        ? SketchDesignTokens.surfaceDark
+        : SketchDesignTokens.white;
 
     return GestureDetector(
       onTap: () => controller.navigateTo(category.route),

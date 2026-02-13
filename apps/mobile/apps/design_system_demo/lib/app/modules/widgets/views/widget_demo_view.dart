@@ -13,7 +13,16 @@ import 'demos/checkbox_demo.dart';
 import 'demos/slider_demo.dart';
 import 'demos/dropdown_demo.dart';
 import 'demos/container_demo.dart';
+import 'demos/radio_demo.dart';
 import 'demos/social_login_button_demo.dart';
+import 'demos/snackbar_demo.dart';
+import 'demos/text_area_demo.dart';
+import 'demos/link_demo.dart';
+import 'demos/avatar_demo.dart';
+import 'demos/image_placeholder_demo.dart';
+import 'demos/app_bar_demo.dart';
+import 'demos/tab_bar_demo.dart';
+import 'demos/bottom_nav_bar_demo.dart';
 
 /// 위젯 데모 화면
 ///
@@ -59,10 +68,28 @@ class WidgetDemoView extends StatelessWidget {
         return const SliderDemo();
       case 'SketchDropdown':
         return const DropdownDemo();
+      case 'SketchRadio':
+        return const RadioDemo();
       case 'SketchContainer':
         return const ContainerDemo();
       case 'SocialLoginButton':
         return const SocialLoginButtonDemo();
+      case 'SketchSnackbar':
+        return const SnackbarDemo();
+      case 'SketchTextArea':
+        return const TextAreaDemo();
+      case 'SketchLink':
+        return const LinkDemo();
+      case 'SketchAvatar':
+        return const AvatarDemo();
+      case 'SketchImagePlaceholder':
+        return const ImagePlaceholderDemo();
+      case 'SketchAppBar':
+        return const AppBarDemo();
+      case 'SketchTabBar':
+        return const TabBarDemo();
+      case 'SketchBottomNavigationBar':
+        return const BottomNavBarDemo();
       default:
         return Center(
           child: Text('Unknown widget: $name'),

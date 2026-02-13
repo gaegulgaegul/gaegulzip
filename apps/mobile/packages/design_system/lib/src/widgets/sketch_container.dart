@@ -1,13 +1,14 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../painters/sketch_painter.dart';
 import '../theme/sketch_theme_extension.dart';
 
 /// 손으로 그린 스케치 스타일 모양의 컨테이너 widget.
 ///
 /// 자식 widget을 Frame0 스타일의 스케치 테두리와 채우기를 렌더링하는
-/// CustomPaint로 감쌈. 커스터마이징 가능한 스트로크 너비, 거칠기,
-/// 색상, 크기를 지원함.
+/// CustomPaint로 감쌈. SketchPainter를 2-pass로 겹쳐 그려
+/// 손으로 그린 듯한 불규칙한 테두리 질감을 표현.
 ///
 /// **기본 사용법:**
 /// ```dart
@@ -85,6 +86,15 @@ class SketchContainer extends StatelessWidget {
   /// 컨테이너 내 자식의 정렬.
   final AlignmentGeometry? alignment;
 
+  /// 테두리 표시 여부.
+  final bool showBorder;
+
+  /// 거칠기 계수 (0.0-1.0+)
+  final double? roughness;
+
+  /// 재현 가능한 렌더링을 위한 무작위 시드
+  final int seed;
+
   /// 스케치 스타일 컨테이너를 생성함.
   ///
   /// 모든 스타일 속성은 선택 사항이며 지정하지 않으면 테마 값
@@ -100,6 +110,9 @@ class SketchContainer extends StatelessWidget {
     this.strokeWidth,
     this.margin,
     this.alignment,
+    this.showBorder = true,
+    this.roughness,
+    this.seed = 0,
   });
 
   @override
@@ -107,26 +120,58 @@ class SketchContainer extends StatelessWidget {
     // 테마 기본값 가져오기 (테마가 구성되지 않은 경우 폴백 사용)
     final sketchTheme = SketchThemeExtension.maybeOf(context);
 
-    final effectiveFillColor = fillColor ?? sketchTheme?.fillColor ?? SketchDesignTokens.white;
-    final effectiveBorderColor = borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base900;
-    final effectiveStrokeWidth = strokeWidth ?? sketchTheme?.strokeWidth ?? SketchDesignTokens.strokeStandard;
-    final effectivePadding = padding ?? const EdgeInsets.all(SketchDesignTokens.spacingMd);
+    final effectiveFillColor =
+        fillColor ?? sketchTheme?.fillColor ?? SketchDesignTokens.white;
+    final effectiveBorderColor =
+        borderColor ?? sketchTheme?.borderColor ?? SketchDesignTokens.base900;
+    final effectiveStrokeWidth = strokeWidth ??
+        sketchTheme?.strokeWidth ??
+        SketchDesignTokens.strokeStandard;
+    final effectiveRoughness =
+        roughness ?? sketchTheme?.roughness ?? SketchDesignTokens.roughness;
+    final effectivePadding =
+        padding ?? const EdgeInsets.all(SketchDesignTokens.spacingMd);
+
+    // 컨테이너 질감 파라미터
+    final containerStrokeWidth = effectiveStrokeWidth * 1.5;
+    final containerRoughness = effectiveRoughness * 1.75;
 
     return Container(
       width: width,
       height: height,
       margin: margin,
-      decoration: BoxDecoration(
-        color: effectiveFillColor,
-        border: Border.all(
-          color: effectiveBorderColor,
-          width: effectiveStrokeWidth,
+      child: CustomPaint(
+        painter: SketchPainter(
+          fillColor: effectiveFillColor,
+          borderColor: effectiveBorderColor,
+          strokeWidth: containerStrokeWidth,
+          roughness: containerRoughness,
+          seed: seed,
+          enableNoise: true,
+          showBorder: showBorder,
+          borderRadius: SketchDesignTokens.irregularBorderRadius,
         ),
-        borderRadius: BorderRadius.circular(6),
+        child: CustomPaint(
+          painter: showBorder
+              ? SketchPainter(
+                  fillColor: Colors.transparent,
+                  borderColor: effectiveBorderColor,
+                  strokeWidth: containerStrokeWidth,
+                  roughness: containerRoughness,
+                  seed: seed + 50,
+                  enableNoise: false,
+                  showBorder: true,
+                  borderRadius: SketchDesignTokens.irregularBorderRadius,
+                )
+              : null,
+          child: Padding(
+            padding: effectivePadding,
+            child: alignment != null
+                ? Align(alignment: alignment!, child: child)
+                : child,
+          ),
+        ),
       ),
-      padding: effectivePadding,
-      alignment: alignment,
-      child: child,
     );
   }
 }

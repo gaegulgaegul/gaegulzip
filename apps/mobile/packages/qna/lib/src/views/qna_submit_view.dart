@@ -8,12 +8,6 @@ import '../controllers/qna_controller.dart';
 ///
 /// 질문 제목과 본문을 입력하고 제출할 수 있습니다.
 class QnaSubmitView extends GetView<QnaController> {
-  /// 본문 글자 수 경고 임계값
-  static const int bodyWarningThreshold = 60000;
-
-  /// 본문 글자 수 오류 임계값
-  static const int bodyErrorThreshold = 65000;
-
   /// 본문 최대 글자 수
   static const int bodyMaxLength = 65536;
 
@@ -73,11 +67,6 @@ class QnaSubmitView extends GetView<QnaController> {
 
                   // 본문 입력 필드
                   _buildBodyInput(),
-
-                  const SizedBox(height: 12),
-
-                  // 글자 수 카운터
-                  _buildCharCounter(),
                 ],
               ),
             ),
@@ -108,42 +97,18 @@ class QnaSubmitView extends GetView<QnaController> {
 
   /// 본문 입력 필드 빌드
   Widget _buildBodyInput() {
-    return Obx(() => SketchInput(
+    return Obx(() => SketchTextArea(
           label: '질문 내용 *',
           hint: '구체적으로 작성할수록 빠른 답변을 받을 수 있습니다',
           controller: controller.bodyController,
           maxLength: bodyMaxLength,
           minLines: 8,
           maxLines: 20,
+          showCounter: true,
           errorText: controller.bodyError.value.isEmpty
               ? null
               : controller.bodyError.value,
         ));
-  }
-
-  /// 글자 수 카운터 빌드
-  Widget _buildCharCounter() {
-    return Obx(() {
-      final count = controller.bodyLength.value;
-      final isWarning = count > bodyWarningThreshold;
-      final isError = count > bodyErrorThreshold;
-
-      return Align(
-        alignment: Alignment.centerRight,
-        child: Text(
-          '본문: $count / $bodyMaxLength자',
-          style: TextStyle(
-            fontSize: 12,
-            color: isError
-                ? SketchDesignTokens.error
-                : isWarning
-                    ? SketchDesignTokens.warning
-                    : SketchDesignTokens.base500,
-            fontWeight: isWarning ? FontWeight.w500 : FontWeight.w400,
-          ),
-        ),
-      );
-    });
   }
 
   /// 제출 버튼 빌드
