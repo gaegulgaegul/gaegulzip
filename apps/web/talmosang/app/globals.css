@@ -1,0 +1,336 @@
+@import "tailwindcss";
+
+/* 전역 CSS 변수 */
+:root {
+  --color-charcoal: #2d2d2d;
+  --color-cream: #fff8f0;
+  --color-cream-light: #fffbf5;
+  --color-cream-dark: #f5e6d3;
+  --color-coral: #e85d4a;
+  --color-deep-blue: #2b4c7e;
+  --color-mustard: #f2a541;
+  --color-forest-green: #4a7c59;
+}
+
+/* 기본 스타일 */
+body {
+  background-color: var(--color-cream);
+  color: var(--color-charcoal);
+  font-family: var(--font-pretendard), system-ui, -apple-system, sans-serif;
+}
+
+/* 노이즈 텍스처 오버레이 */
+.noise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* 종이 텍스처 (Card) */
+.paper-texture {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+  background-blend-mode: multiply;
+}
+
+/* 연필 테두리 (Card) */
+.pencil-border {
+  border: 3px solid var(--color-charcoal);
+  position: relative;
+}
+
+.pencil-border::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 3px solid var(--color-charcoal);
+  border-radius: inherit;
+  opacity: 0.3;
+  transform: rotate(0.5deg);
+  pointer-events: none;
+}
+
+/* 손그림 프로그레스 바 */
+.hand-drawn-progress [role='progressbar'] {
+  background: linear-gradient(90deg, var(--color-coral), var(--color-mustard));
+  clip-path: polygon(0% 0%, 98% 2%, 100% 50%, 98% 98%, 2% 100%, 0% 50%);
+}
+
+/* 폴라로이드 프레임 */
+.polaroid-frame {
+  background: white;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+/* 도장 배지 */
+.stamp-badge {
+  background: radial-gradient(circle, var(--color-coral), #d14d3a);
+  border-radius: 50%;
+  filter: opacity(0.9);
+  transform: rotate(-5deg);
+}
+
+/* 말풍선 */
+.speech-bubble {
+  position: relative;
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 30px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid var(--color-cream);
+}
+
+/* 손그림 밑줄 */
+.scribble-underline {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  height: 8px;
+  margin-top: 8px;
+}
+
+.scribble-underline::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-coral);
+  clip-path: polygon(
+    0% 50%,
+    5% 40%,
+    10% 60%,
+    15% 45%,
+    20% 55%,
+    25% 50%,
+    30% 40%,
+    35% 60%,
+    40% 45%,
+    45% 55%,
+    50% 50%,
+    55% 40%,
+    60% 60%,
+    65% 45%,
+    70% 55%,
+    75% 50%,
+    80% 40%,
+    85% 60%,
+    90% 45%,
+    95% 55%,
+    100% 50%
+  );
+}
+
+/* 손그림 별 */
+.scribble-star {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 L20 12 L30 16 L20 20 L16 30 L12 20 L2 16 L12 12 Z' fill='%23e85d4a' stroke='%23e85d4a' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E");
+  transform: rotate(-10deg);
+}
+
+/* 손그림 화살표 */
+.scribble-arrow {
+  display: inline-block;
+  width: 80px;
+  height: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cpath d='M5 20 Q20 15 40 18 T70 20 M65 15 L70 20 L65 25' fill='none' stroke='%23f2a541' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  transform: rotate(15deg);
+}
+
+/* 버튼 스타일 */
+.btn-primary {
+  background-color: var(--color-coral);
+  color: white;
+  box-shadow: 0 4px 8px rgba(232, 93, 74, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #d14d3a;
+  transform: scale(1.05);
+  animation: shake 0.5s;
+}
+
+.btn-primary:active {
+  transform: scale(0.95);
+}
+
+.btn-ghost:hover {
+  animation: wiggle 0.5s;
+}
+
+/* 머리카락 떨어지는 애니메이션 */
+.hair-falling-container {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.hair-strand {
+  position: absolute;
+  width: 2px;
+  height: 20px;
+  background: var(--color-charcoal);
+  animation: fall 3s infinite ease-in;
+}
+
+.hair-strand:nth-child(1) {
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.hair-strand:nth-child(2) {
+  left: 30%;
+  animation-delay: 0.6s;
+}
+
+.hair-strand:nth-child(3) {
+  left: 50%;
+  animation-delay: 1.2s;
+}
+
+.hair-strand:nth-child(4) {
+  left: 70%;
+  animation-delay: 1.8s;
+}
+
+.hair-strand:nth-child(5) {
+  left: 90%;
+  animation-delay: 2.4s;
+}
+
+/* 드래그앤드롭 영역 */
+.drag-drop-zone {
+  border: 3px dashed var(--color-coral);
+  border-radius: 16px;
+  padding: 48px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.drag-drop-zone:hover {
+  background-color: rgba(232, 93, 74, 0.05);
+  transform: scale(1.02) rotate(-1deg);
+}
+
+.drag-drop-zone.dragging {
+  background-color: rgba(232, 93, 74, 0.1);
+  border-style: solid;
+}
+
+/* 에러 메시지 */
+.error-message {
+  background-color: rgba(232, 93, 74, 0.1);
+  border: 2px solid var(--color-coral);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+/* 안심 문구 */
+.reassurance-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--color-cream-light);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 24px;
+}
+
+/* 광고 컨테이너 */
+.ad-container {
+  margin: 32px 0;
+  text-align: center;
+}
+
+.ad-label {
+  font-size: 12px;
+  color: rgba(45, 45, 45, 0.5);
+  margin-bottom: 8px;
+}
+
+/* 애니메이션 keyframes */
+@keyframes shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(2deg);
+  }
+  75% {
+    transform: rotate(-2deg);
+  }
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes fall {
+  from {
+    top: -20px;
+    opacity: 1;
+  }
+  to {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in-out;
+}
+
+.animate-fade-scale {
+  animation: fade-scale 0.5s ease-out;
+}
