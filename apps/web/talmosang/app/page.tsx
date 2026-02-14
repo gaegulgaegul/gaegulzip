@@ -174,13 +174,15 @@ export default function HomePage() {
     <main className="min-h-screen px-4 py-8 max-w-lg mx-auto">
       {/* 앱 타이틀 (항상 표시) */}
       <header className="text-center mb-8">
-        <h1
-          className="text-4xl md:text-5xl text-charcoal rotate-[-2deg]"
-          style={{ fontFamily: 'var(--font-nanum-pen)' }}
-        >
-          탈모상
+        <h1 className="inline-block text-7xl md:text-9xl text-black rotate-[-3deg] animate-bounce-in">
+          <span
+            className="inline-block bg-white border-[6px] border-black rounded-full px-16 py-8 shadow-[4px_4px_0_#FF69B4]"
+            style={{ fontFamily: 'var(--font-black-han)' }}
+          >
+            탈모상
+          </span>
         </h1>
-        <div className="scribble-underline mx-auto max-w-[120px]" />
+        <div className="scribble-underline mx-auto max-w-[200px]" />
       </header>
 
       {/* 상단 광고 */}

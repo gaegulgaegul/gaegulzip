@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { nanumPen, pretendard } from '@/lib/fonts';
+import { blackHanSans, jua, notoSansKr } from '@/lib/fonts';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -27,7 +27,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko" className={`${nanumPen.variable} ${pretendard.variable}`}>
+    <html
+      lang="ko"
+      className={`${blackHanSans.variable} ${jua.variable} ${notoSansKr.variable}`}
+    >
       <head>
         {/* Google AdSense */}
         {process.env.NEXT_PUBLIC_ADSENSE_ID && (
@@ -38,7 +41,7 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className="font-pretendard bg-cream text-charcoal antialiased">
+      <body className="antialiased">
         {/* 노이즈 텍스처 오버레이 */}
         <div className="noise-overlay" aria-hidden="true" />
         {children}

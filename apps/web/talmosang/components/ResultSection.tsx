@@ -59,6 +59,14 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
     return 'text-coral';
   };
 
+  // 등급별 배경색 결정 (Al Murphy 스타일)
+  const gradeColor = {
+    'A': 'var(--color-accent-green)',
+    'B': 'var(--color-bg-yellow)',
+    'C': 'var(--color-accent-orange)',
+    'D': 'var(--color-accent-red)',
+  }[result.grade[0]] || 'var(--color-accent-green)';
+
   // Web Share API 공유 핸들러
   const handleShare = async () => {
     const shareData = {
@@ -96,32 +104,34 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
     <section className="result-section">
       {/* 결과 제목 */}
       <h2
-        className="font-[family-name:var(--font-nanum-pen)] text-4xl md:text-5xl text-center mb-8 animate-fade-scale"
-        style={{ fontFamily: 'var(--font-nanum-pen)' }}
+        className="text-5xl md:text-7xl text-black text-center mb-8 animate-bounce-in inline-block bg-white border-[8px] border-black rounded-[48px] px-16 py-8 shadow-[12px_12px_0_#000] rotate-[-2deg]"
+        style={{ fontFamily: 'var(--font-jua)' }}
       >
-        <span className="scribble-star inline-block mr-2" />
+        <span className="scribble-star inline-block mr-4" />
         관상 결과가 나왔사옵니다!
-        <span className="scribble-star inline-block ml-2" />
+        <span className="scribble-star inline-block ml-4" />
       </h2>
 
       {/* 분석 결과 카드 */}
       <Card className="paper-texture pencil-border p-6 md:p-8 mb-8 rotate-[-0.5deg]">
         {/* 모발 등급 판결문 */}
         <div className="grade-section text-center mb-8">
-          <Badge variant="stamp" className="text-xl md:text-2xl px-6 py-3 mb-3">
-            {result.gradeEmoji} {result.grade}
-          </Badge>
-          <p
-            className="text-xl md:text-2xl font-medium mt-4"
-            style={{ fontFamily: 'var(--font-nanum-pen)' }}
+          <div
+            className="w-[300px] h-[300px] mx-auto border-[10px] border-black rounded-full shadow-[12px_12px_0_#000] rotate-[-8deg] flex flex-col items-center justify-center"
+            style={{ backgroundColor: gradeColor }}
           >
+            <span className="text-7xl md:text-9xl font-extrabold text-white">
+              {result.grade}
+            </span>
+            <span className="text-5xl mt-4">{result.gradeEmoji}</span>
+          </div>
+          <p className="text-2xl md:text-3xl font-bold mt-4 text-center">
             {result.gradeVerdict}
           </p>
-          <div className="scribble-underline mx-auto max-w-xs" />
         </div>
 
         {/* 모발 나이 */}
-        <div className="hair-age mb-8 p-6 bg-cream-light rounded-lg">
+        <div className="hair-age mb-8 p-6 bg-white border-[6px] border-black rounded-[32px] shadow-[8px_8px_0_#000]">
           <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4">
             <span className="text-base md:text-lg text-charcoal/70">모발 나이</span>
             <span className="text-5xl md:text-6xl font-bold text-deep-blue">
@@ -159,11 +169,11 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
         <div className="celebrity mb-8">
           <p
             className="text-lg md:text-xl text-charcoal/70 mb-3"
-            style={{ fontFamily: 'var(--font-nanum-pen)' }}
+            style={{ fontFamily: 'var(--font-jua)' }}
           >
             미래의 당신은...
           </p>
-          <div className="speech-bubble bg-cream border-2 border-deep-blue rounded-xl p-5">
+          <div className="speech-bubble bg-white border-[8px] border-black rounded-[48px] p-5 shadow-[12px_12px_0_#000]">
             <p className="text-xl md:text-2xl font-bold mb-2">{result.celebrity.name}</p>
             <p className="text-base md:text-lg text-charcoal/80">{result.celebrity.comment}</p>
           </div>
@@ -172,9 +182,9 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
         {/* 관리 팁 */}
         <div className="tips">
           <span className="text-base md:text-lg text-charcoal/70 block mb-3">관리 팁</span>
-          <ul className="space-y-3 bg-cream-light p-5 rounded-lg">
+          <ul className="space-y-3">
             {result.tips.map((tip, index) => (
-              <li key={index} className="flex items-start gap-3">
+              <li key={index} className="flex items-start gap-3 bg-white border-[4px] border-black rounded-[24px] p-4 shadow-[6px_6px_0_#000]">
                 <Check className="w-5 h-5 text-forest-green flex-shrink-0 mt-0.5" />
                 <span className="text-sm md:text-base">{tip}</span>
               </li>
@@ -184,7 +194,7 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
       </Card>
 
       {/* 종합 코멘트 */}
-      <div className="comment mb-8 bg-cream-dark border-2 border-dashed border-deep-blue rounded-xl p-6 md:p-8">
+      <div className="comment mb-8 bg-white border-[8px] border-black rounded-[32px] p-6 md:p-8 shadow-[16px_16px_0_#000]">
         <p className="text-lg md:text-xl italic text-charcoal leading-relaxed">
           &ldquo;{result.comment}&rdquo;
         </p>
@@ -194,7 +204,7 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
       <Card className="simulation-card paper-texture pencil-border p-6 md:p-8 mb-8 rotate-[1deg]">
         <h3
           className="text-3xl md:text-4xl text-center mb-6"
-          style={{ fontFamily: 'var(--font-nanum-pen)' }}
+          style={{ fontFamily: 'var(--font-jua)' }}
         >
           🔮 10년 뒤 그대의 상
         </h3>
@@ -209,11 +219,11 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
             <div className="scribble-arrow absolute bottom-4 right-4" />
           </div>
         ) : (
-          <div className="placeholder text-center p-12 md:p-16 bg-cream-dark rounded-lg">
+          <div className="placeholder text-center p-12 md:p-16 bg-white border-[6px] border-black rounded-[32px] shadow-[8px_8px_0_#000]">
             <Skeleton className="w-full h-64 md:h-80 mb-4" />
             <p
               className="text-base md:text-lg text-charcoal/50"
-              style={{ fontFamily: 'var(--font-nanum-pen)' }}
+              style={{ fontFamily: 'var(--font-jua)' }}
             >
               미래의 상을 그리는 데 실패하였으나, 그대의 앞날은 밝으리라
             </p>
@@ -223,11 +233,19 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
 
       {/* 액션 버튼 */}
       <div className="action-buttons flex flex-col md:flex-row gap-4 justify-center mb-8">
-        <Button variant="outline" onClick={onReset} className="text-base px-8 py-6 rounded-3xl">
+        <Button
+          variant="outline"
+          onClick={onReset}
+          className="bg-white text-black border-[6px] border-black rounded-[48px] px-16 py-6 text-2xl font-extrabold shadow-[8px_8px_0_#000] hover:bg-[var(--color-bg-yellow)] hover:rotate-[-2deg] hover:scale-105"
+        >
           다시 관상 보기
         </Button>
-        <Button variant="primary" onClick={handleShare} className="text-base px-8 py-6 rounded-3xl">
-          <Share2 className="w-5 h-5" />
+        <Button
+          variant="primary"
+          onClick={handleShare}
+          className="btn-primary"
+        >
+          <Share2 className="w-6 h-6 mr-3" />
           {copied ? '복사 완료!' : '관상 결과 공유하기'}
         </Button>
       </div>

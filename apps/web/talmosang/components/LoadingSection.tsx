@@ -57,24 +57,29 @@ export default function LoadingSection() {
         </div>
 
         {/* 중앙 돋보기 아이콘 */}
-        <div className="flex justify-center">
-          <Search className="w-20 h-20 text-mustard animate-spin-slow" />
+        <div className="w-[200px] h-[200px] mx-auto bg-white border-[6px] border-black rounded-full flex items-center justify-center shadow-[8px_8px_0_#000]">
+          <Search className="w-24 h-24 text-black animate-rotate" />
         </div>
       </div>
 
       {/* 로딩 메시지 (페이드 애니메이션) */}
-      <p className="font-nanum-pen text-xl md:text-2xl text-charcoal mb-8 animate-fade-in" key={messageIndex}>
+      <p
+        className="text-4xl md:text-5xl text-black mb-8 animate-fade-in"
+        style={{ fontFamily: 'var(--font-jua)' }}
+        key={messageIndex}
+      >
         {messages[messageIndex]}
       </p>
 
       {/* 프로그레스 바 */}
-      <div className="max-w-md mx-auto">
-        <div className="hand-drawn-progress mb-4">
-          <Progress value={progress} className="h-4" />
-        </div>
-        <p className="font-nanum-pen text-lg text-charcoal">
+      <div className="relative w-full max-w-2xl h-12 bg-white border-[6px] border-black rounded-[24px] shadow-[8px_8px_0_#000] overflow-hidden mx-auto">
+        <div
+          className="h-full bg-gradient-to-r from-[var(--color-bg-yellow)] via-[var(--color-accent-red)] to-[var(--color-accent-green)] rounded-[20px] transition-all duration-500"
+          style={{ width: `${progress}%` }}
+        />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-extrabold text-2xl text-black z-10">
           {Math.round(progress)}%
-        </p>
+        </div>
       </div>
     </section>
   );

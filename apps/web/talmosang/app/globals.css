@@ -1,7 +1,19 @@
 @import "tailwindcss";
 
-/* 전역 CSS 변수 */
-:root {
+/* Tailwind v4 테마 정의 */
+@theme {
+  /* 색상 팔레트 (Al Murphy 영감) */
+  --color-bg-yellow: #ffe847;
+  --color-bg-pink: #ff69b4;
+  --color-bg-sky-blue: #87ceeb;
+  --color-bg-dark-green: #2d5f3f;
+  --color-black: #1a1a1a;
+  --color-white: #ffffff;
+  --color-accent-red: #ff4444;
+  --color-accent-green: #00cc66;
+  --color-accent-orange: #ff9800;
+
+  /* 기존 색상 (호환성) */
   --color-charcoal: #2d2d2d;
   --color-cream: #fff8f0;
   --color-cream-light: #fffbf5;
@@ -10,13 +22,46 @@
   --color-deep-blue: #2b4c7e;
   --color-mustard: #f2a541;
   --color-forest-green: #4a7c59;
+
+  /* 폰트 */
+  --font-black-han: 'Black Han Sans', sans-serif;
+  --font-jua: 'Jua', sans-serif;
+  --font-pretendard: 'Pretendard Variable', 'Noto Sans KR', sans-serif;
+
+  /* 커스텀 Border Radius (Al Murphy 스타일) */
+  --radius-huge: 60px;
+
+  /* 그림자 (하드 그림자 - Al Murphy 스타일) */
+  --shadow-1: 4px 4px 0 #000;
+  --shadow-2: 6px 6px 0 #000;
+  --shadow-3: 8px 8px 0 #000;
+  --shadow-4: 12px 12px 0 #000;
+  --shadow-5: 16px 16px 0 #000;
+  --shadow-6: 20px 20px 0 #000;
 }
 
-/* 기본 스타일 */
+/* 전역 스타일 */
 body {
-  background-color: var(--color-cream);
-  color: var(--color-charcoal);
-  font-family: var(--font-pretendard), system-ui, -apple-system, sans-serif;
+  background-color: var(--color-bg-yellow); /* Al Murphy: 노란색 배경 */
+  color: var(--color-black);
+  font-family: var(--font-pretendard);
+}
+
+/* 섹션 배경 (Al Murphy 스타일) */
+.bg-yellow-primary {
+  background-color: var(--color-bg-yellow);
+}
+
+.bg-pink-primary {
+  background-color: var(--color-bg-pink);
+}
+
+.bg-sky-blue {
+  background-color: var(--color-bg-sky-blue);
+}
+
+.bg-dark-green {
+  background-color: var(--color-bg-dark-green);
 }
 
 /* 노이즈 텍스처 오버레이 */
@@ -38,68 +83,66 @@ body {
   background-blend-mode: multiply;
 }
 
-/* 연필 테두리 (Card) */
+/* 연필 테두리 → 굵은 검정 테두리 (Al Murphy) */
 .pencil-border {
-  border: 3px solid var(--color-charcoal);
-  position: relative;
+  border: 8px solid var(--color-black);
+  box-shadow: var(--shadow-4); /* 12px 12px 0 #000 */
 }
 
-.pencil-border::before {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border: 3px solid var(--color-charcoal);
-  border-radius: inherit;
-  opacity: 0.3;
-  transform: rotate(0.5deg);
-  pointer-events: none;
-}
-
-/* 손그림 프로그레스 바 */
+/* 손그림 프로그레스 바 → 그라디언트 프로그레스 (Al Murphy) */
 .hand-drawn-progress [role='progressbar'] {
-  background: linear-gradient(90deg, var(--color-coral), var(--color-mustard));
-  clip-path: polygon(0% 0%, 98% 2%, 100% 50%, 98% 98%, 2% 100%, 0% 50%);
+  background: linear-gradient(90deg, var(--color-bg-yellow) 0%, var(--color-accent-red) 50%, var(--color-accent-green) 100%);
+  border-radius: 20px;
+  transition: width 0.5s ease;
 }
 
-/* 폴라로이드 프레임 */
+/* 폴라로이드 프레임 → 하드 그림자 (Al Murphy) */
 .polaroid-frame {
   background: white;
-  padding: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 24px;
+  border: 6px solid var(--color-black);
   border-radius: 4px;
+  box-shadow: var(--shadow-3); /* 8px 8px 0 #000 */
 }
 
-/* 도장 배지 */
+/* 도장 배지 → 원형 스티커 (Al Murphy) */
 .stamp-badge {
-  background: radial-gradient(circle, var(--color-coral), #d14d3a);
+  background: var(--color-accent-red);
+  border: 6px solid var(--color-black);
   border-radius: 50%;
-  filter: opacity(0.9);
-  transform: rotate(-5deg);
+  box-shadow: var(--shadow-3);
+  transform: rotate(-8deg);
 }
 
-/* 말풍선 */
+/* 말풍선 → 하드 그림자 (Al Murphy) */
 .speech-bubble {
   position: relative;
+  background: white;
+  border: 8px solid var(--color-black);
+  border-radius: 48px;
+  padding: 48px;
+  box-shadow: var(--shadow-4);
+  transform: rotate(1deg);
 }
 
 .speech-bubble::after {
   content: '';
   position: absolute;
-  bottom: -10px;
+  bottom: -20px;
   left: 30px;
   width: 0;
   height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid var(--color-cream);
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 20px solid white;
 }
 
-/* 손그림 밑줄 */
+/* 손그림 밑줄 → 굵은 밑줄 (Al Murphy) */
 .scribble-underline {
   position: relative;
   display: inline-block;
   width: 100%;
-  height: 8px;
+  height: 12px;
   margin-top: 8px;
 }
 
@@ -109,74 +152,67 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: var(--color-coral);
+  height: 8px;
+  background: var(--color-accent-red);
   clip-path: polygon(
-    0% 50%,
-    5% 40%,
-    10% 60%,
-    15% 45%,
-    20% 55%,
-    25% 50%,
-    30% 40%,
-    35% 60%,
-    40% 45%,
-    45% 55%,
-    50% 50%,
-    55% 40%,
-    60% 60%,
-    65% 45%,
-    70% 55%,
-    75% 50%,
-    80% 40%,
-    85% 60%,
-    90% 45%,
-    95% 55%,
-    100% 50%
+    0% 50%, 5% 40%, 10% 60%, 15% 45%, 20% 55%, 25% 50%,
+    30% 40%, 35% 60%, 40% 45%, 45% 55%, 50% 50%, 55% 40%,
+    60% 60%, 65% 45%, 70% 55%, 75% 50%, 80% 40%, 85% 60%,
+    90% 45%, 95% 55%, 100% 50%
   );
 }
 
-/* 손그림 별 */
+/* 손그림 별 → 거대한 별 (Al Murphy) */
 .scribble-star {
   display: inline-block;
-  width: 32px;
-  height: 32px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 L20 12 L30 16 L20 20 L16 30 L12 20 L2 16 L12 12 Z' fill='%23e85d4a' stroke='%23e85d4a' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E");
+  width: 80px;
+  height: 80px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 L20 12 L30 16 L20 20 L16 30 L12 20 L2 16 L12 12 Z' fill='%23ffe847' stroke='%23000' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E");
   transform: rotate(-10deg);
 }
 
-/* 손그림 화살표 */
+/* 손그림 화살표 → 굵은 화살표 (Al Murphy) */
 .scribble-arrow {
   display: inline-block;
-  width: 80px;
-  height: 40px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cpath d='M5 20 Q20 15 40 18 T70 20 M65 15 L70 20 L65 25' fill='none' stroke='%23f2a541' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  width: 150px;
+  height: 75px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 75'%3E%3Cpath d='M10 35 Q40 30 80 38 T130 40 M120 30 L130 40 L120 50' fill='none' stroke='%23000' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   transform: rotate(15deg);
 }
 
-/* 버튼 스타일 */
+/* 버튼 스타일 (Al Murphy: 하드 그림자 + 회전) */
 .btn-primary {
-  background-color: var(--color-coral);
+  background-color: var(--color-accent-red);
   color: white;
-  box-shadow: 0 4px 8px rgba(232, 93, 74, 0.3);
-  transition: all 0.2s ease;
+  border: 6px solid var(--color-black);
+  border-radius: 60px;
+  padding: 32px 80px;
+  font-size: 30px;
+  font-weight: 900;
+  box-shadow: var(--shadow-3);
+  transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-  background-color: #d14d3a;
-  transform: scale(1.05);
+  background-color: var(--color-bg-yellow);
+  color: var(--color-black);
+  transform: rotate(-3deg) scale(1.1);
+  box-shadow: var(--shadow-4);
   animation: shake 0.5s;
 }
 
 .btn-primary:active {
-  transform: scale(0.95);
+  transform: rotate(0deg) scale(0.95);
+  box-shadow: var(--shadow-1);
 }
 
 .btn-ghost:hover {
+  background-color: white;
+  transform: rotate(2deg);
   animation: wiggle 0.5s;
 }
 
-/* 머리카락 떨어지는 애니메이션 */
+/* 머리카락 떨어지는 애니메이션 (크기 증가) */
 .hair-falling-container {
   position: relative;
   width: 100%;
@@ -186,119 +222,136 @@ body {
 
 .hair-strand {
   position: absolute;
-  width: 2px;
-  height: 20px;
-  background: var(--color-charcoal);
-  animation: fall 3s infinite ease-in;
+  width: 8px; /* 2px → 8px */
+  height: 60px; /* 20px → 60px */
+  background: var(--color-black);
+  animation: fall 5s infinite ease-in; /* 3s → 5s */
 }
 
-.hair-strand:nth-child(1) {
-  left: 10%;
-  animation-delay: 0s;
-}
+.hair-strand:nth-child(1) { left: 10%; animation-delay: 0s; }
+.hair-strand:nth-child(2) { left: 25%; animation-delay: 1s; }
+.hair-strand:nth-child(3) { left: 40%; animation-delay: 2s; }
+.hair-strand:nth-child(4) { left: 55%; animation-delay: 3s; }
+.hair-strand:nth-child(5) { left: 70%; animation-delay: 4s; }
+.hair-strand:nth-child(6) { left: 85%; animation-delay: 0.5s; }
 
-.hair-strand:nth-child(2) {
-  left: 30%;
-  animation-delay: 0.6s;
-}
-
-.hair-strand:nth-child(3) {
-  left: 50%;
-  animation-delay: 1.2s;
-}
-
-.hair-strand:nth-child(4) {
-  left: 70%;
-  animation-delay: 1.8s;
-}
-
-.hair-strand:nth-child(5) {
-  left: 90%;
-  animation-delay: 2.4s;
-}
-
-/* 드래그앤드롭 영역 */
+/* 드래그앤드롭 영역 (Al Murphy: 원형 + 하드 그림자) */
 .drag-drop-zone {
-  border: 3px dashed var(--color-coral);
-  border-radius: 16px;
-  padding: 48px 32px;
-  text-align: center;
+  width: 400px;
+  height: 400px;
+  background: var(--color-bg-yellow);
+  border: 8px dashed var(--color-black);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-2deg);
   cursor: pointer;
   transition: all 0.3s ease;
+  margin: 0 auto;
 }
 
 .drag-drop-zone:hover {
-  background-color: rgba(232, 93, 74, 0.05);
-  transform: scale(1.02) rotate(-1deg);
+  background: var(--color-bg-pink);
+  border-style: solid;
+  transform: rotate(2deg) scale(1.05);
 }
 
 .drag-drop-zone.dragging {
-  background-color: rgba(232, 93, 74, 0.1);
+  background: var(--color-accent-green);
   border-style: solid;
+  transform: rotate(0deg) scale(1.1);
 }
 
-/* 에러 메시지 */
+@media (max-width: 640px) {
+  .drag-drop-zone {
+    width: 300px;
+    height: 300px;
+  }
+}
+
+/* 에러 메시지 (Al Murphy: 하드 그림자) */
 .error-message {
-  background-color: rgba(232, 93, 74, 0.1);
-  border: 2px solid var(--color-coral);
-  border-radius: 12px;
-  padding: 16px;
-  margin-top: 16px;
+  background-color: var(--color-accent-red);
+  color: white;
+  border: 6px solid var(--color-black);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: var(--shadow-3);
 }
 
-/* 안심 문구 */
+/* 안심 문구 (Al Murphy: 스티커 스타일) */
 .reassurance-text {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background-color: var(--color-cream-light);
-  padding: 12px 16px;
-  border-radius: 8px;
+  gap: 12px;
+  background-color: var(--color-accent-green);
+  color: white;
+  border: 4px solid var(--color-black);
+  border-radius: 24px;
+  padding: 16px 32px;
+  box-shadow: var(--shadow-2);
+  transform: rotate(-2deg);
   margin-top: 24px;
 }
 
-/* 광고 컨테이너 */
+/* 광고 컨테이너 (Al Murphy: 하드 그림자) */
 .ad-container {
   margin: 32px 0;
   text-align: center;
+  background: white;
+  border: 4px solid var(--color-black);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-2);
 }
 
 .ad-label {
   font-size: 12px;
-  color: rgba(45, 45, 45, 0.5);
+  color: var(--color-black);
+  font-weight: 700;
   margin-bottom: 8px;
 }
 
 /* 애니메이션 keyframes */
-@keyframes shake {
-  0%,
+@keyframes bounce {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-45deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  70% {
+    transform: scale(0.9) rotate(-3deg);
+  }
   100% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(2deg);
-  }
-  75% {
-    transform: rotate(-2deg);
+    opacity: 1;
+    transform: scale(1) rotate(-3deg);
   }
 }
 
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+}
+
 @keyframes wiggle {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-4px);
-  }
-  75% {
-    transform: translateX(4px);
-  }
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-8px) rotate(-2deg); }
+  75% { transform: translateX(8px) rotate(2deg); }
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes fall {
   from {
-    top: -20px;
+    top: -60px;
     opacity: 1;
   }
   to {
@@ -308,12 +361,8 @@ body {
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes fade-scale {
@@ -333,4 +382,20 @@ body {
 
 .animate-fade-scale {
   animation: fade-scale 0.5s ease-out;
+}
+
+.animate-bounce-in {
+  animation: bounce 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+.animate-rotate {
+  animation: rotate 2s linear infinite;
 }

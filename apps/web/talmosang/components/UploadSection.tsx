@@ -107,7 +107,7 @@ export default function UploadSection({
     <section className="upload-section">
       {/* 메인 카피 */}
       <div className="text-center mb-8">
-        <h2 className="font-nanum-pen text-2xl md:text-3xl mb-2 rotate-[-1deg]">
+        <h2 className="text-3xl md:text-4xl font-extrabold mb-2 rotate-[-1deg]">
           이보시오 관상가 양반, 내가 탈모가 될 상인가?
         </h2>
         <p className="text-sm text-charcoal opacity-60">
@@ -126,22 +126,18 @@ export default function UploadSection({
             onDrop={handleDrop}
             onClick={handleUploadClick}
           >
-            <div className="flex flex-col items-center gap-4">
-              <div className="border-3 border-dashed border-coral rounded-full p-6">
-                <Camera className="w-12 h-12 md:w-16 md:h-16 text-coral" />
-              </div>
-              <p className="font-nanum-pen text-lg md:text-xl text-charcoal">
-                사진을 올리거나 촬영하시옵소서
-              </p>
-              <input
-                ref={inputRef}
-                type="file"
-                accept="image/*"
-                capture="user"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-            </div>
+            <Camera className="w-32 h-32 text-black" />
+            <p className="text-2xl font-bold text-black mt-4">
+              사진을 드래그하거나 클릭하여 업로드
+            </p>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              capture="user"
+              className="hidden"
+              onChange={handleFileChange}
+            />
           </div>
         ) : (
           <div className="preview-section">
@@ -155,7 +151,7 @@ export default function UploadSection({
                   className="w-full rounded"
                 />
               )}
-              <div className="scribble-star absolute top-2 right-2" />
+              <div className="scribble-star absolute top-4 right-4" />
 
               {/* 다시 선택 버튼 (작은 X 버튼) */}
               <button
@@ -172,7 +168,7 @@ export default function UploadSection({
               <Button
                 onClick={onAnalyze}
                 disabled={!photo}
-                className="btn-primary py-4 px-8 text-lg font-nanum-pen"
+                className="btn-primary text-3xl px-20 py-8"
               >
                 관상 보기
               </Button>
