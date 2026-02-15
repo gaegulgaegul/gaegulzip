@@ -9,6 +9,8 @@
  * @returns base64 인코딩된 이미지 문자열
  */
 export async function resizeImage(file: File, maxSize: number = 800): Promise<string> {
+  const dataUrl = await fileToDataUrl(file);
+
   return new Promise((resolve, reject) => {
     const img = new Image();
     const canvas = document.createElement('canvas');
@@ -37,14 +39,10 @@ export async function resizeImage(file: File, maxSize: number = 800): Promise<st
 
       canvas.width = width;
       canvas.height = height;
-
-      // 이미지를 캔버스에 그리기
       ctx.drawImage(img, 0, 0, width, height);
 
-      // base64로 변환 (data:image/jpeg;base64,... 에서 base64 부분만 추출)
-      const dataUrl = canvas.toDataURL(file.type || 'image/jpeg', 0.9);
-      const base64 = dataUrl.split(',')[1];
-
+      const resizedDataUrl = canvas.toDataURL(file.type || 'image/jpeg', 0.9);
+      const base64 = resizedDataUrl.split(',')[1];
       resolve(base64);
     };
 
@@ -52,7 +50,19 @@ export async function resizeImage(file: File, maxSize: number = 800): Promise<st
       reject(new Error('이미지를 로드할 수 없습니다'));
     };
 
-    img.src = URL.createObjectURL(file);
+    img.src = dataUrl;
+  });
+}
+
+/**
+ * File을 data URL로 변환 (내부 헬퍼)
+ */
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('파일을 읽을 수 없습니다'));
+    reader.readAsDataURL(file);
   });
 }
 

@@ -14,7 +14,19 @@
   },
   "enabledPlugins": {
     "bkit@bkit-marketplace": true,
-    "coderabbit@claude-plugins-official": true
+    "coderabbit@claude-plugins-official": true,
+    "claude-mem@thedotmack": true,
+    "frontend-design@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": false,
+    "commit-commands@claude-plugins-official": true,
+    "code-architect@cc-marketplace": false,
+    "codebase-documenter@cc-marketplace": false,
+    "code-refactoring@claude-code-workflows": false,
+    "test-writer-fixer@cc-marketplace": false,
+    "context7@claude-plugins-official": true,
+    "interactive-review@team-attention-plugins": true,
+    "playwright@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true
   },
   "plugins": {
     "autoUpdate": true
