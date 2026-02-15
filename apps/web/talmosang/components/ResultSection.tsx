@@ -6,7 +6,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import type { AnalysisResult } from '@/types/analysis';
 
@@ -200,15 +199,15 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
         </p>
       </div>
 
-      {/* 10년 뒤 시뮬레이션 이미지 카드 */}
-      <Card className="simulation-card paper-texture pencil-border p-6 md:p-8 mb-8 rotate-[1deg]">
-        <h3
-          className="text-3xl md:text-4xl text-center mb-6"
-          style={{ fontFamily: 'var(--font-jua)' }}
-        >
-          🔮 10년 뒤 그대의 상
-        </h3>
-        {result.simulationImage ? (
+      {/* 10년 뒤 시뮬레이션 이미지 카드 (이미지 생성 활성화 시에만 표시) */}
+      {result.simulationImage && (
+        <Card className="simulation-card paper-texture pencil-border p-6 md:p-8 mb-8 rotate-[1deg]">
+          <h3
+            className="text-3xl md:text-4xl text-center mb-6"
+            style={{ fontFamily: 'var(--font-jua)' }}
+          >
+            🔮 10년 뒤 그대의 상
+          </h3>
           <div className="polaroid-frame rotate-[1.5deg] relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -218,18 +217,8 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
             />
             <div className="scribble-arrow absolute bottom-4 right-4" />
           </div>
-        ) : (
-          <div className="placeholder text-center p-12 md:p-16 bg-white border-[6px] border-black rounded-[32px] shadow-[8px_8px_0_#000]">
-            <Skeleton className="w-full h-64 md:h-80 mb-4" />
-            <p
-              className="text-base md:text-lg text-charcoal/50"
-              style={{ fontFamily: 'var(--font-jua)' }}
-            >
-              미래의 상을 그리는 데 실패하였으나, 그대의 앞날은 밝으리라
-            </p>
-          </div>
-        )}
-      </Card>
+        </Card>
+      )}
 
       {/* 액션 버튼 */}
       <div className="action-buttons flex flex-col md:flex-row gap-4 justify-center mb-8">
