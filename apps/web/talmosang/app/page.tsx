@@ -8,7 +8,7 @@ import AdBanner from '@/components/AdBanner';
 import DisclaimerText from '@/components/DisclaimerText';
 import { resizeImage, getMimeType } from '@/lib/image-utils';
 import { ERROR_MESSAGES } from '@/lib/errors';
-import type { AnalysisResult, GenerateImageResponse } from '@/types/analysis';
+import type { AnalysisResult } from '@/types/analysis';
 
 // Dynamic import로 초기 번들 크기 감소
 const LoadingSection = dynamic(() => import('@/components/LoadingSection'), {
@@ -108,29 +108,9 @@ export default function HomePage() {
 
       const analysisData: AnalysisResult = await analysisResponse.json();
 
-      // 3. 이미지 생성 API 호출 (순차)
-      try {
-        const imageResponse = await fetch('/api/generate-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: analysisData.imagePrompt,
-          }),
-        });
-
-        if (imageResponse.ok) {
-          const imageData: GenerateImageResponse = await imageResponse.json();
-          analysisData.simulationImage = imageData.image;
-        } else {
-          // 이미지 생성 실패해도 분석 결과는 표시
-          console.warn('이미지 생성 실패, 분석 결과만 표시합니다.');
-          analysisData.simulationImage = null;
-        }
-      } catch (imageError) {
-        // 이미지 생성 실패해도 분석 결과는 표시
-        console.error('이미지 생성 오류:', imageError);
-        analysisData.simulationImage = null;
-      }
+      // 3. 이미지 생성 비활성화 (무료 티어 미지원)
+      // TODO: 유료 티어 전환 시 gemini-2.5-flash-image로 이미지 생성 복원
+      analysisData.simulationImage = null;
 
       // 4. 결과 화면으로 전환
       setResult(analysisData);
@@ -182,7 +162,6 @@ export default function HomePage() {
             탈모상
           </span>
         </h1>
-        <div className="scribble-underline mx-auto max-w-[200px]" />
       </header>
 
       {/* 상단 광고 */}
@@ -216,7 +195,7 @@ export default function HomePage() {
 
       {/* 푸터 */}
       <footer className="text-center mt-12 pb-8">
-        <p className="text-sm text-charcoal/50">
+        <p className="text-sm text-charcoal/70">
           © 2026 탈모상 |{' '}
           <Link href="/privacy" className="underline hover:text-charcoal">
             개인정보처리방침

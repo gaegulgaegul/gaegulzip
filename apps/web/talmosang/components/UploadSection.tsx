@@ -108,9 +108,9 @@ export default function UploadSection({
       {/* 메인 카피 */}
       <div className="text-center mb-8">
         <h2 className="text-3xl md:text-4xl font-extrabold mb-2 rotate-[-1deg]">
-          이보시오 관상가 양반, 내가 탈모가 될 상인가?
+          이보시오 관상가 양반, 내가<br />탈모가 될 상인가?
         </h2>
-        <p className="text-sm text-charcoal opacity-60">
+        <p className="text-sm text-charcoal/80">
           AI 관상가가 그대의 모발 운명을 점지하리라
         </p>
       </div>
@@ -126,9 +126,9 @@ export default function UploadSection({
             onDrop={handleDrop}
             onClick={handleUploadClick}
           >
-            <Camera className="w-32 h-32 text-black" />
-            <p className="text-2xl font-bold text-black mt-4">
-              사진을 드래그하거나 클릭하여 업로드
+            <Camera className="w-20 h-20 text-black" />
+            <p className="text-base font-bold text-black mt-4 text-center">
+              사진을 올려주세요
             </p>
             <input
               ref={inputRef}
@@ -180,14 +180,14 @@ export default function UploadSection({
       {/* 에러 메시지 */}
       {error && (
         <div className="error-message">
-          <p className="text-coral text-center font-medium">{error}</p>
+          <p className="text-white text-center font-medium">{error}</p>
         </div>
       )}
 
       {/* 안심 문구 */}
       <div className="reassurance-text">
         <ShieldCheck className="w-5 h-5 text-forest-green flex-shrink-0" />
-        <p className="text-sm text-charcoal opacity-70">
+        <p className="text-sm text-charcoal">
           그대의 초상화는 관상을 본 즉시 소각되오니 안심하시옵소서
         </p>
       </div>

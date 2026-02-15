@@ -45,6 +45,7 @@ body {
   background-color: var(--color-bg-yellow); /* Al Murphy: 노란색 배경 */
   color: var(--color-black);
   font-family: var(--font-pretendard);
+  word-break: keep-all;
 }
 
 /* 섹션 배경 (Al Murphy 스타일) */
@@ -253,7 +254,7 @@ body {
 }
 
 .drag-drop-zone:hover {
-  background: var(--color-bg-pink);
+  background: var(--color-bg-yellow);
   border-style: solid;
   transform: rotate(2deg) scale(1.05);
 }
