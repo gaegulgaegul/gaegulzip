@@ -55,6 +55,19 @@ export async function POST(req: NextRequest) {
   try {
     const { image, mimeType } = await req.json();
 
+    // 입력값 검증
+    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!image || typeof image !== 'string') {
+      return NextResponse.json({ error: '이미지 데이터가 필요하옵니다.' }, { status: 400 });
+    }
+    if (!mimeType || !ALLOWED_MIME_TYPES.includes(mimeType)) {
+      return NextResponse.json({ error: '지원하지 않는 이미지 형식이옵니다.' }, { status: 400 });
+    }
+    // Base64 크기 제한 (약 15MB)
+    if (image.length > 20_000_000) {
+      return NextResponse.json({ error: ERROR_MESSAGES.FILE_SIZE }, { status: 400 });
+    }
+
     // 요청 페이로드 생성
     const payload = {
       contents: [
@@ -78,16 +91,25 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // Gemini API 호출
-    const response = await fetch(`${GEMINI_VISION_ENDPOINT}?key=${GEMINI_API_KEY}`, {
+    // Gemini API 호출 (API 키는 헤더로 전달)
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
+
+    const response = await fetch(GEMINI_VISION_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY,
+      },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
 
+    clearTimeout(timeout);
+
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Gemini API 오류:', errorData);
+      const errorText = await response.text().catch(() => '');
+      console.error('Gemini API 오류:', response.status, errorText);
 
       // Rate Limit 에러 처리
       if (response.status === 429) {
@@ -97,15 +119,26 @@ export async function POST(req: NextRequest) {
       throw new Error('Gemini API 호출 실패');
     }
 
-    // 응답 파싱
-    const data = await response.json();
+    // 응답 파싱 (JSON 파싱 실패 방어)
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error('Gemini API 응답 파싱 실패');
+    }
+
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!resultText) {
       throw new Error('Gemini API 응답 형식 오류');
     }
 
-    const analysisResult: AnalysisResult = JSON.parse(resultText);
+    let analysisResult: AnalysisResult;
+    try {
+      analysisResult = JSON.parse(resultText);
+    } catch {
+      throw new Error('분석 결과 JSON 파싱 실패');
+    }
 
     return NextResponse.json(analysisResult);
   } catch (error) {

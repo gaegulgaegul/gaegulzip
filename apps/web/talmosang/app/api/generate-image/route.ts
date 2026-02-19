@@ -23,6 +23,14 @@ export async function POST(req: NextRequest) {
   try {
     const { prompt } = await req.json();
 
+    // 입력값 검증
+    if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+      return NextResponse.json(
+        { image: null, error: '프롬프트가 필요하옵니다.' } satisfies GenerateImageResponse,
+        { status: 400 }
+      );
+    }
+
     // 요청 페이로드 생성
     const payload = {
       contents: [
@@ -39,15 +47,33 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // Gemini API 호출
-    const response = await fetch(`${GEMINI_IMAGE_ENDPOINT}?key=${GEMINI_API_KEY}`, {
+    // Gemini API 호출 (API 키는 헤더로 전달)
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60_000);
+
+    const response = await fetch(GEMINI_IMAGE_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY!,
+      },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
 
+    clearTimeout(timeout);
+
     if (!response.ok) {
-      console.error('Gemini 이미지 생성 실패:', await response.text());
+      const errorText = await response.text().catch(() => '');
+      console.error('Gemini 이미지 생성 실패:', response.status, errorText);
+
+      if (response.status === 429) {
+        return NextResponse.json(
+          { image: null, error: ERROR_MESSAGES.RATE_LIMIT } satisfies GenerateImageResponse,
+          { status: 429 }
+        );
+      }
+
       return NextResponse.json(
         { image: null, error: ERROR_MESSAGES.IMAGE_GENERATION_FAILED } satisfies GenerateImageResponse,
         { status: 500 }
@@ -55,9 +81,22 @@ export async function POST(req: NextRequest) {
     }
 
     // 응답 파싱
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      return NextResponse.json(
+        { image: null, error: ERROR_MESSAGES.IMAGE_GENERATION_FAILED } satisfies GenerateImageResponse,
+        { status: 500 }
+      );
+    }
+
+    interface GeminiPart {
+      inline_data?: { data: string; mime_type: string };
+      text?: string;
+    }
     const imagePart = data.candidates?.[0]?.content?.parts?.find(
-      (part: any) => part.inline_data
+      (part: GeminiPart) => part.inline_data
     );
 
     if (!imagePart) {

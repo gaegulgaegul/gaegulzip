@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
   },
   // CSP 설정
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development';
     return [
       {
         source: '/(.*)',
@@ -20,11 +21,11 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com",
+              `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://pagead2.googlesyndication.com`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https:",
               "connect-src 'self' https://generativelanguage.googleapis.com",
-              "frame-src https://googleads.g.doubleclick.net",
+              "frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com",
             ].join('; '),
           },
         ],
