@@ -67,7 +67,7 @@ export default function PrivacyPage() {
 
           <div className="space-y-4">
             <div className="bg-cream-light p-4 rounded-lg">
-              <h3 className="font-pretendard font-bold text-lg mb-2">
+              <h3 className="font-noto-sans-kr font-bold text-lg mb-2">
                 Google AdSense
               </h3>
               <p className="text-charcoal/80 leading-relaxed">
@@ -86,7 +86,7 @@ export default function PrivacyPage() {
             </div>
 
             <div className="bg-cream-light p-4 rounded-lg">
-              <h3 className="font-pretendard font-bold text-lg mb-2">
+              <h3 className="font-noto-sans-kr font-bold text-lg mb-2">
                 Google Analytics (옵셔널)
               </h3>
               <p className="text-charcoal/80 leading-relaxed">
@@ -116,15 +116,16 @@ export default function PrivacyPage() {
           </p>
           <ol className="list-decimal list-inside space-y-2 text-charcoal/80 ml-4">
             <li>
-              사용자가 업로드한 사진은 <strong>브라우저에서만</strong> 처리되며,
+              사용자가 업로드한 사진은 브라우저에서 리사이즈 후
               Base64 형식으로 인코딩됩니다
             </li>
             <li>
-              인코딩된 이미지는 Google Gemini API로 전송되어 분석됩니다
+              인코딩된 이미지는 서비스 서버를 경유하여 Google Gemini API로
+              전송되어 분석됩니다
             </li>
             <li>
-              분석이 완료되면 이미지는 즉시 삭제되며, 서버나 데이터베이스에
-              저장되지 않습니다
+              서비스 서버는 이미지를 일시적으로 중계만 하며, 분석이 완료되면
+              즉시 폐기합니다. 별도의 서버나 데이터베이스에 저장하지 않습니다
             </li>
             <li>
               Google Gemini API의 데이터 처리 정책은{' '}

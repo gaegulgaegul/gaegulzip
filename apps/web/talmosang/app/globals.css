@@ -26,7 +26,7 @@
   /* 폰트 */
   --font-black-han: 'Black Han Sans', sans-serif;
   --font-jua: 'Jua', sans-serif;
-  --font-pretendard: 'Pretendard Variable', 'Noto Sans KR', sans-serif;
+  --font-noto-sans-kr: 'Noto Sans KR', sans-serif;
 
   /* 커스텀 Border Radius (Al Murphy 스타일) */
   --radius-huge: 60px;
@@ -44,7 +44,7 @@
 body {
   background-color: var(--color-bg-yellow); /* Al Murphy: 노란색 배경 */
   color: var(--color-black);
-  font-family: var(--font-pretendard);
+  font-family: var(--font-noto-sans-kr);
   word-break: keep-all;
 }
 

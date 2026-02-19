@@ -34,8 +34,8 @@ export const jua = Jua({
  * 용도: 일반 텍스트, 버튼, 라벨
  */
 export const notoSansKr = Noto_Sans_KR({
-  weight: ['400', '500', '700', '900'], // ExtraBold 추가
+  weight: ['400', '500', '700', '900'],
   subsets: ['latin'],
-  variable: '--font-pretendard',
+  variable: '--font-noto-sans-kr',
   display: 'swap',
 });
