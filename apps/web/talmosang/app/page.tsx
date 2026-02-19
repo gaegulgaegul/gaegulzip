@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import UploadSection from '@/components/UploadSection';
+import CharacterBanner from '@/components/CharacterBanner';
 import AdBanner from '@/components/AdBanner';
 import DisclaimerText from '@/components/DisclaimerText';
 import { resizeImage, getMimeType } from '@/lib/image-utils';
@@ -15,6 +16,9 @@ const LoadingSection = dynamic(() => import('@/components/LoadingSection'), {
   ssr: false,
 });
 const ResultSection = dynamic(() => import('@/components/ResultSection'), {
+  ssr: false,
+});
+const ResultReveal = dynamic(() => import('@/components/effects/ResultReveal'), {
   ssr: false,
 });
 
@@ -150,9 +154,68 @@ export default function HomePage() {
     setResult(null);
   };
 
+  // upload 상태: The Weirdos 스타일 한 화면 레이아웃
+  if (step === 'upload') {
+    return (
+      <main className="min-h-screen flex flex-col bg-[var(--color-bg-yellow)] overflow-x-hidden relative">
+        {/* 콘텐츠 영역 */}
+        <div className="flex-1 flex flex-col items-center px-4 pt-6 md:pt-10 pb-8 md:pb-12">
+          {/* 앱 타이틀 */}
+          <header className="text-center mb-2">
+            <h1 className="inline-block text-5xl md:text-7xl text-black rotate-[-3deg] animate-bounce-in">
+              <span
+                className="inline-block bg-white border-[5px] border-black rounded-full px-10 py-4 shadow-[4px_4px_0_#FF69B4]"
+                style={{ fontFamily: 'var(--font-black-han)' }}
+              >
+                탈모상
+              </span>
+            </h1>
+          </header>
+
+          {/* 메인 카피 */}
+          <div className="text-center mt-2 mb-3">
+            <h2
+              className="text-2xl md:text-5xl font-extrabold mb-1 rotate-[-1deg]"
+              style={{ fontFamily: 'var(--font-black-han)' }}
+            >
+              이보시오 관상가 양반,<br />내가 탈모가 될 상인가?
+            </h2>
+            <p
+              className="text-sm md:text-lg text-charcoal/80"
+              style={{ fontFamily: 'var(--font-jua)' }}
+            >
+              AI 관상가가 그대의 모발 운명을 점지하리라
+            </p>
+          </div>
+
+          {/* 업로드 영역 */}
+          <div className="w-full max-w-md">
+            <UploadSection
+              photo={photo}
+              previewUrl={previewUrl}
+              error={error}
+              onPhotoUpload={handlePhotoUpload}
+              onAnalyze={handleAnalyze}
+              onReset={handleReset}
+            />
+          </div>
+        </div>
+
+        {/* 캐릭터 배너 */}
+        <CharacterBanner />
+
+        {/* 면책 문구 — 캐릭터 하단 */}
+        <div className="w-full px-4 py-2">
+          <DisclaimerText />
+        </div>
+      </main>
+    );
+  }
+
+  // loading/result 상태: 기존 레이아웃 유지
   return (
     <main className="min-h-screen px-4 py-8 max-w-lg mx-auto">
-      {/* 앱 타이틀 (항상 표시) */}
+      {/* 앱 타이틀 */}
       <header className="text-center mb-8">
         <h1 className="inline-block text-7xl md:text-9xl text-black rotate-[-3deg] animate-bounce-in">
           <span
@@ -172,21 +235,17 @@ export default function HomePage() {
 
       {/* 메인 콘텐츠 (상태에 따라 전환) */}
       <div className="mt-8">
-        {step === 'upload' && (
-          <UploadSection
-            photo={photo}
-            previewUrl={previewUrl}
-            error={error}
-            onPhotoUpload={handlePhotoUpload}
-            onAnalyze={handleAnalyze}
-            onReset={handleReset}
-          />
-        )}
-
         {step === 'loading' && <LoadingSection />}
 
         {step === 'result' && result && (
-          <ResultSection result={result} onReset={handleReset} />
+          <ResultReveal
+            grade={(result.grade[0] || 'A') as 'A' | 'B' | 'C' | 'D'}
+            gradeEmoji={result.gradeEmoji}
+            gradeVerdict={result.gradeVerdict}
+            onRevealComplete={() => {}}
+          >
+            <ResultSection result={result} onReset={handleReset} />
+          </ResultReveal>
         )}
       </div>
 

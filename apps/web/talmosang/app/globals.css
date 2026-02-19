@@ -238,8 +238,8 @@ body {
 
 /* 드래그앤드롭 영역 (Al Murphy: 원형 + 하드 그림자) */
 .drag-drop-zone {
-  width: 400px;
-  height: 400px;
+  width: 180px;
+  height: 180px;
   background: var(--color-bg-yellow);
   border: 8px dashed var(--color-black);
   border-radius: 50%;
@@ -267,8 +267,8 @@ body {
 
 @media (max-width: 640px) {
   .drag-drop-zone {
-    width: 300px;
-    height: 300px;
+    width: 150px;
+    height: 150px;
   }
 }
 
