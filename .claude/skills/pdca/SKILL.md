@@ -7,7 +7,7 @@ description: |
 
   Agent workflow per phase:
   - Plan: PO → CTO (platform routing)
-  - Design: tech-lead + ui-ux-designer (per platform, including web)
+  - Design: ui-ux-designer → frontend-design (Skill) → tech-lead (per frontend platform)
   - Do: CTO (work distribution) → node-developer + flutter-developer + react-developer → test-scenario-generator (mobile only)
   - Analyze: gap-detector + independent-reviewer (mobile) + CTO (integration review)
   - Iterate/Report: bkit agents
@@ -20,8 +20,10 @@ agents:
   routing: cto
   design-server: server/tech-lead
   design-mobile-ui: mobile/ui-ux-designer
+  design-mobile-visual: frontend-design (Skill)
   design-mobile-tech: mobile/tech-lead
   design-web-ui: web/ui-ux-designer
+  design-web-visual: frontend-design (Skill)
   design-web-tech: web/tech-lead
   do-distribute: cto
   do-server: server/node-developer
@@ -195,8 +197,8 @@ Read .pdca-status.json → features.{feature}.platform
 | Platform | Agents | Output |
 |----------|--------|--------|
 | **Server** | `server/tech-lead` | `docs/{product}/{feature}/server-brief.md` |
-| **Mobile** | `mobile/ui-ux-designer` → `mobile/tech-lead` | `docs/{product}/{feature}/mobile-design-spec.md`, `docs/{product}/{feature}/mobile-brief.md` |
-| **Web** | `web/ui-ux-designer` → `web/tech-lead` | `docs/{product}/{feature}/web-design-spec.md`, `docs/{product}/{feature}/web-brief.md` |
+| **Mobile** | `mobile/ui-ux-designer` → `frontend-design` (Skill) → `mobile/tech-lead` | `docs/{product}/{feature}/mobile-design-spec.md`, `docs/{product}/{feature}/mobile-brief.md` |
+| **Web** | `web/ui-ux-designer` → `frontend-design` (Skill) → `web/tech-lead` | `docs/{product}/{feature}/web-design-spec.md`, `docs/{product}/{feature}/web-brief.md` |
 | **Fullstack** | Server + frontend (Mobile or Web based on `frontendType`) | Both server + frontend docs |
 
 **Server** — call `tech-lead` (server):
@@ -211,7 +213,7 @@ Output: docs/{product}/{feature}/server-brief.md
 """)
 ```
 
-**Mobile** — call `ui-ux-designer` first, then `tech-lead` (mobile):
+**Mobile** — call `ui-ux-designer` first, then `frontend-design` skill, then `tech-lead` (mobile):
 ```
 Task(subagent_type="ui-ux-designer", prompt="""
 Feature: {feature}
@@ -221,7 +223,17 @@ Create design specification (including UI layouts, interactions, components).
 Output: docs/{product}/{feature}/mobile-design-spec.md
 """)
 
-# After ui-ux-designer completes:
+# After ui-ux-designer completes, invoke frontend-design skill:
+Skill("frontend-design", args="""
+Feature: {feature}
+Design Spec: docs/{product}/{feature}/mobile-design-spec.md
+
+Review and enhance the design spec with distinctive, production-grade visual design.
+Apply high-quality UI patterns and creative aesthetics.
+Update: docs/{product}/{feature}/mobile-design-spec.md
+""")
+
+# After frontend-design completes:
 Task(subagent_type="tech-lead", prompt="""
 Feature: {feature}
 Platform: Mobile
@@ -233,7 +245,7 @@ Output: docs/{product}/{feature}/mobile-brief.md
 """)
 ```
 
-**Web** — call `ui-ux-designer` first, then `tech-lead` (web):
+**Web** — call `ui-ux-designer` first, then `frontend-design` skill, then `tech-lead` (web):
 ```
 Task(subagent_type="ui-ux-designer", prompt="""
 Feature: {feature}
@@ -243,7 +255,17 @@ Create web UI/UX design specification (shadcn/ui components, Tailwind CSS, respo
 Output: docs/{product}/{feature}/web-design-spec.md
 """)
 
-# After ui-ux-designer completes:
+# After ui-ux-designer completes, invoke frontend-design skill:
+Skill("frontend-design", args="""
+Feature: {feature}
+Design Spec: docs/{product}/{feature}/web-design-spec.md
+
+Review and enhance the design spec with distinctive, production-grade visual design.
+Apply high-quality UI patterns, creative aesthetics, and modern design trends.
+Update: docs/{product}/{feature}/web-design-spec.md
+""")
+
+# After frontend-design completes:
 Task(subagent_type="tech-lead", prompt="""
 Feature: {feature}
 Platform: Web
@@ -637,8 +659,8 @@ Plan:    PO (user-story.md) ──→ CTO (platform routing + frontendType)
               │                        │
               │                        ↓ platform & frontendType stored
 Design:  ┌── Server: tech-lead (server-brief)
-         ├── Mobile: ui-ux-designer → tech-lead (mobile-design-spec, mobile-brief)
-         └── Web:    ui-ux-designer → tech-lead (web-design-spec, web-brief)
+         ├── Mobile: ui-ux-designer → frontend-design (Skill) → tech-lead (mobile-design-spec, mobile-brief)
+         └── Web:    ui-ux-designer → frontend-design (Skill) → tech-lead (web-design-spec, web-brief)
               │      Fullstack = Server + frontend (by frontendType)
               │
 Do:      CTO (work-plan) ──→ node-developer + flutter-developer + react-developer
