@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, ShieldCheck, X } from 'lucide-react';
+import { Camera, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ERROR_MESSAGES } from '@/lib/errors';
@@ -105,18 +105,8 @@ export default function UploadSection({
 
   return (
     <section className="upload-section">
-      {/* 메인 카피 */}
-      <div className="text-center mb-8">
-        <h2 className="text-3xl md:text-4xl font-extrabold mb-2 rotate-[-1deg]">
-          이보시오 관상가 양반, 내가<br />탈모가 될 상인가?
-        </h2>
-        <p className="text-sm text-charcoal/80">
-          AI 관상가가 그대의 모발 운명을 점지하리라
-        </p>
-      </div>
-
       {/* 업로드 카드 */}
-      <Card className="paper-texture pencil-border p-6 md:p-8 hover:scale-[1.02] hover:rotate-[-0.5deg] transition-transform duration-300">
+      <Card className="paper-texture pencil-border p-4 md:p-5 h-[400px] md:h-[250px] flex items-center justify-center hover:scale-[1.02] hover:rotate-[-0.5deg] transition-transform duration-300">
         {!photo ? (
           <div
             className={`drag-drop-zone ${isDragging ? 'dragging' : ''}`}
@@ -126,8 +116,8 @@ export default function UploadSection({
             onDrop={handleDrop}
             onClick={handleUploadClick}
           >
-            <Camera className="w-20 h-20 text-black" />
-            <p className="text-base font-bold text-black mt-4 text-center">
+            <Camera className="w-12 h-12 text-black" />
+            <p className="text-sm font-bold text-black mt-2 text-center">
               사진을 올려주세요
             </p>
             <input
@@ -140,39 +130,37 @@ export default function UploadSection({
             />
           </div>
         ) : (
-          <div className="preview-section">
-            {/* 폴라로이드 프레임 미리보기 */}
-            <div className="polaroid-frame rotate-[2deg] mb-6 relative mx-auto max-w-md">
+          <div className="preview-section flex flex-col items-center gap-2">
+            {/* 미리보기 이미지 */}
+            <div className="polaroid-frame rotate-[2deg] relative p-2">
               {previewUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={previewUrl}
                   alt="업로드한 사진"
-                  className="w-full rounded"
+                  className="h-[100px] md:h-[120px] w-auto rounded block mx-auto"
                 />
               )}
-              <div className="scribble-star absolute top-4 right-4" />
 
-              {/* 다시 선택 버튼 (작은 X 버튼) */}
+              {/* 다시 선택 버튼 */}
               <button
                 onClick={onReset}
-                className="absolute top-4 left-4 bg-white rounded-full p-2 shadow-lg hover:scale-110 transition-transform"
+                className="absolute top-1 left-1 bg-white rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform"
                 aria-label="다시 선택"
               >
-                <X className="w-4 h-4 text-charcoal" />
+                <X className="w-3 h-3 text-charcoal" />
               </button>
             </div>
 
             {/* CTA 버튼 */}
-            <div className="flex justify-center">
-              <Button
-                onClick={onAnalyze}
-                disabled={!photo}
-                className="btn-primary text-3xl px-20 py-8"
-              >
-                관상 보기
-              </Button>
-            </div>
+            <Button
+              onClick={onAnalyze}
+              disabled={!photo}
+              className="btn-primary"
+              style={{ fontSize: '16px', padding: '12px 32px' }}
+            >
+              관상 보기
+            </Button>
           </div>
         )}
       </Card>
@@ -184,13 +172,6 @@ export default function UploadSection({
         </div>
       )}
 
-      {/* 안심 문구 */}
-      <div className="reassurance-text">
-        <ShieldCheck className="w-5 h-5 text-forest-green flex-shrink-0" />
-        <p className="text-sm text-charcoal">
-          그대의 초상화는 관상을 본 즉시 소각되오니 안심하시옵소서
-        </p>
-      </div>
     </section>
   );
 }
