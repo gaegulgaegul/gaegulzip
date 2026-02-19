@@ -127,6 +127,7 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
           <p className="text-2xl md:text-3xl font-bold mt-4 text-center">
             {result.gradeVerdict}
           </p>
+
         </div>
 
         {/* 모발 나이 */}

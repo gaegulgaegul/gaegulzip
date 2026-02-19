@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
+
 const messages = [
   "두피의 기운을 살피는 중... 🔍",
   "모낭 하나하나의 관상을 보는 중... 🧬",
@@ -47,15 +48,6 @@ export default function LoadingSection() {
     <section className="loading-section text-center py-12">
       {/* 로딩 애니메이션 */}
       <div className="loading-animation relative mb-8">
-        {/* 머리카락 떨어지는 애니메이션 */}
-        <div className="hair-falling-container mx-auto mb-6">
-          <div className="hair-strand"></div>
-          <div className="hair-strand"></div>
-          <div className="hair-strand"></div>
-          <div className="hair-strand"></div>
-          <div className="hair-strand"></div>
-        </div>
-
         {/* 중앙 돋보기 아이콘 */}
         <div className="w-[200px] h-[200px] mx-auto bg-white border-[6px] border-black rounded-full flex items-center justify-center shadow-[8px_8px_0_#000]">
           <Search className="w-24 h-24 text-black animate-rotate" />
