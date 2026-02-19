@@ -30,13 +30,21 @@ export default function ResultReveal({
   const scrollRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
-  const characterRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [showParticles, setShowParticles] = useState(false);
   const [revealed, setRevealed] = useState(false);
 
+  // stale closure 방지: 최신 콜백을 ref에 보관
+  const onRevealCompleteRef = useRef(onRevealComplete);
+  useEffect(() => {
+    onRevealCompleteRef.current = onRevealComplete;
+  }, [onRevealComplete]);
+
   // 접근성: prefers-reduced-motion 확인
-  const [prefersReduced, setPrefersReduced] = useState(false);
+  const [prefersReduced, setPrefersReduced] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     setPrefersReduced(mq.matches);
@@ -51,14 +59,14 @@ export default function ResultReveal({
     // reduced motion이면 즉시 표시
     if (prefersReduced) {
       setRevealed(true);
-      onRevealComplete();
+      onRevealCompleteRef.current();
       return;
     }
 
     const tl = gsap.timeline({
       onComplete: () => {
         setRevealed(true);
-        onRevealComplete();
+        onRevealCompleteRef.current();
       },
     });
 
@@ -84,12 +92,7 @@ export default function ResultReveal({
     // Phase 5: 파티클 발사
     tl.call(() => setShowParticles(true));
 
-    // Phase 6: 캐릭터
-    tl.from(characterRef.current, {
-      x: -100, opacity: 0, duration: 0.3, ease: 'power2.out',
-    });
-
-    // Phase 7: 오버레이 해제 + 콘텐츠 등장
+    // Phase 6: 오버레이 해제 + 콘텐츠 등장
     tl.to(overlayRef.current, { opacity: 0, duration: 0.4 });
     tl.fromTo(contentRef.current,
       { opacity: 0, y: 30 },
@@ -107,7 +110,7 @@ export default function ResultReveal({
   }[grade];
 
   if (prefersReduced || revealed) {
-    return <div>{children}</div>;
+    return <div className="relative">{children}</div>;
   }
 
   return (
@@ -148,8 +151,6 @@ export default function ResultReveal({
 
           <p className="text-xl md:text-2xl font-bold text-center mt-4">{gradeVerdict}</p>
 
-          {/* 캐릭터 영역 */}
-          <div ref={characterRef} className="mt-6" />
         </div>
 
         {/* 파티클 */}

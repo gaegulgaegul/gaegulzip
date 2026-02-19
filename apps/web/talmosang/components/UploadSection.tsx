@@ -13,6 +13,7 @@ interface UploadSectionProps {
   onPhotoUpload: (file: File) => void;
   onAnalyze: () => void;
   onReset: () => void;
+  onError?: (message: string) => void;
 }
 
 /**
@@ -28,6 +29,7 @@ export default function UploadSection({
   onPhotoUpload,
   onAnalyze,
   onReset,
+  onError,
 }: UploadSectionProps) {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -80,7 +82,7 @@ export default function UploadSection({
     if (file) {
       const validationError = validateFile(file);
       if (validationError) {
-        alert(validationError);
+        onError?.(validationError);
         return;
       }
       onPhotoUpload(file);
@@ -92,7 +94,7 @@ export default function UploadSection({
     if (file) {
       const validationError = validateFile(file);
       if (validationError) {
-        alert(validationError);
+        onError?.(validationError);
         return;
       }
       onPhotoUpload(file);
@@ -124,7 +126,7 @@ export default function UploadSection({
               ref={inputRef}
               type="file"
               accept="image/*"
-              capture="user"
+              capture="environment"
               className="hidden"
               onChange={handleFileChange}
             />

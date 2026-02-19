@@ -24,6 +24,14 @@ const ResultReveal = dynamic(() => import('@/components/effects/ResultReveal'), 
 
 type AppStep = 'upload' | 'loading' | 'result';
 
+/** 한국어 등급명 → 영문 등급 매핑 */
+function mapGradeToLetter(grade: string): 'A' | 'B' | 'C' | 'D' {
+  const map: Record<string, 'A' | 'B' | 'C' | 'D'> = {
+    '숲': 'A', '풀밭': 'B', '사막': 'C', '바위': 'D',
+  };
+  return map[grade] ?? 'A';
+}
+
 /**
  * 탈모상 메인 페이지
  *
@@ -83,6 +91,9 @@ export default function HomePage() {
     setStep('loading');
     setError(null);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
+
     try {
       // 1. 이미지 리사이즈 및 Base64 변환
       const base64Image = await resizeImage(photo, 800);
@@ -96,6 +107,7 @@ export default function HomePage() {
           image: base64Image,
           mimeType,
         }),
+        signal: controller.signal,
       });
 
       if (!analysisResponse.ok) {
@@ -122,8 +134,11 @@ export default function HomePage() {
     } catch (err) {
       console.error('분석 오류:', err);
 
-      // 네트워크 오류
-      if (err instanceof TypeError && err.message.includes('fetch')) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setError('분석 시간이 초과되었사옵니다. 다시 시도해주시게.');
+      } else if (!navigator.onLine) {
+        setError(ERROR_MESSAGES.NETWORK_ERROR);
+      } else if (err instanceof TypeError && err.message.includes('fetch')) {
         setError(ERROR_MESSAGES.NETWORK_ERROR);
       } else if (err instanceof Error) {
         setError(err.message);
@@ -133,6 +148,8 @@ export default function HomePage() {
 
       // 에러 시 업로드 화면으로 복귀
       setStep('upload');
+    } finally {
+      clearTimeout(timeout);
     }
   };
 
@@ -197,6 +214,7 @@ export default function HomePage() {
               onPhotoUpload={handlePhotoUpload}
               onAnalyze={handleAnalyze}
               onReset={handleReset}
+              onError={setError}
             />
           </div>
         </div>
@@ -239,7 +257,7 @@ export default function HomePage() {
 
         {step === 'result' && result && (
           <ResultReveal
-            grade={(result.grade[0] || 'A') as 'A' | 'B' | 'C' | 'D'}
+            grade={mapGradeToLetter(result.grade)}
             gradeEmoji={result.gradeEmoji}
             gradeVerdict={result.gradeVerdict}
             onRevealComplete={() => {}}
