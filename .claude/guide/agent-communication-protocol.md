@@ -1,6 +1,92 @@
 # 에이전트 간 통신 프로토콜
 
-> 에이전트가 구현 중 모호한 상황을 만났을 때, 자가 해결을 시도하고 실패 시 구조화된 질문으로 반환하는 표준 절차.
+> 모든 PDCA phase에서 에이전트 간 양방향 통신을 보장하는 표준 절차.
+> 하류 에이전트가 문제를 발견하면 상류 에이전트에게 구조화된 피드백을 반환합니다.
+
+## 핵심 원칙
+
+1. **양방향 필수**: 모든 에이전트 상호작용에 피드백 경로가 있어야 합니다
+2. **구조화된 형식**: 피드백은 정해진 형식(JSON/Markdown)으로 반환합니다
+3. **반복 제한**: 피드백 루프는 최대 2회. 초과 시 사용자 에스컬레이션
+4. **문서 = 진실의 원천**: 결정 사항은 반드시 문서에 반영합니다
+
+---
+
+## Phase별 양방향 통신 패턴
+
+### Research Phase
+
+| 상호작용 | 방향 | 트리거 | 반환 형식 |
+|-----------|------|--------|-----------|
+| research-director → Feasibility Council | CTO + tech-lead 병렬 리뷰 | research.md 작성 완료 | JSON (verdict/complexity) |
+| CTO BLOCK → clarify 재호출 | 양방향 피드백 | verdict == "BLOCK" | clarify Skill 재실행 |
+| CTO CONCERN → 사용자 | 에스컬레이션 | verdict == "CONCERN" or complexity == "High" | AskUserQuestion |
+| tech-lead prerequisites → 사용자 | 사전 준비 안내 | prerequisites 있음 | 사용자 알림 (진행 계속) |
+
+**Feasibility Council 결과 형식:**
+```json
+// CTO
+{ "verdict": "PASS | CONCERN | BLOCK", "concerns": [], "recommendations": [], "affectedModules": [] }
+// tech-lead
+{ "complexity": "Low | Medium | High", "risks": [], "prerequisites": [], "estimatedScope": "" }
+```
+
+### Plan Phase
+
+| 상호작용 | 방향 | 트리거 | 반환 형식 |
+|-----------|------|--------|-----------|
+| PO → CTO 타당성 스캔 | CTO가 user-story 검증 | user-story.md 작성 완료 | PASS/WARN/BLOCK |
+| CTO BLOCK → PO 재호출 | 양방향 피드백 | CTO verdict == "BLOCK" | PO가 user-story 수정 |
+| CTO 라우팅 → Scope Mismatch → PO | 양방향 피드백 | platform ≠ user-story scope | PO 보완 + 사용자 재승인 |
+| Research Decision Points → PO | 단방향 전달 | research.md 존재 시 | PO가 user-story에 반영 |
+
+**CTO 타당성 스캔 결과:**
+- `PASS`: user-story.md에 `<!-- CTO Feasibility: PASS -->` 주석
+- `WARN`: user-story.md에 `## CTO 기술 검토 메모` 섹션 추가
+- `BLOCK`: PO 재호출 → user-story 수정 → CTO 재스캔 (max 2회)
+
+### Design Phase
+
+| 상호작용 | 방향 | 트리거 | 반환 형식 |
+|-----------|------|--------|-----------|
+| tech-lead → designer Pushback | 양방향 피드백 | brief.md에 "## Design Pushback" | designer가 design-spec 수정 |
+| API Contract → server tech-lead 검증 | 양방향 피드백 | api-contract.md 생성 완료 | JSON (verdict/mismatches) |
+| API Contract → frontend tech-lead 검증 | 양방향 피드백 | api-contract.md 생성 완료 | JSON (verdict/gaps) |
+| tech-lead 검증 REVISE → CTO | 양방향 피드백 | verdict == "REVISE" | CTO가 api-contract 수정 |
+
+**Design Pushback 형식** (brief.md 내):
+```markdown
+## Design Pushback
+### 항목 1: [문제 요소]
+- 문제점: ...
+- 대안: ...
+- 복잡도 영향: Low/Medium/High
+```
+
+**API Contract 검증 형식:**
+```json
+// Server Tech Lead
+{ "verdict": "PASS | REVISE", "mismatches": [{"endpoint": "", "issue": "", "fix": ""}], "additions": [] }
+// Frontend Tech Lead
+{ "verdict": "PASS | REVISE", "gaps": [{"screen": "", "neededData": "", "missingFrom": ""}], "suggestions": [] }
+```
+
+### Do Phase
+
+| 상호작용 | 방향 | 트리거 | 반환 형식 |
+|-----------|------|--------|-----------|
+| developer → BLOCKED:QUESTIONS | 개발자 → CTO | 자가 해결 3단계 실패 | Markdown (아래 형식) |
+| CTO → 답변 에이전트 라우팅 | CTO → 해당 에이전트 | BLOCKED 수신 | 라우팅 테이블 참조 |
+| 답변 → developer 재개 | 답변자 → 개발자 | 답변 완료 | ANSWER 형식 |
+
+### Analyze Phase
+
+| 상호작용 | 방향 | 트리거 | 반환 형식 |
+|-----------|------|--------|-----------|
+| gap-detector → CTO 리뷰 | CTO 통합 리뷰 | analysis.md 작성 완료 | cto-review.md |
+| CTO → 해당 에이전트 수정 지시 | 양방향 피드백 | 리뷰에서 이슈 발견 | FINDINGS 구조화 |
+
+---
 
 ## 자가 해결 3단계 (질문 전 필수)
 
@@ -84,6 +170,19 @@ search_for_pattern(substring_pattern="{패턴}")
 
 ---
 
+## 답변 형식
+
+BLOCKED: QUESTIONS에 대한 답변은 아래 형식으로 반환합니다:
+
+```markdown
+## ANSWER: Q1
+- **결정**: [선택한 방안]
+- **근거**: [왜 이 결정인지]
+- **반영할 문서**: [brief.md | design-spec.md | api-contract.md] (해당 시)
+```
+
+---
+
 ## CTO 질문 라우팅 테이블
 
 CTO가 `BLOCKED: QUESTIONS`를 수신했을 때 질문 유형별로 적절한 답변자를 결정합니다.
@@ -96,6 +195,21 @@ CTO가 `BLOCKED: QUESTIONS`를 수신했을 때 질문 유형별로 적절한 �
 | 기존 코드 동작 방식 | 해당 플랫폼 developer | tech-lead |
 | 디자인 시스템 관련 | design-specialist | ui-ux-designer |
 | 크로스 플랫폼 의존성 | CTO 직접 판단 | — |
+| 비즈니스 요구사항 불명확 | product-owner | 사용자 에스컬레이션 |
+| 인프라/배포 관련 | CTO 직접 판단 | — |
+
+---
+
+## 에스컬레이션 규칙
+
+양방향 피드백 루프가 해결되지 않을 때:
+
+| 상황 | 에스컬레이션 대상 | 방법 |
+|------|------------------|------|
+| 피드백 루프 2회 초과 | 사용자 | `AskUserQuestion`으로 옵션 제시 |
+| 에이전트 간 의견 불일치 | 사용자 | 양측 의견 요약 + 선택지 제시 |
+| 기술적 불확실성 | 사용자 | 리스크 설명 + 진행/중단/대안 선택 |
+| 비용/정책 결정 | 사용자 | 옵션별 비용/장단점 비교 |
 
 ---
 
