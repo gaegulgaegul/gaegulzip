@@ -27,6 +27,14 @@ model: sonnet
 
 > **📁 프로젝트 위치**: `apps/web/admin/` — Next.js App Router 기반 어드민 웹 앱
 
+## Coding Discipline (필수 — 구현 시작 전 읽기)
+
+```
+Read(".claude/guide/coding-discipline.md")
+```
+
+**핵심 4원칙**: 가정 표면화 → 최소 코드 → 외과적 변경 → 스텝별 검증. web-design-spec.md / web-brief.md에서 모호한 부분은 가정하지 말고 CTO에게 질문.
+
 ## 핵심 역할
 
 - **페이지 구현**: Next.js App Router 페이지 (app/ 디렉토리)

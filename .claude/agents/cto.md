@@ -237,7 +237,7 @@ Server API 완료 후 Mobile 작업을 시작하는 것이 일반적이지만, *
 
 ### work-plan.md 필수 포함 구조
 
-work-plan.md에 **실행 그룹(execution groups)**을 반드시 명시합니다:
+work-plan.md에 **실행 그룹(execution groups)**과 **스텝별 검증 체크포인트**를 반드시 명시합니다:
 
 ```markdown
 ## 실행 그룹
@@ -249,14 +249,34 @@ work-plan.md에 **실행 그룹(execution groups)**을 반드시 명시합니다
 | node-developer | user-profile | src/modules/profile/** | src/modules/auth/** | 프로필 API 구현 |
 | flutter-developer | ui-skeleton | lib/app/modules/*/views/** | lib/app/modules/*/controllers/** | UI 레이아웃/라우팅 (API 비의존) |
 
+#### Group 1 검증 체크포인트
+| Agent | Module | 스텝 | verify |
+|-------|--------|------|--------|
+| node-developer | user-auth | 1. 스키마 + 핸들러 구현 | `pnpm test -- auth` |
+| node-developer | user-auth | 2. 라우터 연결 | `pnpm test && pnpm build` |
+| node-developer | user-profile | 1. 스키마 + 핸들러 구현 | `pnpm test -- profile` |
+| node-developer | user-profile | 2. 라우터 연결 | `pnpm test && pnpm build` |
+| flutter-developer | ui-skeleton | 1. View 레이아웃 작성 | `flutter analyze` |
+| flutter-developer | ui-skeleton | 2. Routing 연결 | `melos analyze` |
+
 ### Group 2 (병렬) — Group 1 완료 후
 | Agent | Module | Files (생성/수정 허용) | Files (수정 금지) | 설명 |
 |-------|--------|----------------------|------------------|------|
 | flutter-developer | auth-screen | lib/app/modules/auth/** | lib/app/modules/profile/** | 인증 화면 (user-auth API 의존) |
 | flutter-developer | profile-screen | lib/app/modules/profile/** | lib/app/modules/auth/** | 프로필 화면 (user-profile API 의존) |
+
+#### Group 2 검증 체크포인트
+| Agent | Module | 스텝 | verify |
+|-------|--------|------|--------|
+| flutter-developer | auth-screen | 1. Controller + API Client | `flutter analyze` |
+| flutter-developer | auth-screen | 2. View + Binding 연결 | `melos analyze` |
+| flutter-developer | profile-screen | 1. Controller + API Client | `flutter analyze` |
+| flutter-developer | profile-screen | 2. View + Binding 연결 | `melos analyze` |
 ```
 
 **파일 경계 규칙**: Files 열에 명시되지 않은 파일은 수정 금지. 이 규칙은 병렬 에이전트 간 파일 충돌을 방지합니다.
+
+**검증 체크포인트 규칙**: 각 에이전트는 스텝 완료 후 verify 명령을 실행하여 중간 검증. 실패 시 다음 스텝으로 진행하지 않고 수정.
 
 ### Server 작업 분배
 - Feature/모듈 단위 분리: 각 Node Developer는 독립적인 모듈 담당
