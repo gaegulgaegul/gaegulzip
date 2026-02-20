@@ -128,6 +128,24 @@ When calling agents via Task tool, always append to the prompt:
 
 ### plan (Plan Phase) — PO Agent → CTO Agent
 
+**Step 0: 아이디어 브레인스토밍 (MANDATORY — PO 호출 전)**
+
+사용자의 초기 아이디어가 모호하거나 구체화가 필요한 경우, PO 에이전트 호출 **전에** `clarify` Skill을 반드시 실행하여 요구사항을 명확히 합니다.
+
+```
+Skill("clarify", args="""
+Feature idea: {user's initial description}
+
+소크라테스 질문법으로 아이디어를 구체화합니다:
+- 핵심 사용자는 누구인가?
+- 어떤 문제를 해결하는가?
+- 성공 기준은 무엇인가?
+- 범위(scope)는 어디까지인가?
+""")
+```
+
+> **규칙**: research 단계 또는 plan 시작 시 아이디어 브레인스토밍이 필요하면 **반드시** `clarify` Skill을 먼저 실행합니다. clarify 없이 바로 PO를 호출하지 않습니다.
+
 **Step 1: Product Owner creates unified user story**
 
 Call `product-owner` agent via Task tool:
@@ -136,6 +154,7 @@ Call `product-owner` agent via Task tool:
 Task(subagent_type="product-owner", prompt="""
 Feature: {feature}
 Context: [PRD, research docs, or user's description]
+Clarified Requirements: [clarify skill 결과 요약]
 
 Create a unified user story focusing on WHAT (user needs), not HOW (technical implementation).
 Do NOT determine platform yet. Do NOT include API specs or UI details.
@@ -144,15 +163,28 @@ Output: docs/{product}/{feature}/user-story.md
 """)
 ```
 
+**Step 1.5: 사용자 승인 (MANDATORY — interactive-review 사용)**
+
+PO가 user-story.md를 작성한 후, **반드시** `interactive-review:review` Skill로 사용자 검토를 받습니다.
+
+```
+Skill("interactive-review:review", args="""
+title: "[Plan Review] {feature} 사용자 스토리"
+content: docs/{product}/{feature}/user-story.md
+""")
+```
+
+> **규칙**: 사용자가 리뷰에서 수정을 요청하면 PO를 재호출하여 반영 후 다시 리뷰를 요청합니다. 승인(approve) 후에만 Step 2로 진행합니다.
+
 **Step 2: CTO determines platform**
 
-After PO completes, call `cto` agent via Task tool:
+After user approval, call `cto` agent via Task tool:
 
 ```
 Task(subagent_type="cto", prompt="""
 Feature: {feature}
 
-PO has written user story. Read it and perform platform routing:
+PO has written user story (user approved). Read it and perform platform routing:
 - Read docs/{product}/{feature}/user-story.md
 
 Execute your ⓪ 플랫폼 라우팅 (4-step routing) to determine: Server / Mobile / Fullstack.
@@ -280,6 +312,41 @@ Output: docs/{product}/{feature}/web-brief.md
 **Fullstack** — run Server + frontend (Mobile or Web based on `frontendType`) in parallel where possible.
 - `frontendType: "mobile"` → Server + Mobile agents
 - `frontendType: "web"` → Server + Web agents
+
+**Step 2.5: API Contract 생성 (Fullstack 전용)**
+
+Fullstack 모드에서 server-brief.md 생성 후, frontend design 시작 전에 CTO가 api-contract.md를 생성합니다.
+Frontend tech-lead는 brief 작성 시 이 문서를 참조합니다.
+
+```
+if platform == "fullstack":
+    # server-brief.md 완료 후, frontend design 시작 전
+    Task(subagent_type="cto", prompt="""
+    Feature: {feature}
+    Platform: Fullstack
+
+    server-brief.md가 완료되었습니다.
+    Read docs/{product}/{feature}/server-brief.md and create API Contract.
+
+    API Contract에 포함할 내용:
+    - 엔드포인트 목록 (method, path, auth)
+    - 요청/응답 TypeScript 인터페이스
+    - 인증 요구사항
+    - 공유 타입 정의
+
+    Output: docs/{product}/{feature}/api-contract.md
+    """)
+```
+
+Frontend tech-lead 호출 시 api-contract.md 참조를 프롬프트에 추가:
+```
+Task(subagent_type="tech-lead", prompt="""
+...
+API Contract: docs/{product}/{feature}/api-contract.md
+(이 문서의 엔드포인트와 타입을 참조하여 API 통합 설계)
+...
+""")
+```
 
 **Step 3: Update status**
 
@@ -545,6 +612,39 @@ Output: docs/{product}/{feature}/analysis.md
 """)
 ```
 
+**Step 1.5: Structured FINDINGS 후처리**
+
+gap-detector 실행 후 analysis.md에 구조화된 FINDINGS 섹션을 추가합니다.
+이 FINDINGS는 Act 단계에서 에이전트 디스패치에 사용됩니다.
+
+```
+# analysis.md 읽기
+Read("docs/{product}/{feature}/analysis.md")
+
+# gap-detector의 Gap 목록을 구조화된 FINDINGS로 변환
+# 각 Gap을 아래 형식으로 분류:
+
+## Structured FINDINGS
+
+### FINDING-001
+- **Category**: {LOGIC_GAP | DESIGN_GAP | SECURITY | PERFORMANCE | BUILD_ERROR | TYPE_ERROR | LINT_ERROR | CONTRACT_MISMATCH}
+- **Severity**: {CRITICAL | HIGH | MEDIUM | LOW}
+- **File**: {file_path}
+- **Description**: {설명}
+- **Suggested Fix**: {수정 방안}
+- **Recommended Agent**: {매핑된 에이전트}
+```
+
+Category 분류 기준:
+- LOGIC_GAP: 설계 문서에 명시된 기능이 구현에 누락
+- DESIGN_GAP: UI/UX 설계와 구현 불일치
+- SECURITY: 보안 취약점 (SQL 인젝션, XSS, 인증 누락 등)
+- PERFORMANCE: 성능 문제 (N+1 쿼리, 누락된 인덱스 등)
+- BUILD_ERROR: 빌드 실패
+- TYPE_ERROR: TypeScript/Dart 타입 에러
+- LINT_ERROR: 린트 규칙 위반
+- CONTRACT_MISMATCH: API 계약과 구현 불일치
+
 **Step 2: CTO integration review**
 
 ```
@@ -579,14 +679,56 @@ Output (by platform):
 
 ---
 
-### iterate (Act Phase) — pdca-iterator Agent
+### iterate (Act Phase) — Severity-Based Agent Dispatch
 
-1. Verify matchRate < 90%
-2. **Call pdca-iterator Agent**
-3. Auto-fix code based on Gap list
-4. Auto re-run analyze after fixes
-5. Create Task: `[Act-N] {feature}` (N = iteration count)
-6. Stop when >= 90% reached or max iterations (5) hit
+matchRate < 90% 시 FINDINGS를 기반으로 적절한 에이전트에 자동 디스패치합니다.
+
+**Step 1: FINDINGS 파싱**
+```
+Read("docs/{product}/{feature}/analysis.md")
+# Structured FINDINGS 섹션에서 모든 FINDING 항목 추출
+```
+
+**Step 2: Severity 순 정렬**
+정렬 순서: CRITICAL → HIGH → MEDIUM → LOW
+
+**Step 3: Finding → Agent 매핑 + 디스패치**
+
+| Category | Agent |
+|----------|-------|
+| SECURITY | security-specialist |
+| PERFORMANCE | performance-optimizer |
+| BUILD_ERROR / TYPE_ERROR / LINT_ERROR | bug-fixer |
+| LOGIC_GAP / DESIGN_GAP | node-developer / flutter-developer / react-developer (플랫폼별) |
+| CONTRACT_MISMATCH | 양쪽 developer 재투입 |
+
+**Step 4: Severity별 처리**
+- **CRITICAL / HIGH**: 즉시 수정 필수. 수정 후 재분석 실행
+  ```
+  Task(subagent_type="{mapped-agent}", prompt="""
+  Fix FINDING-{id}:
+  Category: {category}
+  Severity: {severity}
+  File: {file}
+  Description: {description}
+  Suggested Fix: {suggested_fix}
+
+  Feature: {feature}
+  Brief: docs/{product}/{feature}/{platform}-brief.md
+  """)
+  ```
+- **MEDIUM**: 1회 시도. 실패해도 진행 가능
+- **LOW**: 리포트에 기록만 (수정 시도 안 함)
+
+**Step 5: 재분석**
+수정 완료 후 gap-detector 재실행하여 matchRate 갱신
+
+**Step 6: 중단 조건**
+- Match Rate >= 90% 도달 → 중단, report로 진행
+- 최대 5회 이터레이션 도달 → 중단, 현재 상태로 report
+
+**Step 7: Task 생성**
+`TaskCreate: [Act-N] {feature}` (N = iteration count)
 
 ---
 
@@ -595,10 +737,41 @@ Output (by platform):
 1. Verify matchRate >= 90% (warn if below)
 2. **Call report-generator Agent**
 3. Integrated report of Plan, Design, Implementation, Analysis
-4. Create Task: `[Report] {feature}`
-5. Update status: phase = "completed"
+4. **CHANGELOG 자동 생성**
+5. Create Task: `[Report] {feature}`
+6. Update status: phase = "completed"
 
 **Output Path**: `docs/{product}/{feature}/report.md`
+
+**Step 4: CHANGELOG 자동 생성**
+
+Feature 시작 이후의 git 변경사항을 추출하여 CHANGELOG.md에 추가합니다.
+
+```
+# Feature 시작 시점 확인
+Read(".pdca-status.json") → features.{feature}.startedAt
+
+# git log에서 해당 시점 이후 변경사항 추출
+Bash("git log --oneline --after={startedAt} --format='%h %s'")
+
+# CHANGELOG.md에 추가 (파일 상단에)
+## [{feature}] - {date}
+
+### Added
+- {새로 추가된 기능}
+
+### Changed
+- {변경된 기능}
+
+### Fixed
+- {수정된 버그}
+
+### Documents
+- Plan: docs/{product}/{feature}/user-story.md
+- Design: docs/{product}/{feature}/{platform}-brief.md
+- Analysis: docs/{product}/{feature}/analysis.md
+- Report: docs/{product}/{feature}/report.md
+```
 
 ---
 

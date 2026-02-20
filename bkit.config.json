@@ -26,7 +26,8 @@
       "docs/{product}/{feature}/mobile-brief.md",
       "docs/{product}/{feature}/mobile-design-spec.md",
       "docs/{product}/{feature}/web-brief.md",
-      "docs/{product}/{feature}/web-design-spec.md"
+      "docs/{product}/{feature}/web-design-spec.md",
+      "docs/{product}/{feature}/api-contract.md"
     ],
     "planDocPaths": [
       "docs/{product}/{feature}/user-story.md",
@@ -105,7 +106,10 @@
         "do": "server/node-developer",
         "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
         "act": "bkit/pdca-iterator",
-        "report": "bkit/report-generator"
+        "report": "bkit/report-generator",
+        "security": "server/security-specialist",
+        "performance": "server/performance-optimizer",
+        "bugfix": "bug-fixer"
       }
     },
     "mobile": {
@@ -227,7 +231,10 @@
       "summary": "bkit/report-generator",
       "QA": "bkit/qa-monitor",
       "log analysis": "bkit/qa-monitor",
-      "pipeline": "bkit/pipeline-guide"
+      "pipeline": "bkit/pipeline-guide",
+      "bug fix": "bug-fixer",
+      "security review": "server/security-specialist",
+      "performance optimization": "server/performance-optimizer"
     }
   },
   "output": {
