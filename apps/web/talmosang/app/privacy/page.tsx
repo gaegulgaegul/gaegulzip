@@ -4,7 +4,18 @@ import { Card } from '@/components/ui/card';
 
 export const metadata: Metadata = {
   title: '개인정보처리방침 - 탈모상',
-  description: '탈모상 서비스의 개인정보처리방침',
+  description:
+    '탈모상 서비스의 개인정보 보호 정책을 안내합니다. AI 두피 분석 서비스 탈모상의 데이터 처리 방침.',
+  alternates: {
+    canonical: 'https://talmosang.vercel.app/privacy',
+  },
+  openGraph: {
+    title: '개인정보처리방침 - 탈모상',
+    description: '탈모상 서비스의 개인정보 보호 정책을 안내합니다.',
+    type: 'website',
+    url: 'https://talmosang.vercel.app/privacy',
+    locale: 'ko_KR',
+  },
 };
 
 /**
