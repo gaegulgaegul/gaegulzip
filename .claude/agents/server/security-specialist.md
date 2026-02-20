@@ -11,6 +11,8 @@ tools:
   - Bash
   - mcp__plugin_context7_context7__resolve-library-id
   - mcp__plugin_context7_context7__query-docs
+  - mcp__plugin_claude-mem_mem-search__*
+  - mcp__plugin_serena_serena__*
 model: sonnet
 ---
 

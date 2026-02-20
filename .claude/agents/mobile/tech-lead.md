@@ -17,6 +17,7 @@ tools:
   - mcp__plugin_claude-mem_mem-search__search
   - mcp__plugin_claude-mem_mem-search__get_recent_context
   - mcp__plugin_interactive-review_interactive_review__start_review
+  - mcp__plugin_serena_serena__*
   - AskUserQuestion
 model: sonnet
 ---
