@@ -56,7 +56,7 @@ research-director가 research.md를 작성한 후, CTO가 **아키텍처 적합�
 
 ```
 # CTO: 아키텍처 적합성 + 인프라 제약 + 구현 복잡도 통합 평가
-Task(subagent_type="cto", model="sonnet", prompt="""
+Task(subagent_type="cto", prompt="""
 Role: Research Feasibility Reviewer (NOT full CTO role — 경량 리뷰만)
 Feature: {feature}
 Research: docs/{product}/{feature}/research.md
@@ -81,7 +81,12 @@ Output format (JSON):
   "risks": ["기술 리스크1"],
   "prerequisites": ["사전준비1"],
   "recommendations": ["권장사항1"],
-  "affectedModules": ["module1"]
+  "affectedModules": ["module1"],
+  "uncertaintyMap": {
+    "confident": ["자신있는 판단과 근거"],
+    "maybeOversimplified": ["단순화했을 수 있는 부분"],
+    "couldChangeWith": ["이 정보가 있으면 판단이 달라질 수 있음"]
+  }
 }
 
 NOTE: 5분 이내 완료. 상세 설계는 하지 않습니다.
@@ -104,6 +109,11 @@ CTO 평가 결과를 research.md에 추가하고, 문제가 있으면 이전 단
 - Risks: {risks}
 - Prerequisites: {prerequisites}
 - Recommendations: {recommendations}
+
+### 불확실성 지도
+- **자신있는 판단**: {confident} — 근거가 명확하여 확신도 높음
+- **단순화했을 수 있는 부분**: {maybeOversimplified} — 실제로는 더 복잡할 수 있음
+- **의견이 바뀔 수 있는 조건**: {couldChangeWith} — 이 정보가 추가되면 판단이 달라질 수 있음
 ```
 
 **양방향 피드백 규칙:**

@@ -147,6 +147,13 @@ model: sonnet
 - 각 요구사항이 검증 가능하도록 구체적으로 작성
 - 사용자 가치에 초점
 
+## Research Decision Points 반영
+
+research.md에 `## Decision Points (PO 필독)` 섹션이 있는 경우, 각 DP를 사용자 스토리에 반영합니다:
+- 각 DP의 **PO 결정 필요** 항목을 사용자에게 질문하여 결정
+- 결정 결과를 user-story.md의 **비즈니스 규칙** 또는 **인수 조건**에 반영
+- 미결정 DP는 user-story.md에 `<!-- DP-N: 미결정 — {질문} -->` 주석으로 표시
+
 ## 다음 단계
 
 PO가 `user-story.md`를 작성하면:

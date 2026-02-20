@@ -2,9 +2,9 @@
 name: cto
 description: |
   플랫폼별 CTO 역할을 수행합니다:
-  Server: ① 설계 승인 ② 통합 리뷰 (선택적: 작업 분배)
-  Mobile: ① 설계 승인 ② 작업 분배 (핵심) ③ 통합 리뷰
-  Web: ① 설계 승인 ② 작업 분배 ③ 통합 리뷰 (Mobile과 동일 흐름)
+  Server: ② 통합 리뷰 (선택적: 작업 분배). 설계 승인은 plan-review Skill로 위임.
+  Mobile: ② 작업 분배 (핵심) ③ 통합 리뷰. 설계 승인은 plan-review Skill로 위임.
+  Web: ② 작업 분배 ③ 통합 리뷰 (Mobile과 동일 흐름). 설계 승인은 plan-review Skill로 위임.
   Fullstack: server + frontend(mobile/web) 통합 관리. frontendType으로 구분.
   ⓪ 플랫폼 라우팅: Plan(PO) → Design 사이에서 Server/Mobile/Web/Fullstack 자동 결정
   "설계 승인해줘", "코드 리뷰해줘", "작업 분배해줘" 요청 시 사용합니다.
@@ -18,7 +18,10 @@ tools:
   - mcp__plugin_claude-mem_mem-search__*
   - mcp__plugin_interactive-review_interactive_review__*
   - mcp__plugin_serena_serena__*
-  - mcp__supabase__*
+  - mcp__supabase__list_tables
+  - mcp__supabase__list_extensions
+  - mcp__supabase__get_table_definition
+  - mcp__supabase__execute_sql
 model: opus
 ---
 
@@ -198,56 +201,14 @@ AskUserQuestion(
 
 ---
 
-## 공통: ① 설계 승인
+## 공통: ① 설계 승인 → plan-review Skill로 위임
 
-### 역할
-Tech Lead가 작성한 brief.md를 검토하고 아키텍처를 승인하거나 수정 요청합니다.
-
-### 서버 설계 검증 체크리스트
-- [ ] Express 미들웨어 기반 설계 (Controller/Service 패턴 사용 안 함)
-- [ ] Drizzle ORM 적절히 사용
-- [ ] 단위 테스트 중심 설계, TDD 사이클
-- [ ] JSDoc 주석 계획 포함 (한국어)
-- [ ] 파일 구조: `src/modules/[feature]/` 패턴
-
-### 모바일 설계 검증 체크리스트
-- [ ] GetX 패턴: Controller, View, Binding 분리
-- [ ] 모노레포 구조: core → api/design_system → wowa
-- [ ] 디렉토리 구조: modules/[feature]/controllers|views|bindings
-- [ ] const 최적화, Obx 범위 최소화
-- [ ] design-spec.md와 brief.md 정합성
-
-### 웹 설계 검증 체크리스트
-- [ ] Next.js App Router 파일 규칙 (page.tsx, layout.tsx, loading.tsx, error.tsx)
-- [ ] Server/Client Component 경계 적절
-- [ ] shadcn/ui 컴포넌트 활용
-- [ ] 인증 미들웨어 설계
-- [ ] TypeScript 타입 안전성
-- [ ] Vercel Hobby 플랜 제약 준수 (Serverless Function 12개 이하)
-- [ ] web-design-spec.md와 web-brief.md 정합성
-
-### 가이드 파일 읽기
-**Server**:
-```
-Read("apps/server/CLAUDE.md")
-```
-
-**Mobile**:
-```
-Read(".claude/guide/mobile/directory_structure.md")
-Read(".claude/guide/mobile/getx_best_practices.md")
-Read(".claude/guide/mobile/flutter_best_practices.md")
-```
-
-### MCP 참조
-```
-search(query="아키텍처 승인", limit=5)
-query-docs(libraryId="...", query="best practices")
-```
-
-### 승인/수정 판단
-- **승인**: 다음 단계(사용자 승인)로 진행
-- **수정 요청**: Tech Lead에게 구체적인 피드백 제공
+> **NOTE**: 설계 승인은 `plan-review` Skill이 담당합니다.
+> Design 단계 완료 후 `Skill("plan-review", args="design {feature}")`로 호출됩니다.
+> CTO가 직접 설계 승인을 수행하지 않습니다.
+>
+> 참조: `.claude/skills/plan-review/SKILL.md`
+> 위임 시점: design.md Step 2.7
 
 ---
 
