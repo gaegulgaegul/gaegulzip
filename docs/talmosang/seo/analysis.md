@@ -26,7 +26,7 @@
 | `userAgent: '*'` 규칙 정의 | `'*'` | `'*'` | ✅ |
 | `allow: '/'` 설정 | `'/'` | `'/'` | ✅ |
 | `disallow: '/api/'` 설정 | `'/api/'` | `'/api/'` | ✅ |
-| `sitemap` URL 설정 | `https://talmosang.vercel.app/sitemap.xml` | 동일 | ✅ |
+| `sitemap` URL 설정 | `https://gaegulzip-talmosang.vercel.app/sitemap.xml` | 동일 | ✅ |
 | `/robots.txt` 접근 시 정상 응답 | 빌드 성공 (Static) | 빌드 성공 | ✅ |
 
 ### 2. `apps/web/talmosang/app/sitemap.ts` — 4/4 항목 통과

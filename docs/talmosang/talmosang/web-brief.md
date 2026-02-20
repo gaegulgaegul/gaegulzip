@@ -1199,7 +1199,7 @@ export const metadata: Metadata = {
     title: '탈모상 - 내가 탈모가 될 상인가?',
     description: 'AI 관상가가 그대의 모발 운명을 점지하리라',
     type: 'website',
-    url: 'https://talmosang.vercel.app',
+    url: 'https://gaegulzip-talmosang.vercel.app',
     images: [
       {
         url: '/og-image.png',

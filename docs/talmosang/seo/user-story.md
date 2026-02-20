@@ -150,7 +150,7 @@
 
 | 데이터 | 타입 | 필수 | 설명 |
 |--------|------|------|------|
-| 사이트 기본 URL | String | ✅ | 프로덕션 도메인 (예: https://talmosang.vercel.app) |
+| 사이트 기본 URL | String | ✅ | 프로덕션 도메인 (예: https://gaegulzip-talmosang.vercel.app) |
 | OG 이미지 | Image (1200x630) | ✅ | 소셜 공유 썸네일 이미지 |
 | 서비스 제목 | String | ✅ | 검색/공유 시 표시되는 서비스명 |
 | 서비스 설명 | String | ✅ | 검색 결과 및 공유 미리보기 설명 문구 |

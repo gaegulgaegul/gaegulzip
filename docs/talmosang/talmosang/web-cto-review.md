@@ -28,7 +28,7 @@ pnpm --filter talmosang build
 
 **경고**:
 - ⚠ `metadataBase` 미설정 → OG 이미지 절대 URL 생성 불가
-  - **권고**: `layout.tsx`에 `metadataBase: new URL('https://talmosang.vercel.app')` 추가
+  - **권고**: `layout.tsx`에 `metadataBase: new URL('https://gaegulzip-talmosang.vercel.app')` 추가
 
 ---
 

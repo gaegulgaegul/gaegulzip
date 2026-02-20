@@ -13,7 +13,7 @@ Next.js 15 App Router의 내장 SEO 기능(Metadata API, robots.ts, sitemap.ts)�
 ```typescript
 // 현재 (apps/web/talmosang/app/layout.tsx)
 export const metadata: Metadata = {
-  metadataBase: new URL('https://talmosang.vercel.app'),
+  metadataBase: new URL('https://gaegulzip-talmosang.vercel.app'),
   title: '탈모상 - 내가 탈모가 될 상인가?',
   description: 'AI 관상가가 그대의 모발 운명을 점지하리라',
   keywords: ['탈모', 'AI 관상', '두피 분석', '헤어라인', '바이럴 게임'],
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
 
 ### OG 이미지 현황
 
-`public/og-image.png` 파일이 존재함. `metadataBase`가 설정되어 있으므로 Next.js가 상대 경로 `/og-image.png`를 절대 URL `https://talmosang.vercel.app/og-image.png`로 자동 변환함. 별도 작업 불필요.
+`public/og-image.png` 파일이 존재함. `metadataBase`가 설정되어 있으므로 Next.js가 상대 경로 `/og-image.png`를 절대 URL `https://gaegulzip-talmosang.vercel.app/og-image.png`로 자동 변환함. 별도 작업 불필요.
 
 ---
 
@@ -69,7 +69,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: '/api/',
       },
     ],
-    sitemap: 'https://talmosang.vercel.app/sitemap.xml',
+    sitemap: 'https://gaegulzip-talmosang.vercel.app/sitemap.xml',
   };
 }
 ```
@@ -80,7 +80,7 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://talmosang.vercel.app/sitemap.xml
+Sitemap: https://gaegulzip-talmosang.vercel.app/sitemap.xml
 ```
 
 **설계 근거**:
@@ -99,7 +99,7 @@ Next.js App Router의 `MetadataRoute.Sitemap` 타입을 사용하여 `/sitemap.x
 ```typescript
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://talmosang.vercel.app';
+const BASE_URL = 'https://gaegulzip-talmosang.vercel.app';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -124,13 +124,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://talmosang.vercel.app</loc>
+    <loc>https://gaegulzip-talmosang.vercel.app/</loc>
     <lastmod>2026-02-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://talmosang.vercel.app/privacy</loc>
+    <loc>https://gaegulzip-talmosang.vercel.app/privacy</loc>
     <lastmod>2026-02-20</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
@@ -158,7 +158,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   "@type": "WebApplication",
   "name": "탈모상",
   "alternateName": "탈모상 - 내가 탈모가 될 상인가?",
-  "url": "https://talmosang.vercel.app",
+  "url": "https://gaegulzip-talmosang.vercel.app",
   "description": "AI 관상가가 사진 하나로 탈모 확률, 모발 나이, 닮은 유명인을 분석해드립니다. 재미로 즐기는 AI 두피 분석 서비스.",
   "applicationCategory": "EntertainmentApplication",
   "operatingSystem": "Web",
@@ -181,7 +181,7 @@ const jsonLd = {
   '@type': 'WebApplication',
   name: '탈모상',
   alternateName: '탈모상 - 내가 탈모가 될 상인가?',
-  url: 'https://talmosang.vercel.app',
+  url: 'https://gaegulzip-talmosang.vercel.app',
   description:
     'AI 관상가가 사진 하나로 탈모 확률, 모발 나이, 닮은 유명인을 분석해드립니다. 재미로 즐기는 AI 두피 분석 서비스.',
   applicationCategory: 'EntertainmentApplication',
@@ -229,7 +229,7 @@ const jsonLd = {
 ```typescript
 // 변경 후 전체 메타데이터 (apps/web/talmosang/app/layout.tsx)
 export const metadata: Metadata = {
-  metadataBase: new URL('https://talmosang.vercel.app'),
+  metadataBase: new URL('https://gaegulzip-talmosang.vercel.app'),
 
   title: '탈모상 - 내가 탈모가 될 상인가?',
   description:
@@ -249,7 +249,7 @@ export const metadata: Metadata = {
 
   // canonical URL 추가
   alternates: {
-    canonical: 'https://talmosang.vercel.app',
+    canonical: 'https://gaegulzip-talmosang.vercel.app',
   },
 
   openGraph: {
@@ -257,7 +257,7 @@ export const metadata: Metadata = {
     description:
       'AI 관상가가 그대의 모발 운명을 점지하리라. 사진 하나로 탈모 확률, 모발 나이, 닮은 유명인을 알아보세요.',
     type: 'website',
-    url: 'https://talmosang.vercel.app',
+    url: 'https://gaegulzip-talmosang.vercel.app',
     locale: 'ko_KR',             // 추가: 한국어 서비스 명시
     siteName: '탈모상',           // 추가: 사이트명
     images: [
@@ -286,7 +286,7 @@ export const metadata: Metadata = {
 |------|-----------|
 | `description` | 기존 짧은 문구 → 바이럴 유도 + 구체적 기능 설명 보강 |
 | `keywords` | 5개 → 10개, 실제 검색어 기반으로 보강 |
-| `alternates.canonical` | 신규 추가 (`https://talmosang.vercel.app`) |
+| `alternates.canonical` | 신규 추가 (`https://gaegulzip-talmosang.vercel.app`) |
 | `openGraph.url` | 신규 추가 |
 | `openGraph.locale` | 신규 추가 (`ko_KR`) |
 | `openGraph.siteName` | 신규 추가 (`탈모상`) |
@@ -318,7 +318,7 @@ export const metadata: Metadata = {
 
   // 독립 canonical URL 추가
   alternates: {
-    canonical: 'https://talmosang.vercel.app/privacy',
+    canonical: 'https://gaegulzip-talmosang.vercel.app/privacy',
   },
 
   // 소셜 공유 대응 OG 메타데이터 추가
@@ -326,7 +326,7 @@ export const metadata: Metadata = {
     title: '개인정보처리방침 - 탈모상',
     description: '탈모상 서비스의 개인정보 보호 정책을 안내합니다.',
     type: 'website',
-    url: 'https://talmosang.vercel.app/privacy',
+    url: 'https://gaegulzip-talmosang.vercel.app/privacy',
     locale: 'ko_KR',
   },
 };
@@ -356,7 +356,7 @@ export const metadata: Metadata = {
   - [ ] `userAgent: '*'` 규칙 정의
   - [ ] `allow: '/'` 설정
   - [ ] `disallow: '/api/'` 설정
-  - [ ] `sitemap` URL 설정 (`https://talmosang.vercel.app/sitemap.xml`)
+  - [ ] `sitemap` URL 설정 (`https://gaegulzip-talmosang.vercel.app/sitemap.xml`)
   - [ ] `/robots.txt` 접근 시 정상 응답 확인
 
 - [ ] `apps/web/talmosang/app/sitemap.ts`

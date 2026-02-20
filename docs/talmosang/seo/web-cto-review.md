@@ -55,7 +55,7 @@ export default function robots(): MetadataRoute.Robots { ... }
 ```typescript
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://talmosang.vercel.app';
+const BASE_URL = 'https://gaegulzip-talmosang.vercel.app';
 
 export default function sitemap(): MetadataRoute.Sitemap { ... }
 ```
@@ -117,7 +117,7 @@ JSON-LD 삽입에 `dangerouslySetInnerHTML`을 사용하는 것은 Next.js 공�
 User-agent: *
 Allow: /
 Disallow: /api/
-Sitemap: https://talmosang.vercel.app/sitemap.xml
+Sitemap: https://gaegulzip-talmosang.vercel.app/sitemap.xml
 ```
 
 - `allow: '/'` 전체 허용 후 `disallow: '/api/'` 부분 차단 순서가 올바릅니다.
@@ -141,7 +141,7 @@ Sitemap: https://talmosang.vercel.app/sitemap.xml
   "@type": "WebApplication",
   "name": "탈모상",
   "alternateName": "탈모상 - 내가 탈모가 될 상인가?",
-  "url": "https://talmosang.vercel.app",
+  "url": "https://gaegulzip-talmosang.vercel.app",
   "applicationCategory": "EntertainmentApplication",
   "operatingSystem": "Web",
   "inLanguage": "ko-KR",
@@ -157,8 +157,8 @@ Sitemap: https://talmosang.vercel.app/sitemap.xml
 
 | 페이지 | canonical | 설정값 |
 |--------|-----------|--------|
-| `/` | `alternates.canonical` | `https://talmosang.vercel.app` |
-| `/privacy` | `alternates.canonical` | `https://talmosang.vercel.app/privacy` |
+| `/` | `alternates.canonical` | `https://gaegulzip-talmosang.vercel.app` |
+| `/privacy` | `alternates.canonical` | `https://gaegulzip-talmosang.vercel.app/privacy` |
 
 중복 색인 방지를 위한 canonical이 각 페이지에 올바르게 설정되었습니다.
 
