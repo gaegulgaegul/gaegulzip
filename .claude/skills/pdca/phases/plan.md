@@ -44,6 +44,10 @@ Decision Point를 무시하거나 누락하지 마세요.
 Create a unified user story focusing on WHAT (user needs), not HOW (technical implementation).
 Do NOT determine platform yet. Do NOT include API specs or UI details.
 
+⚠️ INTENT-ONLY RULE: 의도(무엇을/왜)만 작성하고 구현(어떻게)은 절대 작성하지 마세요.
+- ❌ 금지: 파일명, 코드 구조, 함수 시그니처, DB 쿼리, 라이브러리 사용법
+- ✅ 허용: 사용자 행동, 비즈니스 규칙, 데이터 요구사항, 제약조건
+
 Output: docs/{product}/{feature}/user-story.md
 """)
 ```

@@ -1,5 +1,10 @@
 # design (Design Phase) — Platform-Based Agent Dispatch
 
+> ⚠️ **INTENT-ONLY RULE 적용**: 모든 설계 문서는 의도(무엇을/왜)만 작성한다. 구현(어떻게)은 절대 작성하지 않는다.
+> 파일명, 코드 구조, 함수 시그니처, DB 쿼리, 라이브러리 사용법 금지.
+> 허용: 사용자 행동, 비즈니스 규칙, 데이터 요구사항, API 계약(엔드포인트+타입), 제약조건.
+> 구현 결정은 Do 단계의 개발자 에이전트 몫이다.
+
 **Step 1: Read platform from status**
 
 ```
@@ -15,25 +20,50 @@ Read .pdca-status.json → features.{feature}.platform
 | **Web** | `web/ui-ux-designer` → `frontend-design` (Skill) → `web/tech-lead` | `docs/{product}/{feature}/web-design-spec.md`, `docs/{product}/{feature}/web-brief.md` |
 | **Fullstack** | Server + frontend (Mobile or Web based on `frontendType`) | Both server + frontend docs |
 
-**Server** — call `tech-lead` (server):
+**Step 1.5: research.md 참조 (존재하는 경우)**
+
+```
+# Research 단계를 거친 경우 research.md가 존재
+research_exists = Glob("docs/{product}/{feature}/research.md")
+
+# research.md가 있으면 모든 설계 에이전트 프롬프트에 아래 참조를 추가:
+# Research: docs/{product}/{feature}/research.md
+# (기술 조사 결과와 Decision Points를 설계에 반영)
+```
+
+**Server** — call `server/tech-lead`:
 ```
 Task(subagent_type="tech-lead", prompt="""
 Feature: {feature}
 Platform: Server
 User Story: docs/{product}/{feature}/user-story.md
+{if research_exists: "Research: docs/{product}/{feature}/research.md"}
 
 Create technical design brief (including API specs, DB schema, business logic).
+
+⚠️ INTENT-ONLY RULE: 의도(무엇을/왜)만 작성. 구현(어떻게)은 절대 금지.
+- ❌ 금지: 파일명, 코드 구조, 함수 시그니처, SQL 쿼리, 라이브러리 사용법
+- ✅ 허용: 엔드포인트 계약(method+path+타입), 데이터 모델(엔티티+관계), 비즈니스 규칙, 제약조건
+구현 결정은 Do 단계의 node-developer가 한다.
+
 Output: docs/{product}/{feature}/server-brief.md
 """)
 ```
 
-**Mobile** — call `ui-ux-designer` first, then `frontend-design` skill, then `tech-lead` (mobile):
+**Mobile** — call `mobile/ui-ux-designer` first, then `frontend-design` skill, then `mobile/tech-lead`:
 ```
 Task(subagent_type="ui-ux-designer", prompt="""
 Feature: {feature}
 User Story: docs/{product}/{feature}/user-story.md
+{if research_exists: "Research: docs/{product}/{feature}/research.md"}
 
 Create design specification (including UI layouts, interactions, components).
+
+⚠️ INTENT-ONLY RULE: 의도(무엇을/왜)만 작성. 구현(어떻게)은 절대 금지.
+- ❌ 금지: 위젯 트리, 코드 구조, 클래스명, 상태관리 코드, 패키지 import
+- ✅ 허용: 화면 구성, 인터랙션 흐름, 컴포넌트 역할, 시각 요소, 사용자 행동
+구현 결정은 Do 단계의 flutter-developer가 한다.
+
 Output: docs/{product}/{feature}/mobile-design-spec.md
 """)
 
@@ -53,6 +83,7 @@ Feature: {feature}
 Platform: Mobile
 User Story: docs/{product}/{feature}/user-story.md
 Design Spec: docs/{product}/{feature}/mobile-design-spec.md
+{if research_exists: "Research: docs/{product}/{feature}/research.md"}
 
 Create technical brief based on design spec.
 
@@ -69,13 +100,20 @@ Output: docs/{product}/{feature}/mobile-brief.md
 """)
 ```
 
-**Web** — call `ui-ux-designer` first, then `frontend-design` skill, then `tech-lead` (web):
+**Web** — call `web/ui-ux-designer` first, then `frontend-design` skill, then `web/tech-lead`:
 ```
 Task(subagent_type="ui-ux-designer", prompt="""
 Feature: {feature}
 User Story: docs/{product}/{feature}/user-story.md
+{if research_exists: "Research: docs/{product}/{feature}/research.md"}
 
 Create web UI/UX design specification (shadcn/ui components, Tailwind CSS, responsive layout).
+
+⚠️ INTENT-ONLY RULE: 의도(무엇을/왜)만 작성. 구현(어떻게)은 절대 금지.
+- ❌ 금지: JSX 코드, 컴포넌트 파일 구조, hook 구현, CSS 코드
+- ✅ 허용: 화면 구성, 인터랙션 흐름, 컴포넌트 역할, 시각 요소, 사용자 행동
+구현 결정은 Do 단계의 react-developer가 한다.
+
 Output: docs/{product}/{feature}/web-design-spec.md
 """)
 
@@ -95,6 +133,7 @@ Feature: {feature}
 Platform: Web
 User Story: docs/{product}/{feature}/user-story.md
 Design Spec: docs/{product}/{feature}/web-design-spec.md
+{if research_exists: "Research: docs/{product}/{feature}/research.md"}
 
 Create technical brief (Next.js App Router, Server/Client Components, auth, API integration).
 
@@ -293,6 +332,19 @@ API Contract: docs/{product}/{feature}/api-contract.md
 ...
 """)
 ```
+
+**Step 2.7: 설계 리뷰 (MANDATORY — design-review Skill)**
+
+모든 설계 문서 작성 완료 후, 구현 단계 진입 전에 설계 품질을 검증합니다:
+
+```
+Skill("plan-review", args="design {feature}")
+# 리뷰 결과에서 Action Items가 있으면 설계 문서 수정 후 재진행
+```
+
+> plan-review Skill 내부에서 BIG/SMALL CHANGE 선택을 받습니다.
+> 리뷰 결과를 사용자에게 보여주고 최종 확인을 받습니다.
+> 참조: `.claude/skills/plan-review/SKILL.md`
 
 **Step 3: Update status**
 

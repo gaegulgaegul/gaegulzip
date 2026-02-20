@@ -9,7 +9,7 @@ description: |
   to upstream agents when issues are found, with structured feedback loops.
 
   Agent workflow per phase (↔ = bidirectional):
-  - Research: clarify ↔ research-director → Feasibility Council (CTO + tech-lead, BLOCK → clarify 재호출)
+  - Research: clarify ↔ research-director → CTO 통합 평가 (아키텍처+복잡도, BLOCK → clarify 재호출)
   - Plan: PO ↔ CTO (타당성 스캔, BLOCK → PO 재호출) → 사용자 승인 → CTO 라우팅 ↔ PO (Scope Mismatch → PO 보완 + 재승인)
   - Design: ui-ux-designer ↔ tech-lead (Design Pushback 루프) + API Contract 양방향 검증 (server/frontend tech-lead)
   - Do: CTO (work-plan) → developers ↔ CTO (BLOCKED:QUESTIONS → 라우팅 → 답변 → 재개)
@@ -23,7 +23,7 @@ agents:
   research-brainstorm: clarify (Skill)
   research-director: bkit/research-director
   research-feasibility-cto: cto (Feasibility Council)
-  research-feasibility-tech: tech-lead (Feasibility Council)
+
   plan: product-owner
   plan-review: interactive-review:review (Skill)
   feasibility: cto
@@ -96,6 +96,43 @@ Read `bkit.config.json` to determine:
 When calling agents via Task tool, always append to the prompt:
 `\nIMPORTANT: Respond and write all documents in {defaultLanguage}. Code, paths, and technical terms stay in English.`
 
+## ⚠️ Intent-Only Document Rule (Plan & Design 문서 필수 원칙)
+
+**Plan/Design 문서는 "무엇을(WHAT)"과 "왜(WHY)"만 작성한다. "어떻게(HOW)" 즉 구현은 절대 작성하지 않는다.**
+
+이 원칙을 위반하는 예시:
+- ❌ 파일명/경로 지정: `src/services/authService.ts에 구현`
+- ❌ 코드 구조 지시: `useEffect로 상태를 관리하고 Redux store에 저장`
+- ❌ 함수 시그니처: `async function validateToken(token: string): Promise<boolean>`
+- ❌ DB 쿼리 작성: `SELECT * FROM users WHERE email = ?`
+- ❌ 특정 라이브러리 사용법: `zod.object({ email: z.string().email() })로 검증`
+
+이 원칙을 지키는 예시:
+- ✅ 사용자 행동 정의: `사용자는 이메일과 비밀번호로 로그인할 수 있다`
+- ✅ 비즈니스 규칙: `비밀번호는 최소 8자, 영문+숫자+특수문자 포함`
+- ✅ 데이터 요구사항: `사용자 프로필에는 닉네임, 프로필 이미지, 가입일이 포함된다`
+- ✅ API 계약 (Design): `POST /auth/login → 요청: { email, password }, 응답: { token, user }`
+- ✅ 제약조건: `토큰 만료 시간은 24시간`
+
+**이유**: 구현은 Do 단계의 개발자 에이전트가 결정한다. 설계 문서에 구현을 쓰면 에이전트 자율성을 제한하고, 코드 변경 시 문서 부패를 유발한다.
+
+> **모든 Plan/Design phase 에이전트 프롬프트에 이 원칙을 포함시킬 것.**
+
+## Product Naming Convention
+
+`{product}`는 앱 이름을 그대로 사용합니다:
+- `wowa` — 메인 앱
+- `admin` — 어드민 대시보드
+- `talmosang` — 탈모상 AI 두피 분석
+
+경로 예: `docs/wowa/auth/user-story.md`, `docs/admin/dashboard/web-brief.md`
+
+## Fullstack frontendType 제약
+
+`frontendType`은 **단일 값**만 허용합니다 (`"mobile"` 또는 `"web"`).
+Mobile + Web 동시 개발이 필요한 경우, **별도 PDCA 사이클**로 분리합니다:
+- 예: `wowa` feature = fullstack (frontendType: mobile), `admin` feature = fullstack (frontendType: web)
+
 ## Status Tracking
 
 `.pdca-status.json` stores platform and phase per feature:
@@ -144,7 +181,7 @@ When calling agents via Task tool, always append to the prompt:
 
 | Phase | File | Summary |
 |-------|------|---------|
-| **research** | `phases/research.md` | clarify → research-director (Decision Points) → Feasibility Council (CTO+tech-lead, BLOCK↔clarify 재호출) |
+| **research** | `phases/research.md` | clarify → research-director (Decision Points) → CTO 통합 평가 (아키텍처+복잡도, BLOCK↔clarify 재호출) |
 | **plan** | `phases/plan.md` | clarify → PO (Research Gate) ↔ CTO 타당성 스캔 (BLOCK→PO 재호출) → 사용자 승인 → CTO 라우팅 ↔ PO (Scope Mismatch→보완+재승인) |
 | **design** | `phases/design.md` | 플랫폼별 디스패치 + tech-lead ↔ designer Pushback 루프 + API Contract 양방향 검증 (Fullstack) |
 | **do** | `phases/do.md` | 선행조건 검증 → 설계 리뷰 → CTO work-plan → 사용자 승인 → 실행 모드 → 에이전트 구현 ↔ BLOCKED:QUESTIONS 프로토콜 |
@@ -178,7 +215,7 @@ Match Rate: {matchRate}%
 
 | Current | Next | Action |
 |---------|------|--------|
-| None | research | clarify → research-director |
+| None | research (권장) 또는 plan | research는 선택적. 복잡한 기능은 research 권장, 단순 기능은 plan 직행 가능 |
 | research | plan | PO → interactive-review → CTO routing |
 | plan | design | Platform-based design agents |
 | design | do | CTO distribution → dev agents |
@@ -197,8 +234,7 @@ Match Rate: {matchRate}%
 ```
 Research: clarify (user) ──→ research-director (research.md + Decision Points)
                                        │
-                                       ↓ Feasibility Council (병렬)
-                              CTO (아키텍처) + tech-lead (복잡도)
+                                       ↓ CTO 통합 평가 (아키텍처 + 복잡도)
                                        │
                               BLOCK ↔ clarify 재호출 (max 2회)
                               CONCERN → AskUserQuestion
@@ -242,7 +278,7 @@ Verify:  independent-reviewer (optional)
 
 | Phase | CTO Role | Output | 양방향 |
 |-------|---------|--------|--------|
-| **Research** (after research-director) | Feasibility Council 참여 | PASS/CONCERN/BLOCK 판정 | BLOCK → clarify 재호출 |
+| **Research** (after research-director) | 아키텍처+복잡도 통합 평가 | PASS/CONCERN/BLOCK + complexity 판정 | BLOCK → clarify 재호출 |
 | **Plan** (after PO, before user review) | ⓪-pre 타당성 스캔 | PASS/WARN/BLOCK 판정 | BLOCK → PO 재호출 |
 | **Plan** (after user review) | ⓪ 플랫폼 라우팅 + Scope Mismatch 감지 | `platform` in status | Mismatch → PO 보완 + 재승인 |
 | **Do** (before devs) | ② 작업 분배 + BLOCKED:QUESTIONS 라우팅 | work-plan.md (플랫폼별) | BLOCKED → 적절한 에이전트 라우팅 |

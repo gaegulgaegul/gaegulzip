@@ -49,85 +49,71 @@ Output: docs/{product}/{feature}/research.md
 
 **Step 2.5: Feasibility Council (research-director 완료 후)**
 
-research-director가 research.md를 작성한 후, CTO와 관련 tech-lead가 **기술 실현 가능성**을 병렬로 검증합니다.
+research-director가 research.md를 작성한 후, CTO가 **아키텍처 적합성 + 구현 복잡도**를 통합 평가합니다.
 
 > 이 단계는 Plan에서 user-story를 작성하기 전에 기술적 리스크를 조기에 발견하기 위한 것입니다.
 > Plan Step 1.3의 CTO 타당성 스캔은 user-story 기반이지만, 이 단계는 raw research 기반이므로 더 기술적입니다.
 
 ```
-# CTO: 아키텍처 적합성 + 인프라 제약
+# CTO: 아키텍처 적합성 + 인프라 제약 + 구현 복잡도 통합 평가
 Task(subagent_type="cto", model="sonnet", prompt="""
 Role: Research Feasibility Reviewer (NOT full CTO role — 경량 리뷰만)
 Feature: {feature}
 Research: docs/{product}/{feature}/research.md
 
-아래 관점에서만 간결하게 리뷰합니다:
+아래 관점에서 간결하게 리뷰합니다:
+
+[아키텍처 & 인프라]
 1. **아키텍처 적합성**: 현재 모노레포 구조(Express/Flutter/Next.js)에 맞는가?
 2. **인프라 제약**: Supabase Free, Vercel Hobby 플랜 제약에 걸리는가?
 3. **기존 모듈 영향**: 기존 구현과 충돌하거나 중복되는 부분이 있는가?
 
+[구현 복잡도]
+4. **구현 복잡도**: Low / Medium / High (근거 포함)
+5. **핵심 기술 리스크**: 구현 시 가장 어려운 부분
+6. **사전 준비 사항**: 필요한 외부 SDK, API 키, 유료 서비스
+
 Output format (JSON):
 {
   "verdict": "PASS | CONCERN | BLOCK",
+  "complexity": "Low | Medium | High",
   "concerns": ["문제1", "문제2"],
+  "risks": ["기술 리스크1"],
+  "prerequisites": ["사전준비1"],
   "recommendations": ["권장사항1"],
   "affectedModules": ["module1"]
 }
 
 NOTE: 5분 이내 완료. 상세 설계는 하지 않습니다.
 """)
-
-# tech-lead: 구현 복잡도 (예상 플랫폼에 맞는 tech-lead 선택)
-Task(subagent_type="tech-lead", model="haiku", prompt="""
-Role: Research Feasibility Reviewer (NOT full design role — 복잡도 평가만)
-Feature: {feature}
-Research: docs/{product}/{feature}/research.md
-
-아래 관점에서만 간결하게 리뷰합니다:
-1. **구현 복잡도**: Low / Medium / High (근거 포함)
-2. **핵심 기술 리스크**: 구현 시 가장 어려운 부분
-3. **사전 준비 사항**: 필요한 외부 SDK, API 키, 유료 서비스
-
-Output format (JSON):
-{
-  "complexity": "Low | Medium | High",
-  "risks": ["리스크1", "리스크2"],
-  "prerequisites": ["사전준비1"],
-  "estimatedScope": "설명"
-}
-
-NOTE: 5분 이내 완료. 상세 기술 설계는 하지 않습니다.
-""")
 ```
 
 **Step 2.7: Council 결과 종합 + 양방향 피드백**
 
-Council 결과를 종합하여 research.md에 추가하고, 문제가 있으면 이전 단계로 피드백합니다.
+CTO 평가 결과를 research.md에 추가하고, 문제가 있으면 이전 단계로 피드백합니다.
 
 ```
-# Council 결과를 research.md에 추가
+# CTO 평가 결과를 research.md에 추가
 # research.md 끝에 "## Feasibility Review" 섹션 작성:
 ## Feasibility Review
 
-### CTO 리뷰
+### CTO 통합 평가
 - Verdict: {PASS/CONCERN/BLOCK}
-- Concerns: {concerns}
-- Recommendations: {recommendations}
-
-### Tech Lead 리뷰
 - Complexity: {Low/Medium/High}
+- Concerns: {concerns}
 - Risks: {risks}
 - Prerequisites: {prerequisites}
+- Recommendations: {recommendations}
 ```
 
 **양방향 피드백 규칙:**
 
-| Council 결과 | 동작 |
+| CTO 평가 결과 | 동작 |
 |-------------|------|
-| 둘 다 PASS (CTO PASS + Low/Medium) | → Step 3으로 진행 |
-| CTO CONCERN 또는 High complexity | → `AskUserQuestion`으로 사용자에게 리스크 고지 + 진행 여부 확인 |
-| CTO BLOCK | → clarify Skill 재호출 (스코프 축소/변경 논의) → research-director 재호출 → Council 재실행 (max 2회) |
-| tech-lead prerequisites 있음 | → 사용자에게 사전 준비 사항 안내 (진행은 계속) |
+| PASS + Low/Medium complexity | → Step 3으로 진행 |
+| CONCERN 또는 High complexity | → `AskUserQuestion`으로 사용자에게 리스크 고지 + 진행 여부 확인 |
+| BLOCK | → clarify Skill 재호출 (스코프 축소/변경 논의) → research-director 재호출 → Council 재실행 (max 2회) |
+| prerequisites 있음 | → 사용자에게 사전 준비 사항 안내 (진행은 계속) |
 
 ```
 if cto_verdict == "BLOCK":
@@ -136,8 +122,8 @@ if cto_verdict == "BLOCK":
     Feature: {feature}
 
     기술 조사 결과 다음 문제가 발견되었습니다:
-    - CTO: {block_reason}
-    - Tech Lead: {risks}
+    - Verdict: {block_reason}
+    - Risks: {risks}
 
     이 제약을 고려하여 스코프를 조정하거나 대안을 논의합니다.
     """)

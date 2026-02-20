@@ -187,13 +187,31 @@ if developer returns "BLOCKED: QUESTIONS":
     """)
 
     # 2. 답변을 개발자에게 전달하여 구현 재개
-    Task(subagent_type="{developer}", prompt="""
-    이전 BLOCKED: QUESTIONS에 대한 답변입니다:
-    {answers}
+    # 방법 A: 에이전트 resume (선호 — 이전 컨텍스트 보존)
+    if developer_agent_id is available:
+        Task(subagent_type="{developer}", resume="{developer_agent_id}", prompt="""
+        이전 BLOCKED: QUESTIONS에 대한 답변입니다:
+        {answers}
 
-    답변을 반영하여 구현을 계속하세요.
-    이전 작업물: {developer's previous output}
-    """)
+        답변을 반영하여 구현을 계속하세요.
+        """)
+
+    # 방법 B: 파일 기반 fallback (resume 불가 시 — 새 에이전트에 컨텍스트 전달)
+    else:
+        Task(subagent_type="{developer}", prompt="""
+        이전 개발자가 구현 중 BLOCKED 상태가 되어 새로 시작합니다.
+
+        참조 문서:
+        - Brief: docs/{product}/{feature}/{platform}-brief.md
+        - Work Plan: docs/{product}/{feature}/{platform}-work-plan.md
+        - 이전 작업물: {developer's previous output or git diff}
+
+        BLOCKED QUESTIONS 답변:
+        {answers}
+
+        답변을 반영하여 구현을 계속하세요.
+        이전 작업물에서 이어서 진행하되, 이미 완료된 부분은 건드리지 마세요.
+        """)
 
     # 3. 필요 시 설계 문서 업데이트 (향후 동일 문제 방지)
     if answer requires document update:
