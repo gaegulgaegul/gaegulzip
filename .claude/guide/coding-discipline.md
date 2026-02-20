@@ -8,6 +8,8 @@
 **구현 전 반드시 수행:**
 
 - brief.md / design-spec.md에서 모호한 부분이 있으면 **가정하지 말고 질문**
+  - 먼저 자가 해결 3단계 수행 (참조: `.claude/guide/agent-communication-protocol.md`)
+  - 해결 불가 시 `BLOCKED: QUESTIONS` 형식으로 반환
 - 여러 해석이 가능하면 선택지를 제시: "A와 B 두 가지 해석이 가능한데, 어느 쪽인가요?"
 - CTO가 없는 단독 작업이면 사용자에게 직접 질문
 
