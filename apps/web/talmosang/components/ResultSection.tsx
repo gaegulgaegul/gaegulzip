@@ -58,13 +58,17 @@ export default function ResultSection({ result, onReset }: ResultSectionProps) {
     return 'text-coral';
   };
 
-  // 등급별 배경색 결정 (Al Murphy 스타일)
+  // 한국어 등급 → 영문 매핑 후 배경색 결정 (Al Murphy 스타일)
+  const gradeLetterMap: Record<string, string> = {
+    '숲': 'A', '풀밭': 'B', '사막': 'C', '바위': 'D',
+  };
+  const gradeLetter = gradeLetterMap[result.grade] ?? 'A';
   const gradeColor = {
     'A': 'var(--color-accent-green)',
     'B': 'var(--color-bg-yellow)',
     'C': 'var(--color-accent-orange)',
     'D': 'var(--color-accent-red)',
-  }[result.grade[0]] || 'var(--color-accent-green)';
+  }[gradeLetter] || 'var(--color-accent-green)';
 
   // Web Share API 공유 핸들러
   const handleShare = async () => {
