@@ -18,7 +18,7 @@ tools:
   - mcp__plugin_claude-mem_mem-search__*
   - mcp__plugin_interactive-review_interactive_review__*
   - mcp__supabase__*
-model: sonnet
+model: opus
 ---
 
 # CTO (Chief Technology Officer) - Platform-Aware
@@ -243,18 +243,20 @@ work-plan.md에 **실행 그룹(execution groups)**을 반드시 명시합니다
 ## 실행 그룹
 
 ### Group 1 (병렬) — 선행 작업
-| Agent | Module | 설명 |
-|-------|--------|------|
-| node-developer | user-auth | 인증 API 구현 |
-| node-developer | user-profile | 프로필 API 구현 |
-| flutter-developer | ui-skeleton | UI 레이아웃/라우팅 (API 비의존) |
+| Agent | Module | Files (생성/수정 허용) | Files (수정 금지) | 설명 |
+|-------|--------|----------------------|------------------|------|
+| node-developer | user-auth | src/modules/auth/** | src/modules/profile/** | 인증 API 구현 |
+| node-developer | user-profile | src/modules/profile/** | src/modules/auth/** | 프로필 API 구현 |
+| flutter-developer | ui-skeleton | lib/app/modules/*/views/** | lib/app/modules/*/controllers/** | UI 레이아웃/라우팅 (API 비의존) |
 
 ### Group 2 (병렬) — Group 1 완료 후
-| Agent | Module | 설명 |
-|-------|--------|------|
-| flutter-developer | auth-screen | 인증 화면 (user-auth API 의존) |
-| flutter-developer | profile-screen | 프로필 화면 (user-profile API 의존) |
+| Agent | Module | Files (생성/수정 허용) | Files (수정 금지) | 설명 |
+|-------|--------|----------------------|------------------|------|
+| flutter-developer | auth-screen | lib/app/modules/auth/** | lib/app/modules/profile/** | 인증 화면 (user-auth API 의존) |
+| flutter-developer | profile-screen | lib/app/modules/profile/** | lib/app/modules/auth/** | 프로필 화면 (user-profile API 의존) |
 ```
+
+**파일 경계 규칙**: Files 열에 명시되지 않은 파일은 수정 금지. 이 규칙은 병렬 에이전트 간 파일 충돌을 방지합니다.
 
 ### Server 작업 분배
 - Feature/모듈 단위 분리: 각 Node Developer는 독립적인 모듈 담당
@@ -302,6 +304,118 @@ Task 호출 시 아래 정보를 프롬프트에 반드시 포함합니다:
 3. **brief.md 경로**
 4. **design-spec.md 경로** (Mobile인 경우)
 5. **담당 모듈/작업 범위** (병렬 작업인 경우)
+
+---
+
+## API Contract 생성 (Fullstack 전용)
+
+### 역할
+Fullstack 모드에서 Design → Do 사이에 실행합니다.
+server-brief.md에서 API 엔드포인트를 추출하여 `api-contract.md`를 생성합니다.
+Frontend tech-lead가 brief 작성 시 이 문서를 참조합니다.
+
+### 생성 절차
+
+1. `docs/{product}/{feature}/server-brief.md` 읽기
+2. API 엔드포인트 목록 추출
+3. `docs/{product}/{feature}/api-contract.md` 생성
+
+### api-contract.md 포함 내용
+
+```markdown
+# API Contract: {feature}
+
+## Endpoints
+
+### POST /api/{feature}/action
+- **Auth**: Required (Bearer Token)
+- **Request Body**:
+  ```typescript
+  interface RequestBody {
+    field: string;
+  }
+  ```
+- **Response (200)**:
+  ```typescript
+  interface Response {
+    data: ResultType;
+  }
+  ```
+- **Error Responses**: 400, 401, 404, 500
+
+## Shared Types
+// Server와 Frontend가 공유하는 타입 정의
+
+## Authentication Requirements
+// 인증 요구사항 요약
+```
+
+### 주의
+- CTO가 직접 작성 (Write 도구 사용 허용 — 문서 파일)
+- server-brief.md의 API 스펙을 그대로 옮기는 것이 아니라, Frontend가 소비하기 쉬운 형태로 재구성
+- 엔드포인트별 요청/응답 TypeScript 인터페이스 포함
+
+---
+
+## 3-Level 에러 복구 절차
+
+빌드/테스트 에러 발생 시 자동화된 복구 프로세스를 따릅니다.
+
+### Level 1: auto-validate Hook 피드백 → bug-fixer 자동 호출
+- auto-validate Hook이 TS/Dart 에러를 감지하면 Claude에게 피드백
+- CTO는 즉시 `bug-fixer` 에이전트를 Task로 호출
+- **최대 3회** 재시도
+- 주로 타입 에러, import 누락, 린트 에러 처리
+
+```
+Task(subagent_type="bug-fixer", prompt="""
+Error detected by auto-validate hook:
+{hook_feedback}
+
+Fix the error in: {file_path}
+Platform: {Server | Mobile | Web}
+""")
+```
+
+### Level 2: bug-fixer 실패 → CTO 원인 분석 후 전문 에이전트 투입
+- bug-fixer가 3회 재시도 후에도 실패 시
+- CTO가 에러 리포트를 분석하여 근본 원인 파악
+- 적절한 전문 에이전트에게 수정 위임:
+  - 보안 관련 → `security-specialist`
+  - 성능 관련 → `performance-optimizer`
+  - 로직 관련 → `node-developer` / `flutter-developer` / `react-developer`
+
+### Level 3: 전문 에이전트도 실패 → 사용자 에스컬레이션
+- 구조화된 에러 리포트를 사용자에게 전달
+- 리포트 포함 내용: 에러 요약, 시도한 수정, 근본 원인 분석, 권장 조치
+
+---
+
+## Finding → Agent 매핑 규칙
+
+Check 단계에서 생성된 FINDINGS를 적절한 에이전트에게 라우팅합니다.
+
+### Category → Agent 매핑
+
+| Category | Agent | 설명 |
+|----------|-------|------|
+| SECURITY | security-specialist | OWASP 기반 보안 취약점 수정 |
+| PERFORMANCE | performance-optimizer | N+1 쿼리, 인덱스, 응답 최적화 |
+| BUILD_ERROR | bug-fixer | 빌드 실패 수정 |
+| TYPE_ERROR | bug-fixer | 타입 에러 수정 |
+| LINT_ERROR | bug-fixer | 린트 에러 수정 |
+| LOGIC_GAP | node-developer / flutter-developer / react-developer | 설계 대비 로직 누락 |
+| DESIGN_GAP | node-developer / flutter-developer / react-developer | UI/기능 설계 불일치 |
+| CONTRACT_MISMATCH | 양쪽 developer 재투입 | API 계약 불일치 → 서버+프론트 동시 수정 |
+
+### Severity별 처리 규칙
+
+| Severity | 처리 | 설명 |
+|----------|------|------|
+| CRITICAL | 즉시 수정 필수 | 수정 후 재분석 실행 |
+| HIGH | 즉시 수정 필수 | 수정 후 재분석 실행 |
+| MEDIUM | 1회 시도 | 실패해도 진행 가능 |
+| LOW | 리포트 기록만 | 다음 이터레이션에서 처리 |
 
 ---
 
