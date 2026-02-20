@@ -53,6 +53,8 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 - **Avoid over-engineering**: Make only necessary changes, don't add features beyond what's requested
 - **No backwards-compatibility hacks**: Delete unused code completely instead of renaming or commenting
 - **SDK = Flutter 패키지만** — 서버는 `modules/`로 유지 (상세: Mobile CLAUDE.md)
+- **File System = SSOT**: 파일 시스템이 유일한 진실의 원천(Single Source of Truth). 에이전트 간 상태 전달 시 결과 텍스트가 아닌 파일에서 직접 읽기
+- **Context Compaction Recovery**: 컨텍스트 압축 후 복구 우선순위: (1) `.pdca-status.json` → (2) 작업 문서 (`work-plan.md`, `brief.md`) → (3) `git diff` → (4) `CLAUDE.md`
 
 ## Core Features (재사용 가능한 공통 기능)
 
@@ -71,6 +73,29 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 - **Server**: `.claude/guide/server/` — API 설계, 예외 처리, 로깅
 - **Mobile**: `.claude/guide/mobile/` — 디렉토리 구조, GetX, 위젯, 디자인 시스템, 성능
 - 각 플랫폼 CLAUDE.md에 상세 가이드 테이블 포함
+
+## Disabled Skills
+
+이 프로젝트에서 다음 Skill은 **사용 금지**입니다. 호출하지 마세요:
+
+| Skill | 이유 |
+|-------|------|
+| `feature-planner` | PDCA 워크플로우로 대체됨 |
+| `commit-commands:commit-push-pr` | 수동 커밋 워크플로우 사용 |
+| `coderabbit:review` | CTO 통합 리뷰 + gap-detector로 대체됨 |
+
+> `coderabbit:code-review` (자동 코드 리뷰)는 별도 skill이며 비활성화 대상 아님.
+> `commit-commands:commit`, `commit-commands:clean_gone`은 사용 가능.
+
+## Hook System
+
+| Hook | Event | 동작 |
+|------|-------|------|
+| `auto-validate` | PostToolUse (Edit/Write) | TS/Dart 자동 타입체크 + 린트 |
+| `sql-injection-check` | PostToolUse (Edit/Write) | SQL 인젝션 패턴 탐지 |
+| `context-enrichment` | UserPromptSubmit | PDCA 상태 + 최근 git 변경사항 자동 주입 |
+
+설정: `.claude/settings.json` / 스크립트: `.claude/hooks/`
 
 ## Serena Usage (MANDATORY)
 
