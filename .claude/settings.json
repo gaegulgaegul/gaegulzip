@@ -39,6 +39,18 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/context-recovery.sh",
+            "timeout": 10000
+          }
+        ]
+      }
     ]
   },
   "enabledPlugins": {
