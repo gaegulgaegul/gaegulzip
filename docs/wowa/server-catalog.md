@@ -40,27 +40,32 @@
 - **모듈 경로**: `apps/server/src/modules/push-alert/`
 - **상태**: ✅ 완료
 - **핵심 파일**:
-  - `handlers.ts` — 디바이스 등록, 알림 발송, 이력 조회 핸들러
-  - `services.ts` — 디바이스/알림 DB 조작
-  - `schema.ts` — pushDeviceTokens, pushAlerts 테이블
+  - `handlers.ts` — 디바이스 등록, 알림 발송, 이력 조회, 읽음 처리 핸들러
+  - `services.ts` — 디바이스/알림/수신 기록 DB 조작
+  - `schema.ts` — pushDeviceTokens, pushAlerts, pushNotificationReceipts 테이블
   - `fcm.ts` — Firebase Admin SDK 래퍼 (인스턴스 캐싱, 배치 발송)
   - `validators.ts` — Zod 입력 검증 스키마
   - `push.probe.ts` — 운영 로그 (발송 성공/실패, 무효 토큰 탐지)
 - **API 엔드포인트**:
   | 메서드 | 경로 | 인증 | 설명 |
   |--------|------|------|------|
-  | POST | `/push/devices` | ✅ | 디바이스 토큰 등록 |
+  | POST | `/push/devices` | ✅ | FCM 디바이스 토큰 등록 (upsert) |
   | GET | `/push/devices` | ✅ | 내 디바이스 목록 |
-  | DELETE | `/push/devices/:id` | ✅ | 디바이스 비활성화 |
-  | POST | `/push/send` | ❌ | 푸시 알림 발송 (관리자) |
-  | GET | `/push/notifications` | ❌ | 알림 이력 목록 |
-  | GET | `/push/notifications/:id` | ❌ | 알림 상세 조회 |
-- **DB 테이블**: `push_device_tokens`, `push_alerts`
+  | POST | `/push/devices/deactivate` | ✅ | 토큰으로 디바이스 비활성화 |
+  | DELETE | `/push/devices/:id` | ✅ | ID로 디바이스 비활성화 |
+  | POST | `/push/send` | ✅ | 푸시 알림 발송 (single/multiple/all) |
+  | GET | `/push/notifications/me` | ✅ | 내 알림 목록 (limit/offset/unreadOnly) |
+  | GET | `/push/notifications/unread-count` | ✅ | 읽지 않은 알림 개수 |
+  | PATCH | `/push/notifications/:id/read` | ✅ | 알림 읽음 처리 |
+  | GET | `/push/notifications` | ✅ | 알림 발송 이력 (관리자용) |
+  | GET | `/push/notifications/:id` | ✅ | 알림 발송 상세 (관리자용) |
+- **DB 테이블**: `push_device_tokens`, `push_alerts`, `push_notification_receipts`
 - **Quick Start**:
   1. `apps` 테이블에 FCM 인증 정보 설정 (`fcmProjectId`, `fcmPrivateKey`, `fcmClientEmail`)
   2. 모바일에서 FCM 토큰 획득 후 `POST /push/devices` 호출
   3. `POST /push/send`로 알림 발송: `{ appCode: "wowa", userId: 1, title: "...", body: "..." }`
-  4. 무효 토큰은 발송 시 자동 비활성화됨
+  4. 사용자: `GET /push/notifications/me`로 수신 알림 조회
+  5. 무효 토큰은 발송 시 자동 비활성화됨
 - **상세 분석**: [`docs/core/fcm-push-notification.md`](../core/fcm-push-notification.md)
 
 ---
@@ -68,7 +73,7 @@
 ### QnA 질문과 답변 (QnA)
 
 - **모듈 경로**: `apps/server/src/modules/qna/`
-- **상태**: ✅ 완료 (28 테스트 통과)
+- **상태**: ✅ 완료
 - **핵심 파일**:
   - `handlers.ts` — 질문 제출 핸들러 (submitQuestion)
   - `services.ts` — 질문 생성 로직 (createQuestion, buildIssueBody)
@@ -76,21 +81,17 @@
   - `octokit.ts` — GitHub App Octokit 인스턴스 팩토리 (캐싱, throttling, retry)
   - `schema.ts` — qna_config, qna_questions Drizzle 테이블
   - `validators.ts` — Zod 입력 검증 (appCode, title 1-256, body 1-65536)
-  - `qna.probe.ts` — 운영 로그 (questionSubmitted, rateLimitWarning, githubApiError, configNotFound)
-  - `index.ts` — Router 정의 및 export
+  - `qna.probe.ts` — 운영 로그
 - **API 엔드포인트**:
   | 메서드 | 경로 | 인증 | 설명 |
   |--------|------|------|------|
   | POST | `/qna/questions` | ⚪ 선택적 | 질문 제출 (GitHub Issue 자동 생성) |
 - **DB 테이블**: `qna_config` (앱별 GitHub 설정), `qna_questions` (질문 이력)
 - **Quick Start**:
-  1. `apps` 테이블에 앱 레코드 확인 (code: "wowa")
-  2. `qna_config` 테이블에 GitHub App 설정 추가:
-     - `appId`, `githubRepoOwner`, `githubRepoName`, `githubAppId`, `githubInstallationId`, `githubPrivateKey`
-  3. `POST /qna/questions` 호출: `{ appCode: "wowa", title: "질문 제목", body: "질문 내용" }`
-  4. 응답: `{ questionId, issueNumber, issueUrl, createdAt }` (201 Created)
-  5. 인증된 사용자: `Authorization: Bearer <token>` 헤더 추가 시 질문에 userId 기록
-- **새 앱에 적용**: `qna_config` 테이블에 새 앱의 GitHub App 설정 행 추가만 하면 됨
+  1. `qna_config` 테이블에 GitHub App 설정 추가
+  2. `POST /qna/questions` 호출: `{ appCode: "wowa", title: "질문 제목", body: "질문 내용" }`
+  3. 응답: `{ questionId, issueNumber, issueUrl, createdAt }` (201 Created)
+  4. 인증된 사용자: `Authorization: Bearer <token>` 헤더 추가 시 질문에 userId 기록
 - **상세 설계**: [`docs/core/qna/server-brief.md`](../core/qna/server-brief.md)
 
 ---
@@ -100,29 +101,37 @@
 - **모듈 경로**: `apps/server/src/modules/notice/`
 - **상태**: ✅ 완료
 - **핵심 파일**:
-  - `handlers.ts` — 목록/상세/미읽음 수 조회, CRUD, 고정/해제 핸들러
-  - `schema.ts` — notices, notice_reads Drizzle 테이블 (soft delete, 읽음 추적)
-  - `validators.ts` — Zod 입력 검증 (listNotices, create, update, pin, noticeId)
-  - `types.ts` — NoticeListResponse, NoticeDetail, NoticeSummary, UnreadCountResponse 타입
-  - `notice.probe.ts` — 운영 로그 (created, updated, deleted, viewed, pinToggled, notFound)
-  - `index.ts` — Router 정의 (사용자: GET, 관리자: POST/PUT/DELETE/PATCH + requireAdmin)
-- **API 엔드포인트**:
+  - `handlers.ts` — 사용자 목록/상세/미읽음 수, CRUD, 고정/해제 핸들러
+  - `admin-handlers.ts` — 관리자 전용 핸들러 (appCode query param 기반)
+  - `admin-routes.ts` — 관리자 라우터
+  - `schema.ts` — notices, notice_reads 테이블 (soft delete, 읽음 추적)
+  - `validators.ts` / `admin-validators.ts` — Zod 입력 검증
+  - `notice.probe.ts` — 운영 로그
+- **API 엔드포인트 (사용자)**:
   | 메서드 | 경로 | 인증 | 설명 |
   |--------|------|------|------|
-  | GET | `/notices` | ✅ | 공지 목록 (페이지네이션, 카테고리/고정 필터) |
-  | GET | `/notices/unread-count` | ✅ | 읽지 않은 공지 수 |
-  | GET | `/notices/:id` | ✅ | 공지 상세 (조회수 증가 + 읽음 처리) |
-  | POST | `/notices` | ✅ + Admin | 공지 작성 |
-  | PUT | `/notices/:id` | ✅ + Admin | 공지 수정 |
-  | DELETE | `/notices/:id` | ✅ + Admin | 공지 삭제 (soft delete) |
-  | PATCH | `/notices/:id/pin` | ✅ + Admin | 고정/해제 토글 |
+  | GET | `/notices` | ⚪ 선택적 | 공지 목록 (페이지네이션, 카테고리/고정 필터) |
+  | GET | `/notices/unread-count` | ⚪ 선택적 | 읽지 않은 공지 수 (미인증 시 0) |
+  | GET | `/notices/:id` | ⚪ 선택적 | 공지 상세 (조회수 증가 + 읽음 처리) |
+  | POST | `/notices` | ✅ | 공지 작성 |
+  | PUT | `/notices/:id` | ✅ | 공지 수정 |
+  | DELETE | `/notices/:id` | ✅ | 공지 삭제 (soft delete) |
+  | PATCH | `/notices/:id/pin` | ✅ | 고정/해제 토글 |
+- **API 엔드포인트 (관리자)**: `/admin/notices/*` — `requireAdmin` 미들웨어 적용
+  | 메서드 | 경로 | 인증 | 설명 |
+  |--------|------|------|------|
+  | GET | `/admin/notices` | Admin | 공지 목록 (appCode query param) |
+  | GET | `/admin/notices/:id` | Admin | 공지 상세 (조회수 증가 없음) |
+  | POST | `/admin/notices` | Admin | 공지 작성 (appCode body) |
+  | PUT | `/admin/notices/:id` | Admin | 공지 수정 |
+  | DELETE | `/admin/notices/:id` | Admin | 공지 삭제 (soft delete) |
+  | PATCH | `/admin/notices/:id/pin` | Admin | 고정/해제 |
 - **DB 테이블**: `notices`, `notice_reads`
-- **특이사항**: 모든 엔드포인트에 `authenticate` 미들웨어 적용 (app.ts에서 라우터 레벨), 관리자 엔드포인트는 추가로 `requireAdmin` (X-Admin-Secret 헤더)
 - **Quick Start**:
   1. `.env`에 `ADMIN_SECRET` 설정
-  2. 사용자: `GET /notices?page=1&limit=10` (Authorization: Bearer 필수)
-  3. 관리자: `POST /notices` + `X-Admin-Secret` 헤더
-  4. 읽음 추적: 상세 조회 시 자동 처리 (`notice_reads` 테이블, onConflictDoNothing)
+  2. 사용자: `GET /notices?page=1&limit=10` (선택적 인증)
+  3. 관리자: `POST /admin/notices` + `X-Admin-Secret` 헤더
+  4. 읽음 추적: 상세 조회 시 자동 처리 (`notice_reads` 테이블)
 
 ---
 
@@ -134,17 +143,15 @@
   - `handlers.ts` — 박스 생성, 검색, 가입, 조회, 멤버 목록 핸들러
   - `services.ts` — 박스/멤버 DB 조작 로직
   - `schema.ts` — boxes, boxMembers 테이블
-  - `validators.ts` — Zod 입력 검증 (createBox, searchBox, joinBox, boxId)
-  - `types.ts` — 응답 타입 정의
+  - `validators.ts` — Zod 입력 검증
   - `box.probe.ts` — 운영 로그
-  - `index.ts` — Router 정의 및 export
 - **API 엔드포인트**:
   | 메서드 | 경로 | 인증 | 설명 |
   |--------|------|------|------|
-  | POST | `/boxes` | ✅ | 박스 생성 |
+  | POST | `/boxes` | ✅ | 박스 생성 (자동 가입, 트랜잭션) |
   | GET | `/boxes/me` | ✅ | 내 박스 조회 |
   | GET | `/boxes/search` | ✅ | 박스 검색 (이름/지역/키워드) |
-  | POST | `/boxes/:boxId/join` | ✅ | 박스 가입 |
+  | POST | `/boxes/:boxId/join` | ✅ | 박스 가입 (기존 박스 자동 탈퇴) |
   | GET | `/boxes/:boxId` | ✅ | 박스 상세 조회 |
   | GET | `/boxes/:boxId/members` | ✅ | 박스 멤버 목록 |
 - **DB 테이블**: `boxes`, `box_members`
@@ -165,11 +172,9 @@
   - `services.ts` — WOD/제안/선택 DB 조작 로직
   - `schema.ts` — wods, proposedChanges, wodSelections 테이블
   - `validators.ts` — Zod 입력 검증
-  - `types.ts` — 응답 타입 정의
   - `normalization.ts` — WOD 데이터 정규화
   - `comparison.ts` — WOD 비교 로직
   - `wod.probe.ts` — 운영 로그
-  - `index.ts` — Router 정의 및 export
 - **API 엔드포인트**:
   | 메서드 | 경로 | 인증 | 설명 |
   |--------|------|------|------|
@@ -179,7 +184,7 @@
   | POST | `/wods/proposals` | ✅ | WOD 수정 제안 생성 |
   | POST | `/wods/proposals/:proposalId/approve` | ✅ | 제안 승인 |
   | POST | `/wods/proposals/:proposalId/reject` | ✅ | 제안 거절 |
-  | POST | `/wods/:wodId/select` | ✅ | WOD 선택 (개인 기록) |
+  | POST | `/wods/:wodId/select` | ✅ | WOD 선택 (스냅샷 저장) |
   | GET | `/wods/selections` | ✅ | 내 WOD 선택 목록 |
 - **DB 테이블**: `wods`, `proposed_changes`, `wod_selections`
 - **Quick Start**:
@@ -196,35 +201,28 @@
 ### authenticate
 
 - **경로**: `apps/server/src/middleware/auth.ts`
-- **별칭**: `authenticate` (필수 인증)
-- **용도**: JWT 검증 및 사용자 컨텍스트 주입
+- **용도**: JWT 필수 인증 — `Authorization: Bearer <token>` → `req.user = { userId, appId }`
 - **사용법**: `router.post('/route', authenticate, handler)`
-- **동작**: `Authorization: Bearer <token>` 헤더에서 JWT 추출 → 앱별 시크릿으로 검증 → `req.user = { userId, appId }` 설정
 - **에러**: `UnauthorizedException` (INVALID_TOKEN, EXPIRED_TOKEN)
 
 ### optionalAuthenticate
 
 - **경로**: `apps/server/src/middleware/optional-auth.ts`
-- **용도**: JWT가 있으면 검증하고, 없어도 통과시키는 선택적 인증
-- **사용법**: `router.post('/route', optionalAuthenticate, handler)`
-- **동작**: Authorization 헤더 있으면 JWT 검증 → `req.user` 설정, 없거나 실패 시 `req.user = undefined`로 통과
-- **사용 모듈**: QnA (익명 + 로그인 사용자 모두 질문 가능)
+- **용도**: JWT 선택적 인증 — 토큰 있으면 검증, 없으면 익명 통과
+- **사용 모듈**: QnA, Notice (사용자 GET)
 
 ### requireAdmin
 
 - **경로**: `apps/server/src/middleware/admin-auth.ts`
-- **용도**: 관리자 API 인증 (X-Admin-Secret 헤더 검증)
-- **사용법**: `router.post('/route', requireAdmin, handler)`
-- **동작**: `X-Admin-Secret` 헤더 → 환경변수 `ADMIN_SECRET`과 `timingSafeEqual` 비교
-- **에러**: `ForbiddenException` (시크릿 불일치/미제공)
-- **사용 모듈**: Notice (관리자 CRUD)
+- **용도**: 관리자 JWT 검증 (SHA-256 비밀번호 해시 → 7일 유효 JWT)
+- **사용 모듈**: Notice 관리자 CRUD (`/admin/notices/*`)
+- **관련**: `adminLogin` — `POST /admin/auth/login`
 
 ### errorHandler
 
 - **경로**: `apps/server/src/middleware/error-handler.ts`
-- **용도**: 전역 에러 처리 (미들웨어 체인 마지막에 등록)
-- **사용법**: `app.use(errorHandler)` (app.ts에서 이미 등록됨)
-- **동작**: Zod 에러 → 400, AppException → 커스텀 상태코드, 기타 → 500
+- **용도**: 전역 에러 처리 — Zod→400, AppException→커스텀 코드, 기타→500
+- **사용법**: `app.use(errorHandler)` (app.ts에서 등록됨)
 
 ---
 
@@ -243,60 +241,63 @@
   ├── NotFoundException (404)
   └── ExternalApiException (502)
   ```
-- **ErrorCode 상수**: `VALIDATION_ERROR`, `INVALID_TOKEN`, `EXPIRED_TOKEN`, `REFRESH_TOKEN_REUSE_DETECTED`, `FCM_NOT_CONFIGURED` 등
 - **사용법**: `throw new NotFoundException('App', code)`
 
 ### JWT 유틸리티
 
 - **경로**: `apps/server/src/utils/jwt.ts`
-- **함수**:
-  - `signToken(payload, secret, expiresIn)` — JWT 생성
-  - `verifyToken(token, secret)` — JWT 검증 및 디코딩
+- **함수**: `signToken(payload, secret, expiresIn)`, `verifyToken(token, secret)`
 
 ### Logger
 
 - **경로**: `apps/server/src/utils/logger.ts`
-- **구현**: Pino (pretty-print)
-- **사용법**: `logger.info({ key: value }, 'message')`
+- **구현**: Pino (pretty-print), `LOG_LEVEL` 환경변수
+
+### Username Generator
+
+- **경로**: `apps/server/src/utils/username-generator.ts`
+- **용도**: "형용사+명사+숫자" 패턴 한글 닉네임 자동 생성 (신규 OAuth 사용자용)
 
 ---
 
 ## 앱 설정 (app.ts)
 
 **미들웨어 체인 순서**:
-1. `cors()` — CORS 허용
-2. `express.json()` — JSON 파싱
-3. Swagger UI — `/api-docs` (OpenAPI 문서)
-4. 라우트 마운트: `/auth`, `/push`, `/boxes`, `/wods`, `/qna`, `/notices`, `/admin/*`
-5. `errorHandler` — 전역 에러 핸들러 (마지막)
+1. `cors()` → `express.json()` → Swagger UI (`/api-docs`)
+2. 라우트 마운트: `/auth`, `/push`, `/boxes`, `/wods`, `/qna`, `/notices`
+3. 관리자: `POST /admin/auth/login`, `/admin/notices/*` (requireAdmin)
+4. `errorHandler` (마지막)
 
-**헬스 체크**:
-- `GET /` → `{ message, version }`
-- `GET /health` → `{ status, uptime }`
-
-**관리자 라우트**:
-- `POST /admin/auth/login` — 관리자 로그인
-- `/admin/notices/*` — 공지사항 관리자 CRUD
+**헬스 체크**: `GET /` → `{ message, version }`, `GET /health` → `{ status, uptime }`
 
 ---
 
-## 환경 변수
+## DB 테이블 전체 목록
 
-| 변수 | 필수 | 설명 | 기본값 |
-|------|------|------|--------|
-| `DATABASE_URL` | ✅ | PostgreSQL 연결 문자열 | - |
-| `JWT_SECRET_FALLBACK` | ✅ | JWT 폴백 시크릿 (32자 이상) | - |
-| `PORT` | ❌ | 서버 포트 | `3001` |
-| `NODE_ENV` | ❌ | 환경 | `development` |
-| `LOG_LEVEL` | ❌ | 로그 레벨 | `info` |
-| `ADMIN_SECRET` | ❌ | 관리자 API 시크릿 (notice 관리) | - |
+| 테이블 | 모듈 | 용도 |
+|--------|------|------|
+| `apps` | auth | 앱별 OAuth/FCM/JWT 설정 |
+| `users` | auth | 멀티 OAuth 사용자 |
+| `refresh_tokens` | auth | Refresh Token (Rotation + Reuse Detection) |
+| `boxes` | box | CrossFit 박스 정보 |
+| `box_members` | box | 박스 멤버십 (다대다) |
+| `notices` | notice | 공지사항 (soft delete) |
+| `notice_reads` | notice | 사용자별 읽음 추적 |
+| `push_device_tokens` | push-alert | FCM 디바이스 토큰 |
+| `push_alerts` | push-alert | 푸시 발송 이력 |
+| `push_notification_receipts` | push-alert | 사용자별 수신/읽음 기록 |
+| `qna_config` | qna | 앱별 GitHub App 설정 |
+| `qna_questions` | qna | 질문 이력 + GitHub Issue 연동 |
+| `wods` | wod | WOD 데이터 (JSONB) |
+| `proposed_changes` | wod | WOD 변경 제안 |
+| `wod_selections` | wod | 사용자 WOD 선택 스냅샷 |
 
 ---
 
 ## 새 모듈 추가 체크리스트
 
 1. `src/modules/[feature]/` 디렉토리 생성
-2. `schema.ts` — Drizzle 테이블 정의 (FK 제약 없이, 컬럼 코멘트 필수)
+2. `schema.ts` — Drizzle 테이블 정의 (FK 없이, 컬럼 코멘트 필수)
 3. `validators.ts` — Zod 입력 검증 스키마
 4. `handlers.ts` — Express 미들웨어 함수 작성
 5. `services.ts` — DB 조작 로직 (복잡한 경우에만)

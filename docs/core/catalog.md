@@ -18,48 +18,52 @@
 
 - **프로바이더**: 카카오, 네이버, 구글, 애플 (4개)
 - **서버**: OAuth 토큰 검증 → 사용자 Upsert → JWT 발급 + Refresh Token 로테이션
-- **모바일**: SocialLoginButton 위젯, OAuth SDK 연동 (4개 프로바이더), AuthRepository, SecureStorageService
+- **모바일**: SocialLoginButton 위젯, OAuth SDK 연동, AuthRepository, SecureStorageService
 - **핵심 진입점**:
   - 서버 로그인: `apps/server/src/modules/auth/handlers.ts` > `oauthLogin()`
   - 서버 토큰 갱신: `apps/server/src/modules/auth/handlers.ts` > `refreshToken()`
   - 인증 미들웨어: `apps/server/src/middleware/auth.ts` > `authenticate()`
-  - 모바일 컨트롤러: `apps/mobile/apps/wowa/lib/app/modules/login/controllers/login_controller.dart`
-  - 모바일 Repository: `apps/mobile/apps/wowa/lib/app/data/repositories/auth_repository.dart`
-  - 소셜 프로바이더: `apps/mobile/apps/wowa/lib/app/services/social_login/`
-- **주요 개선 필요**: Apple 공개키 서명 검증, 실 서버 연동 테스트
+  - 모바일 SDK: `apps/mobile/packages/auth_sdk/lib/src/`
+  - 모바일 facade: `AuthSdk.initialize()`, `AuthSdk.login()`
+  - 소셜 프로바이더: `apps/mobile/packages/auth_sdk/lib/src/providers/`
+- **새 제품 적용**:
+  1. `apps` 테이블에 앱 레코드 추가 (OAuth 키 설정)
+  2. `AuthSdk.initialize(config)` 호출 (appCode, apiBaseUrl 설정)
+  3. `LoginView`/`LoginBinding` 라우트에 등록
 
 ## FCM 푸시 알림
 
 - **발송 대상**: 단건(userId), 다건(userIds), 전체(all)
-- **서버**: Firebase Admin SDK 래퍼, 배치 발송(500건), 무효 토큰 자동 비활성화
-- **모바일**: Firebase 패키지 미설치, 토큰 등록/알림 수신 미구현
+- **서버**: Firebase Admin SDK 래퍼, 배치 발송(500건), 무효 토큰 자동 비활성화, 수신 기록 추적
+- **모바일**: FCM 토큰 자동 등록, 알림 수신 핸들링 (foreground/background/terminated), 알림 목록/미읽음 수
 - **핵심 진입점**:
   - 서버 디바이스 등록: `apps/server/src/modules/push-alert/handlers.ts` > `registerDevice()`
   - 서버 알림 발송: `apps/server/src/modules/push-alert/handlers.ts` > `sendPush()`
   - FCM 래퍼: `apps/server/src/modules/push-alert/fcm.ts` > `sendToMultipleDevices()`
-- **주요 개선 필요**: 모바일 Firebase 설정, 발송 재시도 로직, send 엔드포인트 인증
+  - 모바일 SDK: `apps/mobile/packages/push/lib/src/`
+  - 모바일 서비스: `PushService` (FCM 초기화, 토큰 관리)
+  - 모바일 API: `PushApiClient` (디바이스 등록, 알림 조회)
+- **새 제품 적용**:
+  1. `apps` 테이블에 FCM 인증 정보 설정
+  2. `PushService` 전역 등록 + `PushApiClient` 초기화
+  3. FCM 토큰 변경 시 `ever` watcher로 자동 서버 동기화
 
 ## QnA (질문과 답변)
 
 - **GitHub Issue 연동**: 사용자 질문을 GitHub Issue로 자동 생성
-- **멀티테넌트**: `appCode`로 앱별 GitHub 저장소 분리 (앱당 독립적 설정)
+- **멀티테넌트**: `appCode`로 앱별 GitHub 저장소 분리
 - **선택적 인증**: 로그인/비로그인 사용자 모두 질문 가능
-- **서버**: GitHub App 인증 (Octokit SDK), Rate Limit 자동 대응, Domain Probe 로그
-- **모바일**: 질문 작성 화면 (SketchInput + SketchButton + SketchModal), GetX 상태 관리
 - **핵심 진입점**:
   - 서버 질문 제출: `apps/server/src/modules/qna/handlers.ts` > `submitQuestion()`
   - 서버 GitHub 연동: `apps/server/src/modules/qna/github.ts` > `createGitHubIssue()`
-  - 서버 Octokit 캐싱: `apps/server/src/modules/qna/octokit.ts` > `getOctokitInstance()`
   - 선택적 인증: `apps/server/src/middleware/optional-auth.ts` > `optionalAuthenticate()`
-  - 모바일 컨트롤러: `apps/mobile/apps/wowa/lib/app/modules/qna/controllers/qna_controller.dart`
-  - 모바일 Repository: `apps/mobile/apps/wowa/lib/app/data/repositories/qna_repository.dart`
-  - 모바일 화면: `apps/mobile/apps/wowa/lib/app/modules/qna/views/qna_submit_view.dart`
-- **새 제품 적용 방법**:
-  1. `qna_config` 테이블에 앱별 GitHub App 설정 추가 (appId, repoOwner, repoName, installationId, privateKey)
-  2. `apps` 테이블에 새 앱 레코드 추가 (code: "새앱코드")
-  3. 모바일에서 `Get.toNamed(Routes.QNA)` 호출 (QnaRepository의 appCode 변경)
-  4. API 호출: `POST /qna/questions { appCode: "새앱코드", title: "...", body: "..." }`
-- **설계 문서**: [`qna/server-brief.md`](./qna/server-brief.md), [`qna/mobile-design-spec.md`](./qna/mobile-design-spec.md), [`qna/mobile-brief.md`](./qna/mobile-brief.md)
+  - 모바일 SDK: `apps/mobile/packages/qna/lib/src/`
+  - 모바일 컨트롤러: `QnaController` (qna 패키지 내장)
+  - 모바일 화면: `QnaSubmitView` (qna 패키지 내장)
+- **새 제품 적용**:
+  1. `qna_config` 테이블에 앱별 GitHub App 설정 추가
+  2. `QnaBinding(appCode: '새앱코드')` 라우트에 등록
+  3. `POST /qna/questions { appCode: "새앱코드", ... }` 자동 처리
 
 ## 공지사항 (Notice)
 
@@ -68,15 +72,32 @@
 - **모바일**: 목록/상세 화면, 미읽음 배지, 페이지네이션
 - **핵심 진입점**:
   - 서버 핸들러: `apps/server/src/modules/notice/handlers.ts`
-  - 서버 스키마: `apps/server/src/modules/notice/schema.ts` (notices, notice_reads)
-  - 관리자 인증: `apps/server/src/middleware/admin-auth.ts` > `requireAdmin()`
-  - 모바일 컨트롤러: `apps/mobile/packages/notice/lib/src/controllers/`
-  - 모바일 화면: `apps/mobile/packages/notice/lib/src/views/`
-  - 모바일 위젯: `apps/mobile/packages/notice/lib/src/widgets/` (NoticeListCard, UnreadNoticeBadge)
-- **새 제품 적용 방법**:
-  1. `apps` 테이블에 앱 레코드 추가 (code: "새앱코드")
-  2. 서버: `authenticate` 미들웨어로 앱별 자동 분리 (appCode 기반)
-  3. 모바일: notice 패키지를 앱 의존성에 추가, NoticeRoutes 등록
+  - 서버 관리자: `apps/server/src/modules/notice/admin-handlers.ts`
+  - 모바일 SDK: `apps/mobile/packages/notice/lib/src/`
+  - 모바일 API: `NoticeApiService`
+  - 모바일 위젯: `NoticeListCard`, `UnreadNoticeBadge`
+- **새 제품 적용**:
+  1. `apps` 테이블에 앱 레코드 추가
+  2. notice 패키지를 앱 의존성에 추가, 라우트 등록
+  3. `NoticeApiService` 전역 등록 (appCode 자동 필터링)
+
+## 박스 관리 (Box)
+
+- **서버**: CRUD + 검색 + 멤버십 관리 (단일 박스 정책, 가입 시 기존 탈퇴)
+- **모바일**: 박스 검색/생성, 가입 확인 모달
+- **핵심 진입점**:
+  - 서버: `apps/server/src/modules/box/handlers.ts`
+  - 모바일: `apps/mobile/apps/wowa/lib/app/modules/box/`
+- **특이사항**: 제품 전용 기능 (CrossFit 박스 개념). 재사용 시 SDK 추출 검토 필요
+
+## WOD 관리
+
+- **서버**: WOD 등록/조회, 변경 제안 시스템 (승인/거부), WOD 선택 (스냅샷)
+- **모바일**: 5개 화면 (홈, 등록, 상세, 선택, 제안 검토), 4가지 WOD 타입 지원
+- **핵심 진입점**:
+  - 서버: `apps/server/src/modules/wod/handlers.ts`
+  - 모바일: `apps/mobile/apps/wowa/lib/app/modules/wod/`
+- **특이사항**: 제품 전용 기능. 재사용 시 SDK 추출 검토 필요
 
 ## 제품별 카탈로그 참조
 

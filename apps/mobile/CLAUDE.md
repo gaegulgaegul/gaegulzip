@@ -36,6 +36,7 @@ core (foundation — no internal dependencies)
   ├── auth_sdk     (Authentication SDK with Dio)
   ├── notice       (Notice SDK with Dio)
   ├── qna          (Q&A SDK with Dio)
+  ├── admob        (Google AdMob SDK)
   └── wowa app     (state management, routing, features)
 ```
 
@@ -44,6 +45,7 @@ core (foundation — no internal dependencies)
 
 ## SDK Convention
 
+- **SDK는 항상 모바일(Flutter) 패키지만 해당** — 서버는 `apps/server/src/modules/`로 유지
 - SDK 위치: `packages/*_sdk/` 또는 `packages/[feature]/`
 - SDK는 `core`, `design_system`에 의존 가능, `wowa` 앱에 의존 금지
 - SDK는 앱에 독립적 — 하드코딩된 앱 이름, 라우트, 화면 이동 금지
@@ -73,4 +75,20 @@ core (foundation — no internal dependencies)
 - **GetX controller not found**: binding 등록 확인, `Get.lazyPut()` 사용
 - **Obx 업데이트 안 됨**: `.obs` 확인, `.value` 사용, const 위젯 내부 확인
 
-📖 상세 가이드 및 SDK 패키지 목록: Root `CLAUDE.md` > Documentation References / Core Features 참조
+## Documentation References
+
+**구현 전 해당 가이드를 먼저 읽으세요.**
+
+| 상황 | 참조 가이드 |
+|------|------------|
+| 새 화면/기능 추가 | `.claude/guide/mobile/directory_structure.md` |
+| GetX Controller, Binding | `.claude/guide/mobile/getx_best_practices.md` |
+| 위젯 개발, 성능 최적화 | `.claude/guide/mobile/flutter_best_practices.md` |
+| UI 컴포넌트, Frame0 테마 | `.claude/guide/mobile/design_system.md` |
+| 디자인 시스템 연동 | `packages/design_system/README.md` |
+| 주석 작성 (한글 정책) | `.claude/guide/mobile/comments.md` |
+| 에러 처리 | `.claude/guide/mobile/error_handling.md` |
+| 자주 쓰는 위젯 | `.claude/guide/mobile/common_widgets.md` |
+| Import, 의존성 패턴 | `.claude/guide/mobile/common_patterns.md` |
+| 렌더링 성능 | `.claude/guide/mobile/performance.md` |
+| 디자인 토큰 | `.claude/guide/mobile/design-tokens.json` |

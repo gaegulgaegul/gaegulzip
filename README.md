@@ -131,9 +131,11 @@ pnpm --filter gaegulzip-admin build   # 프로덕션 빌드
 ## 배포
 
 - **서버**: Docker 멀티스테이지 빌드 → Render (싱가포르, free tier)
-- **헬스체크**: `GET /health`
-- **API 문서**: `GET /api-docs` (Swagger UI)
-- 환경변수(`DATABASE_URL`, `JWT_SECRET_FALLBACK` 등)는 Render 대시보드에서 설정
+  - 헬스체크: `GET /health`
+  - API 문서: `GET /api-docs` (Swagger UI)
+  - 환경변수는 Render 대시보드에서 설정
+- **웹**: Vercel (Hobby 플랜, 비상업적 용도)
+  - Serverless Function 12개 제한
 
 ## 환경변수
 
@@ -160,13 +162,14 @@ pnpm --filter gaegulzip-admin build   # 프로덕션 빌드
 | 상태 관리 | GetX |
 | HTTP 클라이언트 | Dio (각 SDK 독립적으로 포함) |
 | 코드 생성 | Freezed + json_serializable |
-| 웹 프레임워크 | Next.js 16 (App Router) |
-| 웹 UI | shadcn/ui + Tailwind CSS v4 |
+| 웹 프레임워크 | Next.js 15~16 (App Router) |
+| 웹 UI | shadcn/ui + Tailwind CSS v4 (admin) / Custom + GSAP (talmosang) |
 | 모노레포 | pnpm + Turborepo (서버/웹) / Melos (모바일) |
 | 테스트 | Vitest (서버) / Playwright (웹 E2E) / 모바일은 테스트 안 함 |
-| 배포 | Docker + Render (서버) |
+| 배포 | Docker + Render (서버) / Vercel (웹) |
 
 ## 현재 제품
 
 - **[WOWA (오와)](docs/wowa/mvp/prd.md)** — 크로스핏 WOD 알리미. 박스 구성원 누구나 WOD를 등록·수정하고, 합의된 WOD를 기준으로 기록과 선택을 돕는 앱
-- **Admin** — WOWA 관리자 대시보드 (Next.js). 공지사항 관리, 사용자 관리 등
+- **Admin** — WOWA 관리자 대시보드 (Next.js 16). 공지사항, 푸시 알림, 사용자 관리
+- **[탈모상](apps/web/talmosang/)** — AI 두피 분석 웹앱 (Next.js 15). Gemini API로 두피 사진 분석, 유머러스한 탈모 운세 제공
