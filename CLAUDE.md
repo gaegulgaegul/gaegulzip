@@ -21,7 +21,8 @@ gaegulzip/
 │   │       ├── notice/      # Notice SDK
 │   │       └── qna/         # Q&A SDK
 │   └── web/
-│       └── admin/           # Next.js admin dashboard (shadcn/ui)
+│       ├── admin/           # Next.js admin dashboard (shadcn/ui)
+│       └── talmosang/       # Next.js 탈모상 AI 두피 분석 웹앱
 ├── turbo.json              # Turborepo task configuration
 ├── pnpm-workspace.yaml     # pnpm workspace definition
 └── melos.yaml              # Melos configuration for Flutter packages
@@ -43,7 +44,8 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 |----------|-----------|------|
 | Server | `apps/server/CLAUDE.md` | 서버 커맨드, Express 컨벤션, API 설계, Drizzle ORM, 로깅, 테스팅 |
 | Mobile | `apps/mobile/CLAUDE.md` | 모바일 커맨드, 패키지 구조, Flutter/GetX/Design System, 코드 생성, Troubleshooting |
-| Web | `apps/web/admin/CLAUDE.md` | Next.js 16 + shadcn/ui, Tailwind CSS, Playwright E2E only |
+| Web (admin) | `apps/web/admin/CLAUDE.md` | Next.js 16 + shadcn/ui, Tailwind CSS, Playwright E2E only |
+| Web (talmosang) | `apps/web/talmosang/` | Next.js 15 + Tailwind CSS v4, Gemini API 두피 분석 |
 
 ## Core Principles
 
@@ -94,12 +96,12 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 | 렌더링 성능, 리빌드 최소화 | `.claude/guide/mobile/performance.md` |
 | 디자인 토큰 (색상, 타이포, 간격) | `.claude/guide/mobile/design-tokens.json` |
 
-Serena Usage (MANDATORY)
-Always use serena MCP tools:
-find_symbol: Locate classes, functions, variables
-get_symbols_overview: Understand file structure
-find_referencing_symbols: Check dependencies before changes
-insert_after_symbol / insert_before_symbol: For code insertion
-replace_symbol: For refactoring
-Never use grep/ripgrep when serena can do semantic search.
-Never read entire files - use serena to get relevant symbols only
+## Serena Usage (MANDATORY)
+
+- `find_symbol`: Locate classes, functions, variables
+- `get_symbols_overview`: Understand file structure
+- `find_referencing_symbols`: Check dependencies before changes
+- `insert_after_symbol` / `insert_before_symbol`: For code insertion
+- `replace_symbol`: For refactoring
+- Never use grep/ripgrep when serena can do semantic search
+- Never read entire files — use serena to get relevant symbols only
