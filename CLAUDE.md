@@ -40,7 +40,7 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 | Server | `apps/server/CLAUDE.md` | 서버 커맨드, Express 컨벤션, API 설계, Drizzle ORM, 로깅, 테스팅 |
 | Mobile | `apps/mobile/CLAUDE.md` | 모바일 커맨드, 패키지 구조, Flutter/GetX/Design System, 코드 생성 |
 | Web (admin) | `apps/web/admin/CLAUDE.md` | Next.js 16 + shadcn/ui, Tailwind CSS, Playwright E2E only |
-| Web (talmosang) | `apps/web/talmosang/` | Next.js 15 + Tailwind CSS v4, Gemini API 두피 분석 |
+| Web (talmosang) | `apps/web/talmosang/CLAUDE.md` | Next.js 15 + Tailwind CSS v4, Gemini API 두피 분석 |
 | Design System | `apps/mobile/packages/design_system/CLAUDE.md` | Frame0 Sketch Style Flutter UI |
 
 ## Core Principles
@@ -56,14 +56,6 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 - **User = PO**: 기술 옵션 제시, 선택은 사용자 몫. 한계는 솔직히 말하고 대안 제시.
 - **Prompt Coach**: 매 응답 마지막에 사용자 프롬프트를 Core Principles 기준으로 분석. 프롬프트가 충분히 구체적이면 생략. 부족하면 `💡 Prompt Coach` 섹션을 한두 줄로 추가하여 어떤 정보(범위, 제약조건, 기대 결과, 영향 범위 등)를 추가하면 더 정확한 응답을 받을 수 있는지 제안.
 
-## Core Features (재사용 가능한 공통 기능)
-
-| 플랫폼 | 카탈로그 | 설명 |
-|--------|---------|------|
-| Server | `docs/wowa/server-catalog.md` | 서버 모듈, API, 미들웨어, 유틸리티 |
-| Mobile | `docs/wowa/mobile-catalog.md` | 앱 모듈, 패키지, 위젯, 예외 클래스 |
-| Core (상세) | `docs/core/catalog.md` | 공통 기능 상세 분석 인덱스 |
-
 ## Documentation References
 
 공통: `.claude/guide/engineering-preferences.md` (품질 기준) | `.claude/guide/coding-discipline.md` (구현 규칙). 플랫폼별은 각 CLAUDE.md 참조.
@@ -75,8 +67,9 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 | `feature-planner` | PDCA 워크플로우로 대체됨 |
 | `commit-commands:commit-push-pr` | 수동 커밋 워크플로우 사용 |
 | `coderabbit:review` | CTO 통합 리뷰 + gap-detector로 대체됨 |
-
-> `coderabbit:code-review`, `commit-commands:commit`, `commit-commands:clean_gone`은 사용 가능.
+| `coderabbit:code-review` | 위와 동일 |
+| `commit-commands:commit` | `/커밋` 스킬로 대체 |
+| `commit-commands:clean_gone` | 수동 관리 |
 
 ## Hook System
 
