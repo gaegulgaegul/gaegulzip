@@ -55,11 +55,11 @@
   },
   "enabledPlugins": {
     "bkit@bkit-marketplace": true,
-    "coderabbit@claude-plugins-official": true,
+    "coderabbit@claude-plugins-official": false,
     "claude-mem@thedotmack": true,
     "frontend-design@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": false,
-    "commit-commands@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": false,
     "code-architect@cc-marketplace": false,
     "codebase-documenter@cc-marketplace": false,
     "code-refactoring@claude-code-workflows": false,
