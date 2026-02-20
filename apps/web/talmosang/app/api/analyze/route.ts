@@ -144,6 +144,11 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('분석 오류:', error);
 
+    // 타임아웃 (AbortController)
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json({ error: ERROR_MESSAGES.TIMEOUT }, { status: 504 });
+    }
+
     // 네트워크 오류
     if (error instanceof TypeError && error.message.includes('fetch')) {
       return NextResponse.json({ error: ERROR_MESSAGES.NETWORK_ERROR }, { status: 503 });

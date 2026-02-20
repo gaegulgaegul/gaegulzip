@@ -92,7 +92,7 @@ export default function HomePage() {
     setError(null);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30_000);
+    const timeout = setTimeout(() => controller.abort(), 35_000);
 
     try {
       // 1. 이미지 리사이즈 및 Base64 변환

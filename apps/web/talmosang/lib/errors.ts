@@ -28,4 +28,7 @@ export const ERROR_MESSAGES = {
 
   /** API 키 미설정 */
   API_KEY_MISSING: '관상가가 아직 준비 중이옵니다',
+
+  /** 요청 타임아웃 */
+  TIMEOUT: '분석 시간이 초과되었사옵니다. 잠시 후 다시 시도해주시게.',
 } as const;

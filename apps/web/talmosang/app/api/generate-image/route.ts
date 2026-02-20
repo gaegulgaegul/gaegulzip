@@ -115,6 +115,14 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('이미지 생성 오류:', error);
 
+    // 타임아웃 (AbortController)
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json(
+        { image: null, error: ERROR_MESSAGES.TIMEOUT } satisfies GenerateImageResponse,
+        { status: 504 }
+      );
+    }
+
     // 네트워크 오류
     if (error instanceof TypeError && error.message.includes('fetch')) {
       return NextResponse.json(
