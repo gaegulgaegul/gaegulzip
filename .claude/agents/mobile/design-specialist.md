@@ -14,6 +14,7 @@ tools:
   - mcp__plugin_context7_context7__query-docs
   - mcp__plugin_claude-mem_mem-search__search
   - mcp__plugin_claude-mem_mem-search__get_recent_context
+  - mcp__plugin_serena_serena__*
 model: sonnet
 ---
 
