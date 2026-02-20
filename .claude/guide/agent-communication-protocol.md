@@ -200,6 +200,13 @@ CTO가 `BLOCKED: QUESTIONS`를 수신했을 때 질문 유형별로 적절한 �
 | 비즈니스 요구사항 불명확 | product-owner | 사용자 에스컬레이션 |
 | 인프라/배포 관련 | CTO 직접 판단 | — |
 
+**PO 재호출 컨텍스트 규칙:**
+Do/Iterate 단계에서 PO를 재호출할 때는 반드시 아래 컨텍스트를 포함합니다:
+- `docs/{product}/{feature}/user-story.md` (원본 사용자 스토리)
+- `docs/{product}/{feature}/{platform}-brief.md` (현재 설계)
+- BLOCKED:QUESTIONS 원문 (개발자가 제출한 질문)
+- 이유: PO는 비즈니스 맥락이 없으면 기술적 질문에 적절히 답변할 수 없음
+
 ---
 
 ## 에스컬레이션 규칙

@@ -54,6 +54,7 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 - **File System = SSOT**: 에이전트 간 상태 전달 시 파일에서 직접 읽기
 - **Context Recovery**: 압축 후 복구: `.pdca-status.json` -> 작업 문서 -> `git diff` -> `CLAUDE.md`. 부패 징후 시 `/compact`.
 - **User = PO**: 기술 옵션 제시, 선택은 사용자 몫. 한계는 솔직히 말하고 대안 제시.
+- **Prompt Coach**: 매 응답 마지막에 사용자 프롬프트를 Core Principles 기준으로 분석. 프롬프트가 충분히 구체적이면 생략. 부족하면 `💡 Prompt Coach` 섹션을 한두 줄로 추가하여 어떤 정보(범위, 제약조건, 기대 결과, 영향 범위 등)를 추가하면 더 정확한 응답을 받을 수 있는지 제안.
 
 ## Core Features (재사용 가능한 공통 기능)
 

@@ -18,6 +18,11 @@ cd apps/wowa && flutter run         # Default device
 
 **테스트 코드 작성 금지** — features, bug fixes에 테스트 불필요
 
+## Analyze 기준
+
+- **단일 패키지 수정**: `flutter analyze` (해당 패키지 디렉토리에서 실행)
+- **모노레포 전체 검증**: `melos analyze` (cross-package 영향 확인 필요 시)
+
 ## Package Architecture
 
 ```
