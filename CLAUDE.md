@@ -19,7 +19,8 @@ gaegulzip/
 │   │       ├── auth_sdk/    # Authentication SDK (social login, token management)
 │   │       ├── push/        # Push notification SDK
 │   │       ├── notice/      # Notice SDK
-│   │       └── qna/         # Q&A SDK
+│   │       ├── qna/         # Q&A SDK
+│   │       └── admob/       # Google AdMob SDK
 │   └── web/
 │       ├── admin/           # Next.js admin dashboard (shadcn/ui)
 │       └── talmosang/       # Next.js 탈모상 AI 두피 분석 웹앱
@@ -51,12 +52,7 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 
 - **Avoid over-engineering**: Make only necessary changes, don't add features beyond what's requested
 - **No backwards-compatibility hacks**: Delete unused code completely instead of renaming or commenting
-
-## SDK Convention
-
-- **SDK는 항상 모바일(Flutter) 패키지만 해당** — `apps/mobile/packages/` 하위에 생성
-- **서버는 SDK로 추출하지 않음** — 서버 기능은 `apps/server/src/modules/` 내 모듈로 유지
-- 서버 API를 모바일에서 사용할 때: 모바일 SDK 패키지가 서버 API를 호출하는 구조
+- **SDK = Flutter 패키지만** — 서버는 `modules/`로 유지 (상세: Mobile CLAUDE.md)
 
 ## Core Features (재사용 가능한 공통 기능)
 
@@ -70,31 +66,11 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 
 ## Documentation References
 
-**Read the relevant guide before implementing.**
+구현 전 해당 플랫폼 가이드를 먼저 읽으세요.
 
-### Server
-
-| 상황 | 참조 가이드 |
-|------|------------|
-| API 엔드포인트 작성, 응답 형식 설계 | `.claude/guide/server/api-response-design.md` |
-| 에러 처리, AppError 클래스 사용 | `.claude/guide/server/exception-handling.md` |
-| 로그 추가, Domain Probe 패턴 | `.claude/guide/server/logging-best-practices.md` |
-
-### Mobile
-
-| 상황 | 참조 가이드 |
-|------|------------|
-| 새 화면/기능 추가, 디렉토리 구조 결정 | `.claude/guide/mobile/directory_structure.md` |
-| GetX Controller, Binding, 상태 관리 | `.claude/guide/mobile/getx_best_practices.md` |
-| 위젯 개발, const 생성자, 성능 최적화 | `.claude/guide/mobile/flutter_best_practices.md` |
-| UI 컴포넌트, Frame0 스케치 스타일 테마 | `.claude/guide/mobile/design_system.md` |
-| 디자인 시스템 연동 (테마, 폰트, 다크모드) | `apps/mobile/packages/design_system/README.md` |
-| 주석 작성 (한글 정책) | `.claude/guide/mobile/comments.md` |
-| 에러 처리 (Controller/View) | `.claude/guide/mobile/error_handling.md` |
-| 자주 쓰는 위젯, 레이아웃 패턴 | `.claude/guide/mobile/common_widgets.md` |
-| Import, 패키지 간 의존성 패턴 | `.claude/guide/mobile/common_patterns.md` |
-| 렌더링 성능, 리빌드 최소화 | `.claude/guide/mobile/performance.md` |
-| 디자인 토큰 (색상, 타이포, 간격) | `.claude/guide/mobile/design-tokens.json` |
+- **Server**: `.claude/guide/server/` — API 설계, 예외 처리, 로깅
+- **Mobile**: `.claude/guide/mobile/` — 디렉토리 구조, GetX, 위젯, 디자인 시스템, 성능
+- 각 플랫폼 CLAUDE.md에 상세 가이드 테이블 포함
 
 ## Serena Usage (MANDATORY)
 
