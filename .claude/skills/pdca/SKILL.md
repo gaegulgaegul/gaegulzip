@@ -6,17 +6,21 @@ description: |
   uses platform-specific document paths from bkit.config.json.
 
   Agent workflow per phase:
-  - Plan: PO → CTO (platform routing)
+  - Research: clarify (Skill) → research-director (brainstorming + 조사)
+  - Plan: PO → interactive-review:review (Skill, 사용자 승인) → CTO (platform routing)
   - Design: ui-ux-designer → frontend-design (Skill) → tech-lead (per frontend platform)
   - Do: CTO (work distribution) → node-developer + flutter-developer + react-developer → test-scenario-generator (mobile only)
   - Analyze: gap-detector + independent-reviewer (mobile) + CTO (integration review)
   - Iterate/Report: bkit agents
 
-  Triggers: pdca, plan, design, analyze, report, status, next, iterate
+  Triggers: pdca, research, plan, design, analyze, report, status, next, iterate
 argument-hint: "[action] [feature]"
 user-invocable: true
 agents:
+  research-brainstorm: clarify (Skill)
+  research-director: bkit/research-director
   plan: product-owner
+  plan-review: interactive-review:review (Skill)
   routing: cto
   design-server: server/tech-lead
   design-mobile-ui: mobile/ui-ux-designer
@@ -111,7 +115,8 @@ When calling agents via Task tool, always append to the prompt:
 
 | Argument | Description | Example |
 |----------|-------------|---------|
-| `plan [feature]` | PO → CTO routing | `/pdca plan user-auth` |
+| `research [feature]` | clarify → research-director | `/pdca research user-auth` |
+| `plan [feature]` | PO → interactive-review → CTO routing | `/pdca plan user-auth` |
 | `design [feature]` | Design docs (per platform) | `/pdca design user-auth` |
 | `do [feature]` | CTO distribution → dev agents | `/pdca do user-auth` |
 | `analyze [feature]` | Gap analysis + CTO review | `/pdca analyze user-auth` |
@@ -126,7 +131,40 @@ When calling agents via Task tool, always append to the prompt:
 
 ## Phase Details
 
-### plan (Plan Phase) — PO Agent → CTO Agent
+### research (Research Phase) — clarify Skill → research-director Agent
+
+**Step 1: clarify Skill로 아이디어 브레인스토밍 (필수)**
+
+```
+Skill("clarify", args="{feature} — {user's description}")
+```
+
+> clarify Skill은 소크라테스식 질문법으로 모호한 아이디어를 구체화합니다.
+> 사용자의 요구사항이 충분히 명확해질 때까지 질의응답을 진행합니다.
+
+**Step 2: research-director Agent로 기술 조사**
+
+clarify로 요구사항이 구체화된 후, 기술 조사를 진행합니다:
+
+```
+Task(subagent_type="bkit:research-director", prompt="""
+Feature: {feature}
+Context: [clarify 결과 요약]
+
+Perform technical research for this feature.
+Output: docs/{product}/{feature}/research.md
+""")
+```
+
+**Step 3: Update status**
+
+```json
+{ "phase": "research", "documents": { "research": "docs/{product}/{feature}/research.md" } }
+```
+
+---
+
+### plan (Plan Phase) — PO Agent → interactive-review → CTO Agent
 
 **Step 0: 아이디어 브레인스토밍 (MANDATORY — PO 호출 전)**
 
@@ -806,7 +844,7 @@ Platform: {platform}
 Phase: {phase}
 Match Rate: {matchRate}%
 ─────────────────────────────
-[Plan] ✅ → [Design] ✅ → [Do] 🔄 → [Check] ⏳ → [Act] ⏳
+[Research] ✅ → [Plan] ✅ → [Design] ✅ → [Do] 🔄 → [Check] ⏳ → [Act] ⏳
 ```
 
 ---
@@ -815,7 +853,8 @@ Match Rate: {matchRate}%
 
 | Current | Next | Action |
 |---------|------|--------|
-| None | plan | PO → CTO routing |
+| None | research | clarify → research-director |
+| research | plan | PO → interactive-review → CTO routing |
 | plan | design | Platform-based design agents |
 | design | do | CTO distribution → dev agents |
 | do | check | Gap analysis + CTO review |
