@@ -120,7 +120,7 @@
       "agents": {
         "research": "bkit/research-director",
         "plan": "product-owner",
-        "design": ["mobile/ui-ux-designer", "mobile/tech-lead"],
+        "design": ["mobile/ui-ux-designer", "frontend-design (Skill)", "mobile/tech-lead"],
         "do": "mobile/flutter-developer",
         "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
         "act": "bkit/pdca-iterator",
@@ -136,7 +136,7 @@
       "agents": {
         "research": "bkit/research-director",
         "plan": "product-owner",
-        "design": ["web/ui-ux-designer", "web/tech-lead"],
+        "design": ["web/ui-ux-designer", "frontend-design (Skill)", "web/tech-lead"],
         "do": "web/react-developer",
         "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
         "act": "bkit/pdca-iterator",
@@ -149,8 +149,8 @@
         "research": "bkit/research-director",
         "plan": "product-owner",
         "design-server": "server/tech-lead",
-        "design-mobile": ["mobile/ui-ux-designer", "mobile/tech-lead"],
-        "design-web": ["web/ui-ux-designer", "web/tech-lead"],
+        "design-mobile": ["mobile/ui-ux-designer", "frontend-design (Skill)", "mobile/tech-lead"],
+        "design-web": ["web/ui-ux-designer", "frontend-design (Skill)", "web/tech-lead"],
         "do-server": "server/node-developer",
         "do-mobile": "mobile/flutter-developer",
         "do-web": "web/react-developer",
