@@ -15,6 +15,7 @@ tools:
   - mcp__plugin_context7_context7__*
   - mcp__plugin_claude-mem_mem-search__*
   - mcp__plugin_interactive-review_interactive_review__*
+  - mcp__plugin_serena_serena__*
   - mcp__supabase__*
 model: sonnet
 ---
