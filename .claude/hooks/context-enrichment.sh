@@ -1,7 +1,8 @@
 #!/bin/bash
 # context-enrichment.sh — UserPromptSubmit Hook
-# PDCA 상태 + 목표 반복 주입(Recitation Pattern) + 최근 git 변경사항을 additionalContext로 주입
-# 700자 이내
+# 1) 프롬프트 코칭 지시 (PDCA 무관, 항상 주입)
+# 2) PDCA 상태 + 목표 반복 주입(Recitation Pattern) + 최근 git 변경사항
+# 900자 이내
 
 set -euo pipefail
 
@@ -109,13 +110,18 @@ except:
 " 2>/dev/null)
 fi
 
-# additionalContext JSON 출력 (500자 이내)
+# 프롬프트 코칭 지시 (PDCA 무관, 항상 주입)
+PROMPT_COACH="PROMPT_COACH: 응답 마지막에 사용자 프롬프트를 CLAUDE.md Core Principles 기준으로 분석. 프롬프트가 충분히 구체적이면 생략. 부족하면 '💡 Prompt Coach' 섹션을 한두 줄로 추가하여 어떤 정보(범위, 제약조건, 기대 결과, 영향 범위 등)를 추가하면 더 정확한 응답을 받을 수 있는지 제안. 기준: Surface Assumptions, Simplicity First, Surgical Changes, Goal-Driven Execution."
+
+# additionalContext JSON 출력 (900자 이내)
 python3 -c "
 import json
+coach = '''$PROMPT_COACH'''.strip()
 pdca = '''$PDCA_INFO'''.strip()
 git_log = '''$GIT_LOG'''.strip()
 hint = '''$PHASE_HINT'''.strip()
 ctx = []
+ctx.append(coach)
 if pdca:
     ctx.append(pdca)
 if hint:
@@ -123,11 +129,10 @@ if hint:
 if git_log:
     ctx.append('Recent commits: ' + git_log.replace('\n', ' | '))
 msg = '; '.join(ctx)
-# 700자 제한 (Recitation Pattern 추가로 여유 확보)
-if len(msg) > 700:
-    msg = msg[:697] + '...'
-if msg:
-    print(json.dumps({'additionalContext': msg}))
+# 900자 제한
+if len(msg) > 900:
+    msg = msg[:897] + '...'
+print(json.dumps({'additionalContext': msg}))
 " 2>/dev/null
 
 exit 0

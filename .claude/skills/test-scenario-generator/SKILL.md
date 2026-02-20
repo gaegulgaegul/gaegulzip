@@ -21,6 +21,24 @@ description: |
 
 ### 0️⃣ 사전 준비 (필수)
 
+#### mobile-mcp 연결 확인 (iOS 시뮬레이터)
+
+mobile-mcp를 사용하려면 **WebDriverAgent(WDA)**가 시뮬레이터 위에서 실행 중이어야 합니다.
+
+1. iOS 시뮬레이터를 부팅합니다
+2. 별도 터미널에서 WDA를 실행합니다:
+```bash
+cd ~/dev/tools/WebDriverAgent
+xcodebuild -project WebDriverAgent.xcodeproj \
+  -scheme WebDriverAgentRunner \
+  -destination 'platform=iOS Simulator,name={시뮬레이터 이름}' \
+  test
+```
+3. `mobile_list_available_devices`로 시뮬레이터가 인식되는지 확인합니다
+
+> **주의**: WDA 터미널을 닫으면 mobile-mcp 연결이 끊깁니다. 테스트 중에는 WDA를 계속 실행해두세요.
+> 시뮬레이터가 여러 개 부팅되어 있으면 mobile-mcp는 첫 번째 것만 인식합니다.
+
 #### 가이드 파일 읽기
 ```
 Read(".claude/guide/mobile/flutter_best_practices.md")
@@ -229,6 +247,7 @@ mobile_uninstall_app          # 앱 삭제
 
 - [ ] 앱이 빌드되고 실행 가능한 상태
 - [ ] 에뮬레이터/시뮬레이터가 실행 중
+- [ ] WebDriverAgent가 실행 중 (iOS 시뮬레이터인 경우)
 - [ ] API 서버가 정상 동작 중 (필요 시)
 
 ---
