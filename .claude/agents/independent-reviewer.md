@@ -12,6 +12,7 @@ tools:
   - Grep
   - Bash
   - mcp__plugin_serena_serena__*
+  - mcp__mobile-mcp__*
 model: sonnet
 ---
 
@@ -128,9 +129,17 @@ flutter run --debug
 
 ## Fullstack 모드
 
+### 추가 참조 문서
+```
+Read("docs/[product]/[feature]/api-contract.md")
+```
+- API Contract는 Server ↔ Frontend 간 인터페이스 명세
+- Cross-platform 검증 시 api-contract.md의 엔드포인트/타입과 실제 구현 비교
+
+### 검증 프로세스
 1. Server 모드로 API + 비즈니스 로직 검증
 2. Mobile 모드로 UI/UX + 동작 검증
-3. **Cross-platform 검증**: API 호출이 올바르게 연동되는지 확인
+3. **Cross-platform 검증**: api-contract.md 기준으로 API 호출이 올바르게 연동되는지 확인
 
 ### 출력
 - `docs/[product]/[feature]/review-report.md` (양쪽 결과 통합)

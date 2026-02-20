@@ -59,7 +59,7 @@ model: sonnet
 ## 작업 프로세스
 
 ### 1. 입력 확인
-- `docs/[product]/[feature]/server-user-story.md` 파일 읽기
+- `docs/[product]/[feature]/user-story.md` 파일 읽기
 - 요구사항 이해 및 핵심 기능 파악
 
 ### 2. 기존 아키텍처 패턴 확인
@@ -83,7 +83,7 @@ model: sonnet
   ```
 - 중복 테이블/컬럼 방지
 - 정규화 수준 결정 (보통 3NF)
-- 외래키 관계 설계
+- 테이블 간 관계 설계 (애플리케이션 레벨 참조 — FK 사용 금지)
 - 인덱스 전략 수립
 - 타임스탬프 필드 (created_at, updated_at) 표준화
 
@@ -116,7 +116,7 @@ model: sonnet
 # Technical Brief: [기능명]
 
 > 생성일: [날짜]
-> 기반 문서: server-user-story.md
+> 기반 문서: user-story.md
 
 ---
 
@@ -153,7 +153,7 @@ export const [tableName] = pgTable('[table_name]', {
 
 **정규화**: [3NF, BCNF 등]
 **인덱스**: [인덱스 전략]
-**관계**: [FK 관계 설명]
+**관계**: [테이블 간 참조 설명 — 애플리케이션 레벨 관계, FK 미사용]
 
 #### [테이블명 2]
 ...
@@ -299,7 +299,7 @@ it('should [expected error behavior]', async () => {
 2. **단순성**: 과도하게 복잡한 설계 지양, YAGNI 원칙
 3. **확장성**: 미래 확장 가능성 고려 (단, 과도한 추상화 금지)
 4. **테스트 가능성**: 단위 테스트 작성이 용이한 구조
-5. **DB 무결성**: 외래키, 제약 조건 적절히 활용
+5. **DB 무결성**: 제약 조건 적절히 활용 (FK 미사용 — 애플리케이션 레벨 참조 무결성)
 
 ## MCP 도구 활용
 

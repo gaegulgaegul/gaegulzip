@@ -34,9 +34,18 @@ Read(".claude/guide/coding-discipline.md")
 ## 에이전트 간 통신 프로토콜
 
 ### 자가 해결 3단계 (질문 전 필수)
-1. **문서 확인**: brief.md, api-contract.md 재확인
+1. **문서 확인**: brief.md, api-contract.md (Fullstack인 경우) 재확인
 2. **과거 결정 검색**: claude-mem에서 유사 결정 검색
 3. **기존 코드 패턴 확인**: serena find_symbol/get_symbols_overview로 기존 구현 참조
+
+### Fullstack 모드 참조 문서
+Fullstack 프로젝트에서는 `api-contract.md`를 반드시 참조합니다:
+```
+Read("docs/[product]/[feature]/api-contract.md")
+```
+- API 엔드포인트별 요청/응답 TypeScript 인터페이스
+- Frontend와 공유하는 타입 정의
+- 인증 요구사항
 
 ### 그래도 모르겠으면: 구조화된 질문 반환
 
@@ -191,27 +200,25 @@ pnpm test
 테스트가 통과한 후에만 리팩토링:
 
 ```typescript
-// 에러 핸들링 추가
+// 유효성 검증 추가 (에러는 글로벌 에러 핸들러가 처리 — try-catch 사용 금지)
 export const createUser: RequestHandler = async (req, res) => {
-  try {
-    const { email, name } = req.body;
+  const { email, name } = req.body;
 
-    // Validation
-    if (!email || !name) {
-      res.status(400).json({ error: 'Email and name are required' });
-      return;
-    }
-
-    const [newUser] = await db
-      .insert(users)
-      .values({ email, name })
-      .returning();
-
-    res.status(201).json({ data: newUser });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create user' });
+  // Validation
+  if (!email || !name) {
+    res.status(400).json({ error: 'Email and name are required' });
+    return;
   }
+
+  const [newUser] = await db
+    .insert(users)
+    .values({ email, name })
+    .returning();
+
+  res.status(201).json({ data: newUser });
 };
+// ⚠️ 핸들러에 try-catch를 작성하지 않습니다.
+// 예외는 Express 글로벌 에러 핸들러(app.use(errorHandler))가 처리합니다.
 ```
 
 **리팩토링 후 테스트 재실행**:

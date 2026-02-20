@@ -18,17 +18,19 @@
 
 | 상호작용 | 방향 | 트리거 | 반환 형식 |
 |-----------|------|--------|-----------|
-| research-director → Feasibility Council | CTO + tech-lead 병렬 리뷰 | research.md 작성 완료 | JSON (verdict/complexity) |
+| research-director → CTO 통합 평가 | CTO 단독 리뷰 (아키텍처 + 복잡도) | research.md 작성 완료 | JSON (verdict/complexity) |
 | CTO BLOCK → clarify 재호출 | 양방향 피드백 | verdict == "BLOCK" | clarify Skill 재실행 |
 | CTO CONCERN → 사용자 | 에스컬레이션 | verdict == "CONCERN" or complexity == "High" | AskUserQuestion |
-| tech-lead prerequisites → 사용자 | 사전 준비 안내 | prerequisites 있음 | 사용자 알림 (진행 계속) |
+| CTO prerequisites → 사용자 | 사전 준비 안내 | prerequisites 있음 | 사용자 알림 (진행 계속) |
 
-**Feasibility Council 결과 형식:**
+**CTO 통합 평가 결과 형식:**
 ```json
-// CTO
-{ "verdict": "PASS | CONCERN | BLOCK", "concerns": [], "recommendations": [], "affectedModules": [] }
-// tech-lead
-{ "complexity": "Low | Medium | High", "risks": [], "prerequisites": [], "estimatedScope": "" }
+{
+  "verdict": "PASS | CONCERN | BLOCK",
+  "complexity": "Low | Medium | High",
+  "concerns": [], "risks": [], "prerequisites": [],
+  "recommendations": [], "affectedModules": []
+}
 ```
 
 ### Plan Phase

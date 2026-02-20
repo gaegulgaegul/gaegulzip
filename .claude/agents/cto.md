@@ -159,8 +159,7 @@ Glob("apps/mobile/apps/wowa/lib/app/modules/{feature}/**")
 Plan 문서를 분석하여 기능 특성을 판단합니다:
 
 ```
-Read("docs/[product]/{feature}/server-user-story.md")
-Read("docs/[product]/{feature}/mobile-user-story.md")
+Read("docs/[product]/{feature}/user-story.md")
 ```
 
 **분석 기준**:
