@@ -50,7 +50,10 @@ Turborepo tasks (`turbo.json`): `dev`, `dev:server`, `dev:mobile`, `build`
 
 ## Core Principles
 
-- **Avoid over-engineering**: Make only necessary changes, don't add features beyond what's requested
+- **Surface Assumptions**: 구현 전 가정을 명시. 여러 해석이 가능하면 조용히 하나를 선택하지 말고 제시. 불확실하면 멈추고 질문.
+- **Simplicity First**: 요청된 것만 구현. 단일 사용 추상화 금지. 200줄을 50줄로 줄일 수 있으면 줄일 것. 자가 검증: "시니어 엔지니어가 과하다고 할까?"
+- **Surgical Changes**: 요청과 직접 관련된 코드만 변경. 인접 코드 "개선" 금지. 기존 스타일과 다르더라도 맞출 것. 자기 변경으로 생긴 고아만 정리하고 기존 dead code는 언급만. 검증: "모든 변경 라인이 요청에 직접 연결되는가?"
+- **Goal-Driven Execution**: 모든 작업을 검증 가능한 목표로 변환. "버그 수정" → "버그 재현 테스트 작성 후 통과시키기". 멀티스텝 작업은 각 스텝에 verify 체크포인트 명시.
 - **No backwards-compatibility hacks**: Delete unused code completely instead of renaming or commenting
 - **SDK = Flutter 패키지만** — 서버는 `modules/`로 유지 (상세: Mobile CLAUDE.md)
 - **File System = SSOT**: 파일 시스템이 유일한 진실의 원천(Single Source of Truth). 에이전트 간 상태 전달 시 결과 텍스트가 아닌 파일에서 직접 읽기
