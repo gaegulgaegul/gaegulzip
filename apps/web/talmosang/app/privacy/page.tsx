@@ -13,6 +13,8 @@ export const metadata: Metadata = {
  * AdSense 필수 정책 페이지입니다.
  * 이미지는 서버에 저장하지 않으며, Google AdSense 및 Analytics 쿠키 정책을 포함합니다.
  */
+const LAST_UPDATED = '2026년 2월 20일';
+
 export default function PrivacyPage() {
   return (
     <main className="container mx-auto px-6 py-12 max-w-4xl">
@@ -168,11 +170,26 @@ export default function PrivacyPage() {
           <h2 className="font-nanum-pen text-3xl text-charcoal mb-4">
             6. 사용자 권리
           </h2>
-          <p className="text-charcoal/80 leading-relaxed">
-            본 서비스는 개인정보를 수집하지 않으므로, 별도의 개인정보 열람, 정정,
-            삭제 요청이 필요하지 않습니다. 다만, 광고 쿠키는 브라우저 설정에서
-            삭제할 수 있습니다.
+          <p className="text-charcoal/80 leading-relaxed mb-3">
+            본 서비스는 직접적인 개인정보를 수집하지 않으나, 제3자
+            서비스(Google AdSense)가 광고 목적으로 쿠키를 통해 이용자 데이터를
+            수집할 수 있습니다. 사용자는 다음과 같은 권리를 행사할 수 있습니다:
           </p>
+          <ul className="list-disc list-inside space-y-2 text-charcoal/80 ml-4">
+            <li>브라우저 설정에서 쿠키를 삭제하거나 차단할 수 있습니다</li>
+            <li>
+              <a
+                href="https://adssettings.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-deep-blue underline hover:no-underline"
+              >
+                Google 광고 설정
+              </a>
+              에서 맞춤 광고를 비활성화할 수 있습니다
+            </li>
+            <li>관련 법령에 따라 개인정보 열람·정정·삭제를 요청할 수 있습니다</li>
+          </ul>
         </section>
 
         {/* 7. 면책 사항 */}
@@ -200,7 +217,7 @@ export default function PrivacyPage() {
             있습니다. 변경 시 본 페이지를 통해 공지합니다.
           </p>
           <p className="text-charcoal/70 text-sm mt-4">
-            최종 업데이트: 2026년 2월 14일
+            최종 업데이트: {LAST_UPDATED}
           </p>
         </section>
 
@@ -225,6 +242,17 @@ export default function PrivacyPage() {
               >
                 https://talmosang.vercel.app
               </Link>
+            </p>
+            <p className="text-charcoal/80">
+              <strong>문의:</strong>{' '}
+              <a
+                href="https://github.com/gaegulgaegul/gaegulzip/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-deep-blue underline hover:no-underline"
+              >
+                GitHub Issues
+              </a>
             </p>
           </div>
         </section>
