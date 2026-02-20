@@ -17,6 +17,7 @@ tools:
   - mcp__plugin_context7_context7__*
   - mcp__plugin_claude-mem_mem-search__*
   - mcp__plugin_interactive-review_interactive_review__*
+  - mcp__plugin_serena_serena__*
   - mcp__supabase__*
 model: opus
 ---
@@ -408,6 +409,31 @@ Platform: {Server | Mobile | Web}
 ### Level 3: 전문 에이전트도 실패 → 사용자 에스컬레이션
 - 구조화된 에러 리포트를 사용자에게 전달
 - 리포트 포함 내용: 에러 요약, 시도한 수정, 근본 원인 분석, 권장 조치
+
+---
+
+## 에이전트 질문 라우팅
+
+개발자가 `BLOCKED: QUESTIONS` 상태로 반환하면 아래 절차에 따라 처리합니다.
+
+> 참조: `.claude/guide/agent-communication-protocol.md`
+
+### 라우팅 테이블
+
+| 질문 유형 | 1차 답변자 | 2차 답변자 |
+|-----------|-----------|-----------|
+| API 스펙 불명확 | server/tech-lead | node-developer (기존 구현 참조) |
+| UI 요구사항 불명확 | ui-ux-designer | tech-lead |
+| DB 스키마 관련 | schema-designer | server/tech-lead |
+| 기존 코드 동작 방식 | 해당 플랫폼 developer | tech-lead |
+| 디자인 시스템 관련 | design-specialist | ui-ux-designer |
+| 크로스 플랫폼 의존성 | CTO 직접 판단 | — |
+
+### 처리 절차
+1. 질문 분류 (라우팅 테이블 참조)
+2. CTO가 직접 답변 가능하면 → 답변 포함하여 개발자 재투입
+3. 다른 에이전트가 답변해야 하면 → 해당 에이전트에게 질문 전달 → 답변 수집 → 개발자 재투입
+4. 아무도 답변 불가 → 사용자에게 에스컬레이션
 
 ---
 
