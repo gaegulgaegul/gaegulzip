@@ -10,6 +10,35 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/auto-validate.sh",
+            "timeout": 30000
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/sql-injection-check.sh",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/context-enrichment.sh",
+            "timeout": 5000
+          }
+        ]
+      }
     ]
   },
   "enabledPlugins": {
