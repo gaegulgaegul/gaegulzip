@@ -5,6 +5,12 @@
 > 허용: 사용자 행동, 비즈니스 규칙, 데이터 요구사항, API 계약(엔드포인트+타입), 제약조건.
 > 구현 결정은 Do 단계의 개발자 에이전트 몫이다.
 
+> 📊 **불확실성 지도 (MANDATORY)**: 모든 brief.md 문서는 끝에 "## 불확실성 지도" 섹션을 포함해야 한다.
+> 사용자가 설계 승인 시 어디에 집중 검토해야 하는지 투명하게 안내한다.
+> - **자신있는 판단**: 근거가 명확하여 확신도가 높은 설계 결정
+> - **단순화했을 수 있는 부분**: 복잡도를 과소평가했거나 세부사항을 생략했을 수 있는 영역
+> - **의견이 바뀔 수 있는 조건**: 어떤 정보나 질문이 현재 설계를 변경시킬 수 있는지
+
 **Step 1: Read platform from status**
 
 ```
@@ -33,7 +39,7 @@ research_exists = Glob("docs/{product}/{feature}/research.md")
 
 **Server** — call `server/tech-lead`:
 ```
-Task(subagent_type="tech-lead", prompt="""
+Task(subagent_type="server/tech-lead", prompt="""
 Feature: {feature}
 Platform: Server
 User Story: docs/{product}/{feature}/user-story.md
@@ -46,13 +52,18 @@ Create technical design brief (including API specs, DB schema, business logic).
 - ✅ 허용: 엔드포인트 계약(method+path+타입), 데이터 모델(엔티티+관계), 비즈니스 규칙, 제약조건
 구현 결정은 Do 단계의 node-developer가 한다.
 
+📊 문서 끝에 "## 불확실성 지도" 섹션을 반드시 포함하세요:
+- 자신있는 판단: 근거가 명확한 설계 결정
+- 단순화했을 수 있는 부분: 복잡도를 과소평가했을 수 있는 영역
+- 의견이 바뀔 수 있는 조건: 추가 정보가 있으면 설계가 달라질 수 있는 부분
+
 Output: docs/{product}/{feature}/server-brief.md
 """)
 ```
 
 **Mobile** — call `mobile/ui-ux-designer` first, then `frontend-design` skill, then `mobile/tech-lead`:
 ```
-Task(subagent_type="ui-ux-designer", prompt="""
+Task(subagent_type="mobile/ui-ux-designer", prompt="""
 Feature: {feature}
 User Story: docs/{product}/{feature}/user-story.md
 {if research_exists: "Research: docs/{product}/{feature}/research.md"}
@@ -72,13 +83,14 @@ Skill("frontend-design", args="""
 Feature: {feature}
 Design Spec: docs/{product}/{feature}/mobile-design-spec.md
 
-Review and enhance the design spec with distinctive, production-grade visual design.
-Apply high-quality UI patterns and creative aesthetics.
+Review and enhance the design spec with distinctive visual design.
+텍스트 기반으로 디자인 명세를 보강합니다 (색상, 타이포그래피, 스페이싱, 인터랙션 등).
+코드나 목업 이미지를 생성하지 않습니다. design-spec.md의 텍스트 품질을 높이는 역할입니다.
 Update: docs/{product}/{feature}/mobile-design-spec.md
 """)
 
 # After frontend-design completes:
-Task(subagent_type="tech-lead", prompt="""
+Task(subagent_type="mobile/tech-lead", prompt="""
 Feature: {feature}
 Platform: Mobile
 User Story: docs/{product}/{feature}/user-story.md
@@ -96,13 +108,18 @@ brief.md 끝에 "## Design Pushback" 섹션을 작성하세요.
 
 Design Pushback 섹션이 없으면 모든 디자인 요소가 구현 가능하다는 의미입니다.
 
+📊 문서 끝에 "## 불확실성 지도" 섹션을 반드시 포함하세요:
+- 자신있는 판단: 근거가 명확한 설계 결정
+- 단순화했을 수 있는 부분: 복잡도를 과소평가했을 수 있는 영역
+- 의견이 바뀔 수 있는 조건: 추가 정보가 있으면 설계가 달라질 수 있는 부분
+
 Output: docs/{product}/{feature}/mobile-brief.md
 """)
 ```
 
 **Web** — call `web/ui-ux-designer` first, then `frontend-design` skill, then `web/tech-lead`:
 ```
-Task(subagent_type="ui-ux-designer", prompt="""
+Task(subagent_type="web/ui-ux-designer", prompt="""
 Feature: {feature}
 User Story: docs/{product}/{feature}/user-story.md
 {if research_exists: "Research: docs/{product}/{feature}/research.md"}
@@ -122,13 +139,14 @@ Skill("frontend-design", args="""
 Feature: {feature}
 Design Spec: docs/{product}/{feature}/web-design-spec.md
 
-Review and enhance the design spec with distinctive, production-grade visual design.
-Apply high-quality UI patterns, creative aesthetics, and modern design trends.
+Review and enhance the design spec with distinctive visual design.
+텍스트 기반으로 디자인 명세를 보강합니다 (색상, 타이포그래피, 스페이싱, 인터랙션 등).
+코드나 목업 이미지를 생성하지 않습니다. design-spec.md의 텍스트 품질을 높이는 역할입니다.
 Update: docs/{product}/{feature}/web-design-spec.md
 """)
 
 # After frontend-design completes:
-Task(subagent_type="tech-lead", prompt="""
+Task(subagent_type="web/tech-lead", prompt="""
 Feature: {feature}
 Platform: Web
 User Story: docs/{product}/{feature}/user-story.md
@@ -146,6 +164,11 @@ brief.md 끝에 "## Design Pushback" 섹션을 작성하세요.
 
 Design Pushback 섹션이 없으면 모든 디자인 요소가 구현 가능하다는 의미입니다.
 
+📊 문서 끝에 "## 불확실성 지도" 섹션을 반드시 포함하세요:
+- 자신있는 판단: 근거가 명확한 설계 결정
+- 단순화했을 수 있는 부분: 복잡도를 과소평가했을 수 있는 영역
+- 의견이 바뀔 수 있는 조건: 추가 정보가 있으면 설계가 달라질 수 있는 부분
+
 Output: docs/{product}/{feature}/web-brief.md
 """)
 ```
@@ -160,7 +183,7 @@ Read("docs/{product}/{feature}/{platform}-brief.md")
 
 if "## Design Pushback" in brief_content:
     # 1. 디자이너에게 pushback 전달하여 design-spec 수정
-    Task(subagent_type="ui-ux-designer", prompt="""
+    Task(subagent_type="{platform}/ui-ux-designer", prompt="""
     Feature: {feature}
     기존 Design Spec: docs/{product}/{feature}/{platform}-design-spec.md
     Tech Lead Pushback: docs/{product}/{feature}/{platform}-brief.md의 "## Design Pushback" 섹션
@@ -186,7 +209,7 @@ if "## Design Pushback" in brief_content:
     """)
 
     # 3. tech-lead 재호출하여 brief 갱신 (Pushback 해소 확인)
-    Task(subagent_type="tech-lead", prompt="""
+    Task(subagent_type="{platform}/tech-lead", prompt="""
     Feature: {feature}
     Platform: {platform}
     수정된 Design Spec: docs/{product}/{feature}/{platform}-design-spec.md
@@ -214,9 +237,25 @@ if "## Design Pushback" in brief_content:
 
 > **Pushback이 없으면 이 단계를 건너뜁니다.** 대부분의 경우 tech-lead가 design-spec을 문제 없이 brief로 변환합니다.
 
-**Fullstack** — run Server + frontend (Mobile or Web based on `frontendType`) in parallel where possible.
-- `frontendType: "mobile"` → Server + Mobile agents
-- `frontendType: "web"` → Server + Web agents
+**Pushback 해소 후 brief.md에 변경 요약 추가:**
+
+Pushback이 해소된 경우, brief.md 끝에 `## Design Changes Summary` 섹션을 추가합니다:
+
+```markdown
+## Design Changes Summary
+
+| 변경 항목 | 원본 디자인 | 수정 결과 | 이유 |
+|-----------|------------|----------|------|
+| {항목} | {원본} | {수정} | {Tech Lead 피드백 요약} |
+```
+
+> 이 섹션은 Do 단계에서 개발자가 변경 맥락을 이해하는 데 사용됩니다.
+
+**Fullstack** — **Server 선행 → API Contract → Frontend** 순서로 실행합니다.
+- Server brief 완성 후 API Contract를 생성하고, 그 다음 Frontend 설계를 진행합니다.
+- `frontendType: "mobile"` → Server brief → API Contract → Mobile agents
+- `frontendType: "web"` → Server brief → API Contract → Web agents
+- Frontend 에이전트는 api-contract.md를 참조하여 설계합니다.
 
 **Step 2.5: API Contract 생성 + 양방향 검증 (Fullstack 전용)**
 
@@ -244,7 +283,7 @@ if platform == "fullstack":
 
     # 2. 양방향 검증: server tech-lead + frontend tech-lead 병렬 리뷰
     # server tech-lead: "내가 설계한 API가 올바르게 반영되었는가?"
-    Task(subagent_type="tech-lead", model="sonnet", prompt="""
+    Task(subagent_type="server/tech-lead", prompt="""
     Role: API Contract Reviewer (Server Side)
     Feature: {feature}
 
@@ -271,7 +310,7 @@ if platform == "fullstack":
     """)
 
     # frontend tech-lead: "이 API로 프론트엔드를 구현할 수 있는가?"
-    Task(subagent_type="tech-lead", model="sonnet", prompt="""
+    Task(subagent_type="{frontendType}/tech-lead", prompt="""
     Role: API Contract Reviewer (Frontend Side)
     Feature: {feature}
 

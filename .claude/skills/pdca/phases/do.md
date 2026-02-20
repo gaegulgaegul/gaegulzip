@@ -45,18 +45,6 @@ IF platform == "web" or (platform == "fullstack" and frontendType == "web"):
 # ✅ 모든 선행조건 충족 → Step 0.5로 진행
 ```
 
-**Step 0.5: 설계 리뷰 (MANDATORY — plan-review Skill)**
-
-구현 전 설계 품질을 자동으로 검증합니다:
-
-```
-Skill("plan-review", args="design {feature}")
-# 리뷰 결과에서 Action Items가 있으면 Design 문서 수정 후 재진행
-```
-
-> plan-review Skill 내부에서 BIG/SMALL CHANGE 선택을 받습니다.
-> 참조: `.claude/skills/plan-review/SKILL.md`
-
 **Step 1: CTO creates work plan**
 
 ```
@@ -187,30 +175,29 @@ if developer returns "BLOCKED: QUESTIONS":
     """)
 
     # 2. 답변을 개발자에게 전달하여 구현 재개
-    # 방법 A: 에이전트 resume (선호 — 이전 컨텍스트 보존)
+    # 방법 B: 새 Task 호출 (기본 — 파일 기반 컨텍스트 전달)
+    Task(subagent_type="{developer}", prompt="""
+    이전 개발자가 구현 중 BLOCKED 상태가 되어 새로 시작합니다.
+
+    참조 문서:
+    - Brief: docs/{product}/{feature}/{platform}-brief.md
+    - Work Plan: docs/{product}/{feature}/{platform}-work-plan.md
+    - 이전 작업물: {developer's previous output or git diff}
+
+    BLOCKED QUESTIONS 답변:
+    {answers}
+
+    답변을 반영하여 구현을 계속하세요.
+    이전 작업물에서 이어서 진행하되, 이미 완료된 부분은 건드리지 마세요.
+    """)
+
+    # 방법 A: 에이전트 resume (fallback — agent_id가 확보된 경우만)
     if developer_agent_id is available:
         Task(subagent_type="{developer}", resume="{developer_agent_id}", prompt="""
         이전 BLOCKED: QUESTIONS에 대한 답변입니다:
         {answers}
 
         답변을 반영하여 구현을 계속하세요.
-        """)
-
-    # 방법 B: 파일 기반 fallback (resume 불가 시 — 새 에이전트에 컨텍스트 전달)
-    else:
-        Task(subagent_type="{developer}", prompt="""
-        이전 개발자가 구현 중 BLOCKED 상태가 되어 새로 시작합니다.
-
-        참조 문서:
-        - Brief: docs/{product}/{feature}/{platform}-brief.md
-        - Work Plan: docs/{product}/{feature}/{platform}-work-plan.md
-        - 이전 작업물: {developer's previous output or git diff}
-
-        BLOCKED QUESTIONS 답변:
-        {answers}
-
-        답변을 반영하여 구현을 계속하세요.
-        이전 작업물에서 이어서 진행하되, 이미 완료된 부분은 건드리지 마세요.
         """)
 
     # 3. 필요 시 설계 문서 업데이트 (향후 동일 문제 방지)
@@ -248,6 +235,9 @@ Task(subagent_type="flutter-developer", prompt="... mobile module (API 비의존
 # ── Group 2 (병렬): Group 1 완료 후 동시 호출 ──
 Task(subagent_type="flutter-developer", prompt="... module (Server API 의존) ...")
 
+# ── Group 전환 시: 이전 그룹의 git diff 요약을 다음 그룹 프롬프트에 포함 ──
+# git diff --stat HEAD~{commits_in_prev_group} 결과를 요약하여 전달
+
 # ── 모든 그룹 완료까지 반복 ──
 ```
 
@@ -261,6 +251,9 @@ Task(subagent_type="flutter-developer", prompt="Feature + Work Plan + Brief + De
 
 # Web만
 Task(subagent_type="react-developer", prompt="Feature + Work Plan + Brief + Design Spec → Next.js + shadcn/ui + Playwright E2E")
+
+# Fullstack인 경우: 개발자 프롬프트에 api-contract.md 참조 추가
+# Task(subagent_type="{developer}", prompt="... API Contract: docs/{product}/{feature}/api-contract.md ...")
 ```
 
 **Step 3: Update status**
