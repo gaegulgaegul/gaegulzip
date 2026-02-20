@@ -32,9 +32,11 @@ report-generator가 생성한 report.md에 아래 3개 섹션을 반드시 포�
 
 > 이 섹션들은 사용자가 이 대화 이후에도 독립적으로 제품을 유지/발전시킬 수 있도록 하는 "핸드오프" 역할을 합니다.
 
-**Step 4: CHANGELOG 자동 생성**
+**Step 4: CHANGELOG 자동 생성 (Upsert)**
 
 Feature 시작 이후의 git 변경사항을 추출하여 CHANGELOG.md에 추가합니다.
+
+> **멱등성 규칙**: CHANGELOG.md에 `## [{feature}]` 헤더가 이미 있으면 해당 섹션 전체를 교체합니다. 없으면 파일 상단에 새로 추가합니다. 재실행해도 동일한 결과를 보장합니다.
 
 ```
 # Feature 시작 시점 확인
@@ -43,7 +45,7 @@ Read(".pdca-status.json") → features.{feature}.startedAt
 # git log에서 해당 시점 이후 변경사항 추출
 Bash("git log --oneline --after={startedAt} --format='%h %s'")
 
-# CHANGELOG.md에 추가 (파일 상단에)
+# CHANGELOG.md에 upsert (기존 ## [{feature}] 섹션이 있으면 교체, 없으면 상단에 추가)
 ## [{feature}] - {date}
 
 ### Added

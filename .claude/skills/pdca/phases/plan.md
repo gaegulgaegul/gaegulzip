@@ -69,9 +69,9 @@ Read: docs/{product}/{feature}/user-story.md
 2. **외부 의존성 위험**: 필요한 외부 서비스/SDK가 있는가? 비용/제약은?
 3. **범위 적절성**: MVP로 적절한 크기인가? 과대한 범위는 아닌가?
 
-판정:
-- **PASS**: 기술적 문제 없음 → user-story.md에 "<!-- CTO Feasibility: PASS -->" 주석 추가
-- **WARN**: 주의 사항 있음 → user-story.md 끝에 "## CTO 기술 검토 메모" 섹션 추가 (사용자가 리뷰 시 함께 확인)
+판정 (Upsert 규칙: 기존 판정이 있으면 교체, 없으면 추가):
+- **PASS**: 기술적 문제 없음 → user-story.md에 "<!-- CTO Feasibility: PASS -->" 주석 추가 (기존 <!-- CTO Feasibility: ... --> 주석이 있으면 교체). "## CTO 기술 검토 메모" 섹션이 남아있으면 제거.
+- **WARN**: 주의 사항 있음 → user-story.md 끝에 "## CTO 기술 검토 메모" 섹션 추가 (기존 섹션이 있으면 교체). 주석은 "<!-- CTO Feasibility: WARN -->"으로 설정.
 - **BLOCK**: 근본적 문제 → PO에게 수정 요청 사항을 반환 (user-story.md에 반영 후 Step 1.3 재실행)
 
 NOTE: 플랫폼 결정은 하지 않습니다. Step 2에서 별도로 진행합니다.

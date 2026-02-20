@@ -17,6 +17,8 @@ Skill("clarify", args="{feature} — {user's description}")
 
 **Step 2: research-director Agent로 기술 조사**
 
+> **소유권 규칙**: research.md는 research-director가 생성합니다. CTO는 "## Feasibility Review" 섹션만 append 가능. 다른 에이전트(PO, designer, tech-lead)는 읽기 전용입니다.
+
 clarify로 요구사항이 구체화된 후, 기술 조사를 진행합니다:
 
 ```
