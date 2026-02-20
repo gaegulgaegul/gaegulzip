@@ -30,8 +30,7 @@
       "docs/{product}/{feature}/api-contract.md"
     ],
     "planDocPaths": [
-      "docs/{product}/{feature}/user-story.md",
-      "docs/{product}/{feature}/plan.md"
+      "docs/{product}/{feature}/user-story.md"
     ],
     "analyzeDocPaths": [
       "docs/{product}/{feature}/analysis.md"
@@ -289,7 +288,7 @@
     },
     "freshEyesReview": {
       "enabled": true,
-      "minMatchRate": 85
+      "minMatchRate": 90
     }
   }
 }

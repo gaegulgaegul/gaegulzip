@@ -70,21 +70,21 @@
 - **정의**: `apps/mobile/apps/wowa/lib/app/routes/app_routes.dart`
 - **페이지**: `apps/mobile/apps/wowa/lib/app/routes/app_pages.dart`
 - **등록된 라우트**:
-  | 경로 | 모듈 | 설명 |
-  |------|------|------|
-  | `/login` | auth_sdk | 소셜 로그인 화면 |
-  | `/home` | wod | WOD 홈 (날짜별 WOD 표시) |
-  | `/box/search` | box | 박스 검색 |
-  | `/box/create` | box | 박스 생성 |
-  | `/wod/register` | wod | WOD 등록 |
-  | `/wod/detail` | wod | WOD 상세/비교 |
-  | `/wod/select` | wod | WOD 선택 |
-  | `/wod/proposal/review` | wod | 제안 검토 |
-  | `/notifications` | notification | 알림 목록 |
-  | `/notice/list` | notice SDK | 공지사항 목록 |
-  | `/notice/detail` | notice SDK | 공지사항 상세 |
-  | `/qna` | qna SDK | 질문 작성 |
-  | `/settings` | settings | 설정 |
+  | 경로 | 모듈 | 설명 | 트랜지션 |
+  |------|------|------|---------|
+  | `/login` | auth_sdk | 소셜 로그인 화면 | fadeIn |
+  | `/home` | wod | WOD 홈 (날짜별 WOD 표시) | fadeIn |
+  | `/box/search` | box | 박스 검색 | cupertino |
+  | `/box/create` | box | 박스 생성 | cupertino |
+  | `/wod/register` | wod | WOD 등록 | downToUp |
+  | `/wod/detail` | wod | WOD 상세/비교 | fadeIn |
+  | `/wod/select` | wod | WOD 선택 | fadeIn |
+  | `/wod/proposal/review` | wod | 제안 검토 | downToUp |
+  | `/notifications` | notification | 알림 목록 | rightToLeft |
+  | `/notice/list` | notice SDK | 공지사항 목록 | cupertino |
+  | `/notice/detail` | notice SDK | 공지사항 상세 | cupertino |
+  | `/qna` | qna SDK | 질문 작성 | cupertino |
+  | `/settings` | settings | 설정 | leftToRight |
 - **초기 라우트**: 인증 상태에 따라 `/home` 또는 `/login`
 - **딥링크 허용 화면**: `notifications`, `home`, `qna`
 
@@ -175,6 +175,8 @@ FCM 푸시 알림 SDK 패키지.
 |--------|------|
 | `PushService` | GetxService — FCM 초기화, 권한 요청, 토큰 획득/갱신, 알림 핸들링 |
 | `PushApiClient` | 디바이스 등록/비활성화, 알림 목록/미읽음 수/읽음 처리 |
+| `PushNotification` | FCM RemoteMessage → 간단한 DTO 변환 모델 |
+| `PushHandlerCallback` | 알림 수신 시 호출되는 콜백 타입 정의 |
 
 - **서버 연동 API**: `POST /push/devices`, `POST /push/devices/deactivate`, `GET /push/notifications/me`, `GET /push/notifications/unread-count`, `PATCH /push/notifications/:id/read`
 - **Freezed 모델**: `DeviceTokenRequest`, `NotificationModel`, `NotificationListResponse`, `UnreadCountResponse`
@@ -193,6 +195,7 @@ FCM 푸시 알림 SDK 패키지.
 | `NoticeApiService` | `GET /notices`, `GET /notices/:id`, `GET /notices/unread-count` |
 | `NoticeListController` | 공지 목록, 페이지네이션 |
 | `NoticeDetailController` | 공지 상세 |
+| `NoticeRoutes` | SDK 내 라우트 상수 (list, detail) |
 
 - **내장 UI**: `NoticeListView`, `NoticeDetailView`
 - **위젯**: `NoticeListCard` (읽음/미읽음, 고정 배지), `UnreadNoticeBadge`
@@ -248,11 +251,11 @@ Frame0 스케치 스타일 UI 컴포넌트 패키지.
 | `SketchThemeExtension` | ThemeData에 스케치 스타일 속성 추가 (6 프리셋) |
 | `SketchThemeController` | GetX 기반 테마 모드 관리 |
 
-#### 재사용 위젯 (25개)
+#### 재사용 위젯 (27개)
 
 | 카테고리 | 위젯 |
 |---------|------|
-| 입력 | `SketchInput`, `SketchTextArea`, `SketchDropdown<T>` |
+| 입력 | `SketchInput`, `SketchTextArea`, `SketchDropdown<T>`, `SketchNumberInput`, `SketchSearchInput` |
 | 버튼 | `SketchButton` (4style x 3size), `SketchIconButton`, `SocialLoginButton` |
 | 선택 | `SketchCheckbox`, `SketchRadio<T>`, `SketchSwitch`, `SketchSlider`, `SketchChip` |
 | 레이아웃 | `SketchContainer`, `SketchCard`, `SketchModal`, `SketchDivider` |
@@ -260,9 +263,31 @@ Frame0 스케치 스타일 UI 컴포넌트 패키지.
 | 내비게이션 | `SketchAppBar`, `SketchTabBar`, `SketchBottomNavigationBar`, `SketchLink` |
 | 표시 | `SketchAvatar`, `SketchImagePlaceholder` |
 
+#### Enum (7개)
+
+| Enum | 용도 |
+|------|------|
+| `AppleSignInStyle` | 애플 로그인 버튼 스타일 |
+| `SketchAvatarShape` | 아바타 모양 (circle, rounded, square) |
+| `SketchAvatarSize` | 아바타 크기 (small, medium, large) |
+| `SketchNavLabelBehavior` | 하단 네비게이션 레이블 표시 방식 |
+| `SketchTabIndicatorStyle` | 탭바 인디케이터 스타일 |
+| `SnackbarType` | 스낵바 타입 (success, error, warning, info) |
+| `SocialLoginPlatform` | 소셜 로그인 플랫폼 (kakao, naver, google, apple) |
+
 #### CustomPainter (10개)
 
 `SketchPainter`, `SketchCirclePainter`, `SketchLinePainter`, `SketchPolygonPainter`, `AnimatedSketchPainter`, `HatchingPainter`, `SketchSnackbarIconPainter`, `SketchTabPainter`, `SketchXClosePainter`, `XCrossPainter`
+
+---
+
+## 재사용 예외 클래스 목록
+
+| 예외 클래스 | 패키지 | 용도 |
+|------------|--------|------|
+| `AuthException` | core | 인증 실패 (code, message, data) |
+| `NetworkException` | core | 네트워크 오류 (message, statusCode) |
+| `BusinessException` | core | 비즈니스 로직 예외 |
 
 ---
 

@@ -17,6 +17,7 @@ gaegulzip/
 │   │   └── src/modules/        # 기능 모듈 (auth, box, notice, push-alert, qna, wod)
 │   ├── mobile/                 # Flutter 모노레포 (Melos)
 │   │   ├── apps/wowa/          # 제품: 크로스핏 WOD 알리미
+│   │   ├── apps/design_system_demo/  # 디자인 시스템 데모 앱
 │   │   ├── apps/[next-app]/    # 다음 제품은 여기에
 │   │   └── packages/           # 공유 패키지
 │   │       ├── core/           #   DI, 로깅, 유틸리티
@@ -27,7 +28,8 @@ gaegulzip/
 │   │       ├── qna/            #   QnA SDK (Dio 포함)
 │   │       └── admob/          #   Google 광고 SDK
 │   └── web/
-│       └── admin/              # 관리자 대시보드 (Next.js 16 + shadcn/ui)
+│       ├── admin/              # 관리자 대시보드 (Next.js 16 + shadcn/ui)
+│       └── talmosang/          # AI 두피 분석 웹앱 (Next.js 15 + Tailwind CSS v4)
 ├── turbo.json                  # Turborepo (서버/웹 빌드 오케스트레이션)
 ├── pnpm-workspace.yaml         # pnpm 워크스페이스 (Node.js)
 └── melos.yaml                  # Melos (Flutter 패키지 관리)
@@ -101,8 +103,21 @@ melos analyze                # 전체 패키지 정적 분석
 ### 웹 (Admin)
 
 ```bash
-pnpm --filter gaegulzip-admin dev     # 개발 서버
-pnpm --filter gaegulzip-admin build   # 프로덕션 빌드
+pnpm dev:admin                        # 개발 서버
+pnpm build:admin                      # 프로덕션 빌드
+```
+
+### 웹 (탈모상)
+
+```bash
+pnpm dev:talmosang                    # 개발 서버
+pnpm build:talmosang                  # 프로덕션 빌드
+```
+
+### 디자인 시스템 데모
+
+```bash
+pnpm demo                            # 디자인 시스템 데모 앱 실행
 ```
 
 ## 새 제품 추가하는 법
@@ -163,7 +178,7 @@ pnpm --filter gaegulzip-admin build   # 프로덕션 빌드
 | HTTP 클라이언트 | Dio (각 SDK 독립적으로 포함) |
 | 코드 생성 | Freezed + json_serializable |
 | 웹 프레임워크 | Next.js 15~16 (App Router) |
-| 웹 UI | shadcn/ui + Tailwind CSS v4 (admin) / Custom + GSAP (talmosang) |
+| 웹 UI | shadcn/ui + Tailwind CSS v4 (admin) / Tailwind CSS v4 + GSAP (talmosang) |
 | 모노레포 | pnpm + Turborepo (서버/웹) / Melos (모바일) |
 | 테스트 | Vitest (서버) / Playwright (웹 E2E) / 모바일은 테스트 안 함 |
 | 배포 | Docker + Render (서버) / Vercel (웹) |

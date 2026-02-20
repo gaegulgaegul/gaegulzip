@@ -3,6 +3,22 @@
 > 서버에 구현된 기능, 미들웨어, 유틸리티를 빠르게 찾기 위한 카탈로그입니다.
 > 상세 분석은 `docs/core/` 하위 문서를 참조하세요.
 
+## 모듈 공통 구조 패턴
+
+모든 모듈은 `apps/server/src/modules/[feature]/` 하위에 다음 파일을 갖습니다:
+
+| 파일 | 역할 |
+|------|------|
+| `index.ts` | Router 정의 및 export |
+| `handlers.ts` | Express 미들웨어 함수 (요청 처리) |
+| `schema.ts` | Drizzle ORM 테이블 정의 |
+| `validators.ts` | Zod 입력 검증 스키마 |
+| `services.ts` | DB 조작 로직 (복잡한 경우에만) |
+| `[feature].probe.ts` | Domain Probe 운영 로그 |
+| `types.ts` | TypeScript 타입 정의 (선택) |
+
+---
+
 ## 모듈 목록
 
 ### 소셜 로그인 (Auth)
@@ -15,6 +31,7 @@
   - `schema.ts` — apps, users, refreshTokens 테이블
   - `providers/` — 카카오, 네이버, 구글, 애플 OAuth 프로바이더
   - `validators.ts` — Zod 입력 검증 스키마
+  - `refresh-token.utils.ts` — bcrypt 해싱, 만료 시간 계산 유틸
   - `auth.probe.ts` — 운영 로그 (로그인 성공/실패, 토큰 재사용 탐지)
 - **API 엔드포인트**:
   | 메서드 | 경로 | 인증 | 설명 |
@@ -79,16 +96,17 @@
   - `services.ts` — 질문 생성 로직 (createQuestion, buildIssueBody)
   - `github.ts` — GitHub Issue 생성 (createGitHubIssue), 에러 매핑
   - `octokit.ts` — GitHub App Octokit 인스턴스 팩토리 (캐싱, throttling, retry)
-  - `schema.ts` — qna_config, qna_questions Drizzle 테이블
+  - `schema.ts` — qna_questions Drizzle 테이블
   - `validators.ts` — Zod 입력 검증 (appCode, title 1-256, body 1-65536)
   - `qna.probe.ts` — 운영 로그
 - **API 엔드포인트**:
   | 메서드 | 경로 | 인증 | 설명 |
   |--------|------|------|------|
   | POST | `/qna/questions` | ⚪ 선택적 | 질문 제출 (GitHub Issue 자동 생성) |
-- **DB 테이블**: `qna_config` (앱별 GitHub 설정), `qna_questions` (질문 이력)
+- **DB 테이블**: `qna_questions` (질문 이력 + GitHub Issue 연동)
+- **환경변수**: `QNA_GITHUB_APP_ID`, `QNA_GITHUB_PRIVATE_KEY`, `QNA_GITHUB_INSTALLATION_ID`, `QNA_GITHUB_REPO_OWNER`, `QNA_GITHUB_REPO_NAME`
 - **Quick Start**:
-  1. `qna_config` 테이블에 GitHub App 설정 추가
+  1. `.env`에 `QNA_GITHUB_*` 환경변수 설정
   2. `POST /qna/questions` 호출: `{ appCode: "wowa", title: "질문 제목", body: "질문 내용" }`
   3. 응답: `{ questionId, issueNumber, issueUrl, createdAt }` (201 Created)
   4. 인증된 사용자: `Authorization: Bearer <token>` 헤더 추가 시 질문에 userId 기록
@@ -130,8 +148,9 @@
 - **Quick Start**:
   1. `.env`에 `ADMIN_SECRET` 설정
   2. 사용자: `GET /notices?page=1&limit=10` (선택적 인증)
-  3. 관리자: `POST /admin/notices` + `X-Admin-Secret` 헤더
-  4. 읽음 추적: 상세 조회 시 자동 처리 (`notice_reads` 테이블)
+  3. 관리자: `POST /admin/auth/login` + 비밀번호 → JWT 발급
+  4. 관리자: `POST /admin/notices` + `Authorization: Bearer <admin-jwt>`
+  5. 읽음 추적: 상세 조회 시 자동 처리 (`notice_reads` 테이블)
 
 ---
 
@@ -203,7 +222,7 @@
 - **경로**: `apps/server/src/middleware/auth.ts`
 - **용도**: JWT 필수 인증 — `Authorization: Bearer <token>` → `req.user = { userId, appId }`
 - **사용법**: `router.post('/route', authenticate, handler)`
-- **에러**: `UnauthorizedException` (INVALID_TOKEN, EXPIRED_TOKEN)
+- **에러**: `UnauthorizedException` (INVALID_TOKEN, EXPIRED_TOKEN, TOKEN_VERIFICATION_FAILED)
 
 ### optionalAuthenticate
 
@@ -242,21 +261,62 @@
   └── ExternalApiException (502)
   ```
 - **사용법**: `throw new NotFoundException('App', code)`
+- **ErrorCode enum**: VALIDATION_ERROR, INVALID_PROVIDER, INVALID_TOKEN, EXPIRED_TOKEN, REFRESH_TOKEN_REUSE_DETECTED, FCM_NOT_CONFIGURED, BOX_NOT_FOUND, WOD_NOT_FOUND 등 29개 상수
 
 ### JWT 유틸리티
 
 - **경로**: `apps/server/src/utils/jwt.ts`
 - **함수**: `signToken(payload, secret, expiresIn)`, `verifyToken(token, secret)`
 
+### Refresh Token 유틸리티
+
+- **경로**: `apps/server/src/modules/auth/refresh-token.utils.ts`
+- **함수**:
+  - `hashRefreshToken(token)` — bcrypt 해싱 (salt rounds: 10)
+  - `compareRefreshToken(token, hash)` — bcrypt 비교
+  - `parseExpiresIn(expiresIn)` — 만료 문자열 → 초 변환 ("30m" → 1800)
+  - `calculateExpiresAt(expiresIn)` — 만료 시간 → Date 객체
+
 ### Logger
 
 - **경로**: `apps/server/src/utils/logger.ts`
 - **구현**: Pino (pretty-print), `LOG_LEVEL` 환경변수
 
+### Server Probe
+
+- **경로**: `apps/server/src/utils/server.probe.ts`
+- **용도**: 서버 수명주기 운영 로그 (시작, 종료, 강제 종료, DB 연결 종료)
+
 ### Username Generator
 
 - **경로**: `apps/server/src/utils/username-generator.ts`
 - **용도**: "형용사+명사+숫자" 패턴 한글 닉네임 자동 생성 (신규 OAuth 사용자용)
+
+---
+
+## 설정 (Config)
+
+### 환경변수 검증
+
+- **경로**: `apps/server/src/config/env.ts`
+- **구현**: Zod 스키마로 환경변수 검증 + 타입 안전 객체 export
+- **필수**: `DATABASE_URL`, `JWT_SECRET_FALLBACK`, `ADMIN_SECRET`
+- **선택**: `QNA_GITHUB_APP_ID`, `QNA_GITHUB_PRIVATE_KEY` 등
+
+### 데이터베이스
+
+- **경로**: `apps/server/src/config/database.ts`
+- **구현**: `postgres` 클라이언트 + Drizzle ORM 인스턴스 (`db`)
+
+### Supabase 클라이언트
+
+- **경로**: `apps/server/src/lib/supabase.ts`
+- **구현**: `@supabase/supabase-js` 기반 클라이언트 (Storage 등 Supabase 전용 기능용)
+
+### Express 타입 확장
+
+- **경로**: `apps/server/src/types/express.d.ts`
+- **용도**: `req.user` 타입 정의 (`AuthenticatedUser { userId, appId }`)
 
 ---
 
@@ -269,6 +329,10 @@
 4. `errorHandler` (마지막)
 
 **헬스 체크**: `GET /` → `{ message, version }`, `GET /health` → `{ status, uptime }`
+
+**Graceful Shutdown** (`server.ts`):
+- SIGTERM/SIGINT 수신 → 새 연결 거부 → DB 연결 종료 → 프로세스 종료
+- 타임아웃: 25초 (Render 30초보다 5초 여유)
 
 ---
 
@@ -286,7 +350,6 @@
 | `push_device_tokens` | push-alert | FCM 디바이스 토큰 |
 | `push_alerts` | push-alert | 푸시 발송 이력 |
 | `push_notification_receipts` | push-alert | 사용자별 수신/읽음 기록 |
-| `qna_config` | qna | 앱별 GitHub App 설정 |
 | `qna_questions` | qna | 질문 이력 + GitHub Issue 연동 |
 | `wods` | wod | WOD 데이터 (JSONB) |
 | `proposed_changes` | wod | WOD 변경 제안 |
