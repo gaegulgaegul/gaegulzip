@@ -11,6 +11,7 @@ tools:
   - Glob
   - Grep
   - Bash
+  - mcp__plugin_serena_serena__*
 model: sonnet
 ---
 
