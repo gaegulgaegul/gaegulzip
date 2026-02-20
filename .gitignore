@@ -183,3 +183,9 @@ prompt/
 
 .DS_Store
 *.bak
+
+# Serena (semantic code analysis)
+.serena/
+
+# Marketing content outputs
+outputs/
