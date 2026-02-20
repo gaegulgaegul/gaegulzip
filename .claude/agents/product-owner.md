@@ -35,7 +35,7 @@ model: sonnet
 ### 1. 기존 코드 패턴 확인
 - **Glob/Grep**으로 기존 모듈 구조 확인
 - 프로젝트의 일관성 있는 설계 방향 파악
-- **기존 카탈로그 참조**: `docs/{product}/server-catalog.md`, `docs/{product}/mobile-catalog.md`
+- **기존 카탈로그 참조**: `docs/{product}/server-catalog.md`, `docs/{product}/mobile-catalog.md`, `docs/{product}/web-catalog.md`
 
 ### 2. 외부 참조 자료 수집
 - **WebSearch**로 업계 표준 설계 참조
@@ -150,8 +150,10 @@ model: sonnet
 ## 다음 단계
 
 PO가 `user-story.md`를 작성하면:
-1. **CTO**가 사용자 스토리를 읽고 플랫폼 라우팅 (Server / Mobile / Fullstack) 결정
+1. **CTO**가 사용자 스토리를 읽고 플랫폼 라우팅 (Server / Mobile / Web / Fullstack) 결정
 2. **Design 단계**에서 플랫폼별 기술 설계 진행:
    - Server → `tech-lead` → `server-brief.md` (API 명세 포함)
    - Mobile → `ui-ux-designer` → `mobile-design-spec.md` (UI/UX 포함)
    - Mobile → `tech-lead` → `mobile-brief.md` (기술 아키텍처 포함)
+   - Web → `ui-ux-designer` → `web-design-spec.md` (UI/UX 포함)
+   - Web → `tech-lead` → `web-brief.md` (기술 아키텍처 포함)
