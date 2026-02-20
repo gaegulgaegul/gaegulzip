@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://talmosang.vercel.app';
+const BASE_URL = 'https://gaegulzip-talmosang.vercel.app';
 
 /**
  * sitemap.xml 생성

@@ -16,6 +16,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: '/api/',
       },
     ],
-    sitemap: 'https://talmosang.vercel.app/sitemap.xml',
+    sitemap: 'https://gaegulzip-talmosang.vercel.app/sitemap.xml',
   };
 }

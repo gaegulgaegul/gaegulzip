@@ -3,7 +3,7 @@ import { blackHanSans, jua, notoSansKr } from '@/lib/fonts';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://talmosang.vercel.app'),
+  metadataBase: new URL('https://gaegulzip-talmosang.vercel.app'),
   title: '탈모상 - 내가 탈모가 될 상인가?',
   description:
     'AI 관상가가 그대의 모발 운명을 점지하리라. 사진 하나로 탈모 확률, 모발 나이, 닮은 유명인을 알아보세요.',
@@ -17,17 +17,18 @@ export const metadata: Metadata = {
     '헤어라인',
     '탈모 진단',
     '바이럴 게임',
+    '탈모상',
     '탈모 상',
   ],
   alternates: {
-    canonical: 'https://talmosang.vercel.app',
+    canonical: 'https://gaegulzip-talmosang.vercel.app',
   },
   openGraph: {
     title: '탈모상 - 내가 탈모가 될 상인가?',
     description:
       'AI 관상가가 그대의 모발 운명을 점지하리라. 사진 하나로 탈모 확률, 모발 나이, 닮은 유명인을 알아보세요.',
     type: 'website',
-    url: 'https://talmosang.vercel.app',
+    url: 'https://gaegulzip-talmosang.vercel.app',
     locale: 'ko_KR',
     siteName: '탈모상',
     images: [
@@ -58,7 +59,7 @@ const jsonLd = {
   '@type': 'WebApplication',
   name: '탈모상',
   alternateName: '탈모상 - 내가 탈모가 될 상인가?',
-  url: 'https://talmosang.vercel.app',
+  url: 'https://gaegulzip-talmosang.vercel.app',
   description:
     'AI 관상가가 사진 하나로 탈모 확률, 모발 나이, 닮은 유명인을 분석해드립니다. 재미로 즐기는 AI 두피 분석 서비스.',
   applicationCategory: 'EntertainmentApplication',
