@@ -1,4 +1,4 @@
-# iterate (Act Phase) — Severity-Based Agent Dispatch
+# iterate (Iterate Phase) — Severity-Based Agent Dispatch
 
 matchRate < 90% 시 FINDINGS를 기반으로 적절한 에이전트에 자동 디스패치합니다.
 
@@ -73,7 +73,12 @@ analysis.md의 FINDINGS를 Severity 순(CRITICAL → HIGH → MEDIUM)으로 수�
 LOW severity는 수정하지 않습니다.
 각 FINDING 수정 후 검증 명령어를 실행하세요.
 
-모든 CRITICAL/HIGH FINDINGS 수정 완료 후 <promise>ITERATE COMPLETE</promise>를 출력하세요.
+모든 CRITICAL/HIGH FINDINGS 수정 완료 후 검증 명령어를 실행하세요:
+- Server: pnpm test && pnpm build
+- Mobile: melos analyze
+- Web: pnpm build && pnpm lint
+
+검증 통과 후 <promise>ITERATE COMPLETE</promise>를 출력하세요.
 """
 
 Skill("ralph-loop:ralph-loop", args="{PROMPT} --max-iterations 10 --completion-promise 'ITERATE COMPLETE'")
@@ -88,5 +93,11 @@ Skill("ralph-loop:ralph-loop", args="{PROMPT} --max-iterations 10 --completion-p
 | CRITICAL 보안 이슈 포함 | 에이전트 디스패치 | security-specialist의 전문 지식 필수 |
 | 빌드/린트 에러 다수 | Ralph Loop | 반복 빌드→수정 사이클에 최적 |
 
-**Step 7: Task 생성**
-`TaskCreate: [Act-N] {feature}` (N = iteration count)
+**Step 7: Update status**
+
+```json
+{ "phase": "iterate" }
+```
+
+**Step 8: Task 생성**
+`TaskCreate: [Iterate-N] {feature}` (N = iteration count)

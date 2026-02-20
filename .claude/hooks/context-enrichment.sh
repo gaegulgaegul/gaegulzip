@@ -1,8 +1,8 @@
 #!/bin/bash
 # context-enrichment.sh — UserPromptSubmit Hook
-# 1) 프롬프트 코칭 지시 (PDCA 무관, 항상 주입)
-# 2) PDCA 상태 + 목표 반복 주입(Recitation Pattern) + 최근 git 변경사항
-# 900자 이내
+# PDCA 상태 + 단계별 코칭 힌트 + 목표 반복 주입(Recitation Pattern) + 최근 git 변경사항
+# 프롬프트 코칭 지시는 CLAUDE.md Core Principles에서 관리 (더 강한 권한)
+# 1500자 이내
 
 set -euo pipefail
 
@@ -67,7 +67,7 @@ try:
             'plan': 'Tip: Plan 승인 후 /pdca design 으로 설계 시작',
             'design': 'Tip: 설계 완료 후 /pdca do 로 구현 시작',
             'do': 'Tip: 구현 완료 후 /pdca analyze 로 갭 분석',
-            'check': f'Tip: matchRate={mr}% — ' + ('/pdca iterate 로 자동 개선' if mr and int(mr) < 90 else '/pdca report 로 완료 보고서'),
+            'analyze': f'Tip: matchRate={mr}% — ' + ('/pdca iterate 로 자동 개선' if mr and int(mr) < 90 else '/pdca report 로 완료 보고서'),
             'completed': 'Tip: /pdca archive 로 문서 아카이브 가능'
         }
         hint = hints.get(phase, '')
@@ -75,7 +75,7 @@ try:
             print(hint)
 
         # Recitation: do/check 단계에서 work-plan 목표 요약 주입
-        if phase in ('do', 'check'):
+        if phase in ('do', 'analyze'):
             # 플랫폼별 work-plan 파일 탐색
             wp_prefixes = []
             if platform in ('server', 'fullstack'):
@@ -110,8 +110,9 @@ except:
 " 2>/dev/null)
 fi
 
-# 프롬프트 코칭 지시 (PDCA 무관, 항상 주입)
-PROMPT_COACH="PROMPT_COACH: 응답 마지막에 사용자 프롬프트를 CLAUDE.md Core Principles 기준으로 분석. 프롬프트가 충분히 구체적이면 생략. 부족하면 '💡 Prompt Coach' 섹션을 한두 줄로 추가하여 어떤 정보(범위, 제약조건, 기대 결과, 영향 범위 등)를 추가하면 더 정확한 응답을 받을 수 있는지 제안. 기준: Surface Assumptions, Simplicity First, Surgical Changes, Goal-Driven Execution."
+# 프롬프트 코칭 지시는 CLAUDE.md Core Principles "Prompt Coach" 항목에서 관리
+# (additionalContext보다 CLAUDE.md가 더 강한 권한을 가짐)
+PROMPT_COACH=""
 
 # additionalContext JSON 출력 (900자 이내)
 python3 -c "
@@ -130,9 +131,9 @@ if git_log:
     ctx.append('Recent commits: ' + git_log.replace('\n', ' | '))
 msg = '; '.join(ctx)
 # 900자 제한
-if len(msg) > 900:
-    msg = msg[:897] + '...'
-print(json.dumps({'additionalContext': msg}))
+if len(msg) > 1500:
+    msg = msg[:1497] + '...'
+print(json.dumps({'hookSpecificOutput': {'hookEventName': 'UserPromptSubmit', 'additionalContext': msg}}))
 " 2>/dev/null
 
 exit 0

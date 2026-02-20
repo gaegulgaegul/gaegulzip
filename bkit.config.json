@@ -103,8 +103,8 @@
         "plan": "product-owner",
         "design": "server/tech-lead",
         "do": "server/node-developer",
-        "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
-        "act": "bkit/pdca-iterator",
+        "analyze": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
+        "iterate": "bkit/pdca-iterator",
         "report": "bkit/report-generator",
         "security": "server/security-specialist",
         "performance": "server/performance-optimizer",
@@ -125,14 +125,14 @@
         "plan": "product-owner",
         "design": ["mobile/ui-ux-designer", "frontend-design (Skill)", "mobile/tech-lead"],
         "do": "mobile/flutter-developer",
-        "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
-        "act": "bkit/pdca-iterator",
+        "analyze": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
+        "iterate": "bkit/pdca-iterator",
         "report": "bkit/report-generator"
       }
     },
     "web": {
-      "root": "apps/web/admin",
-      "sourceDirectories": ["apps/web/admin"],
+      "root": "apps/web",
+      "sourceDirectories": ["apps/web/admin", "apps/web/talmosang"],
       "codeExtensions": [".ts", ".tsx", ".js", ".jsx"],
       "testCommand": "pnpm test:e2e",
       "buildCommand": "pnpm build",
@@ -141,8 +141,8 @@
         "plan": "product-owner",
         "design": ["web/ui-ux-designer", "frontend-design (Skill)", "web/tech-lead"],
         "do": "web/react-developer",
-        "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
-        "act": "bkit/pdca-iterator",
+        "analyze": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
+        "iterate": "bkit/pdca-iterator",
         "report": "bkit/report-generator"
       }
     },
@@ -157,8 +157,8 @@
         "do-server": "server/node-developer",
         "do-mobile": "mobile/flutter-developer",
         "do-web": "web/react-developer",
-        "check": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
-        "act": "bkit/pdca-iterator",
+        "analyze": ["bkit/gap-detector", "bkit/qa-monitor", "independent-reviewer"],
+        "iterate": "bkit/pdca-iterator",
         "report": "bkit/report-generator"
       }
     }
@@ -174,16 +174,6 @@
       "minorChange": "Minor Change",
       "feature": "Feature",
       "majorFeature": "Major Feature"
-    }
-  },
-  "templates": {
-    "directory": ".bkit/templates",
-    "types": {
-      "research": "research-report.template.md",
-      "plan": "plan.template.md",
-      "design": "design.template.md",
-      "analysis": "analysis.template.md",
-      "report": "report.template.md"
     }
   },
   "conventions": {
@@ -253,7 +243,6 @@
   },
   "context": {
     "defaultLanguage": "korean",
-    "defaultForkBehavior": "shared",
     "importCacheTTL": 30000,
     "hierarchyCacheTTL": 5000
   },
@@ -270,7 +259,7 @@
   "hooks": {
     "userPromptSubmit": {
       "enabled": true,
-      "timeout": 3000
+      "timeout": 5000
     },
     "contextCompaction": {
       "enabled": true,

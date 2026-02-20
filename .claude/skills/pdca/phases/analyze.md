@@ -1,4 +1,4 @@
-# analyze (Check Phase) — Gap Detector + CTO Review
+# analyze (Analyze Phase) — Gap Detector + CTO Review
 
 **Step 1: Call gap-detector agent**
 
@@ -63,6 +63,13 @@ Skill("plan-review", args="code {feature}")
 > plan-review Skill 내부에서 BIG/SMALL CHANGE 선택을 받습니다.
 > 참조: `.claude/skills/plan-review/SKILL.md`
 
+**FINDINGS 병합 규칙:**
+plan-review의 Action Items를 FINDINGS에 병합할 때:
+- Action Item의 severity/category가 명시되어 있으면 그대로 사용
+- 없으면 기본값: Category=`LOGIC_GAP`, Severity=`MEDIUM`
+- 이미 동일 파일+동일 이슈의 FINDING이 있으면 중복 생성하지 않음
+- FINDING ID는 gap-detector 생성분 이후 번호를 이어서 부여 (e.g., FINDING-011~)
+
 **Step 2: CTO integration review**
 
 ```
@@ -88,7 +95,7 @@ Output (by platform):
 **Step 3: Update status**
 
 ```json
-{ "phase": "check", "matchRate": N }
+{ "phase": "analyze", "matchRate": N }
 ```
 
 **Step 4: Create Task**

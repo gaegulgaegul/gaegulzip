@@ -141,7 +141,7 @@ Mobile + Web 동시 개발이 필요한 경우, **별도 PDCA 사이클**로 분
 {
   "features": {
     "{feature}": {
-      "phase": "plan | design | do | check | act | completed | archived",
+      "phase": "research | plan | design | do | analyze | iterate | completed | archived",
       "platform": "server | mobile | web | fullstack",
       "frontendType": "mobile | web",
       "startedAt": "ISO timestamp",
