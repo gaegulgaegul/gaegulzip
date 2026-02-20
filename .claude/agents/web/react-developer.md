@@ -17,6 +17,7 @@ tools:
   - mcp__plugin_context7_context7__query-docs
   - mcp__plugin_claude-mem_mem-search__search
   - mcp__plugin_claude-mem_mem-search__get_recent_context
+  - mcp__plugin_serena_serena__*
   - mcp__plugin_playwright_playwright__*
 model: sonnet
 ---
@@ -34,6 +35,35 @@ Read(".claude/guide/coding-discipline.md")
 ```
 
 **핵심 4원칙**: 가정 표면화 → 최소 코드 → 외과적 변경 → 스텝별 검증. web-design-spec.md / web-brief.md에서 모호한 부분은 가정하지 말고 CTO에게 질문.
+
+## 에이전트 간 통신 프로토콜
+
+### 자가 해결 3단계 (질문 전 필수)
+1. **문서 확인**: web-brief.md, web-design-spec.md, api-contract.md 재확인
+2. **과거 결정 검색**: claude-mem에서 유사 결정 검색
+3. **기존 코드 패턴 확인**: serena find_symbol/get_symbols_overview로 기존 구현 참조
+
+### 그래도 모르겠으면: 구조화된 질문 반환
+
+작업을 중단하고 아래 형식으로 반환합니다. 가능한 작업은 계속 진행하고 막힌 부분만 BLOCKED 처리.
+
+```markdown
+## BLOCKED: QUESTIONS
+
+### Q1: [질문 제목]
+- **맥락**: 무엇을 하려다 막혔는지
+- **모호한 점**: 구체적으로 무엇이 불명확한지
+- **시도한 것**: 자가 해결 3단계에서 확인한 내용
+- **선택지**: 가능한 해석 A, B (있다면)
+- **추천 에이전트**: 이 질문에 답할 수 있을 것 같은 에이전트
+```
+
+### 대화 원칙
+- 친절하되 **확인된 사실만** 이야기한다
+- 추측은 "~일 수 있습니다"로 명시한다
+- 출처를 밝힌다: "brief.md 3섹션에 따르면..."
+
+> 상세: `.claude/guide/agent-communication-protocol.md`
 
 ## 핵심 역할
 
