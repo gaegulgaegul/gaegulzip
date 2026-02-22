@@ -492,41 +492,93 @@ Check 단계에서 생성된 FINDINGS를 적절한 에이전트에게 라우팅�
 
 ---
 
-## 공통: ③ 통합 리뷰
+## 공통: ③ 통합 리뷰 (2-Stage)
 
-### Server 통합 리뷰
-1. 코드 읽기: Glob/Read로 handlers.ts, index.ts, schema.ts, tests 확인
-2. 테스트 실행: `pnpm test`
-3. 빌드 검증: `pnpm build`
-4. 마이그레이션 확인: Supabase MCP로 SELECT 쿼리 (⚠️ 읽기만)
-5. 코드 품질: Express 패턴, Drizzle 스키마, JSDoc, TDD 준수
-6. Node Developer 병렬 작업 검증: Feature 독립성, DB 스키마 충돌 없음
+### ⛔ 2-Stage 리뷰 원칙
 
-**출력**: `docs/[product]/[feature]/server-cto-review.md` (Quality Scores 포함)
+**Pass 1 실패 시 Pass 2로 진행하지 않는다.** 스펙을 충족하지 않는 코드의 품질을 논하는 것은 무의미합니다.
 
-### Mobile 통합 리뷰
-1. API 모델 확인: Freezed, json_serializable, Dio 클라이언트
-2. Controller 확인: GetxController, .obs, onInit/onClose, 에러 처리
-3. Binding 확인: Get.lazyPut, 의존성 주입
-4. View 확인: GetView, design-spec.md 준수, Obx 범위, const 최적화
-5. Routing 확인: app_routes.dart, app_pages.dart
-6. Controller-View 연결 검증: 모든 .obs 변수와 메서드 정확히 연결
-7. GetX 패턴 검증: Controller/View/Binding 분리
-8. 앱 빌드 확인: `flutter analyze`
+---
 
-**출력**: `docs/[product]/[feature]/mobile-cto-review.md`
+### Pass 1: 스펙 준수 (Spec Compliance)
 
-### Web 통합 리뷰
-1. 페이지 구조 확인: App Router 파일 규칙, 레이아웃 계층
-2. 컴포넌트 확인: shadcn/ui 활용, Server/Client Component 경계
-3. API 통합 확인: Server Actions, fetch 패턴, 에러 처리
-4. 인증 확인: middleware.ts, 세션 관리
-5. TypeScript 확인: 타입 안전성, any 사용 없음
-6. web-design-spec.md 준수: 레이아웃, 컴포넌트, 인터랙션 일치
-7. E2E 테스트 확인: Playwright 테스트 통과
-8. 빌드 확인: `pnpm build`
+brief.md / work-plan.md의 요구사항 vs 실제 구현을 비교합니다.
 
-**출력**: `docs/[product]/[feature]/web-cto-review.md`
+#### Server Pass 1
+1. brief.md의 API 엔드포인트 목록 vs 실제 구현 handlers/router 대조
+2. 데이터 모델(schema.ts) — brief.md의 스키마 요구사항 일치 여부
+3. 비즈니스 로직 — 요구사항별 구현 완료 여부
+4. 테스트 커버리지 — brief.md의 각 요구사항에 대응하는 테스트 존재 여부
+5. 검증 실행: `pnpm test` + `pnpm build`
+
+#### Mobile Pass 1
+1. design-spec.md의 화면 목록 vs 실제 View 파일 대조
+2. Controller 메서드 — brief.md의 기능 요구사항 대응 여부
+3. API 모델 — api-contract.md (Fullstack) 또는 brief.md의 데이터 모델 일치 여부
+4. Routing — 모든 화면이 app_routes.dart, app_pages.dart에 등록 여부
+5. 검증 실행: `flutter analyze`
+
+#### Web Pass 1
+1. web-design-spec.md의 페이지 목록 vs 실제 page.tsx 파일 대조
+2. 컴포넌트 — web-design-spec.md의 UI 요소 대응 여부
+3. API 통합 — web-brief.md의 API 호출 요구사항 구현 여부
+4. 인증 — 요구되는 인증/권한 처리 구현 여부
+5. 검증 실행: `pnpm build` + `pnpm test:e2e` (E2E 존재 시)
+
+#### Pass 1 판정
+- **PASS**: 모든 요구사항이 구현되고 검증 명령 통과 → Pass 2 진행
+- **FAIL**: 누락된 요구사항 또는 검증 실패 → 개발자에게 피드백 반환 (Pass 2 진행 불가)
+
+---
+
+### Pass 2: 코드 품질 (Code Quality) — Pass 1 통과 후에만 실행
+
+#### Server Pass 2
+1. Express 패턴 준수: RequestHandler 타입, 미들웨어 설계
+2. Drizzle 스키마 품질: 정규화, 인덱스, 관계
+3. JSDoc 주석 완비 (한국어)
+4. TDD 사이클 준수 여부
+5. Node Developer 병렬 작업 검증: Feature 독립성, DB 스키마 충돌 없음
+6. 마이그레이션 확인: Supabase MCP로 SELECT 쿼리 (⚠️ 읽기만)
+
+#### Mobile Pass 2
+1. GetX 패턴: Controller/View/Binding 분리, .obs 반응형 사용
+2. Controller-View 연결 정확성: 모든 .obs 변수와 메서드 연결
+3. const 최적화, Obx 범위 최소화
+4. 에러 처리: try-catch + Get.snackbar
+5. JSDoc 주석 완비 (한국어)
+
+#### Web Pass 2
+1. Server/Client Component 경계 적절성 ('use client' 최소화)
+2. shadcn/ui 활용도, Tailwind CSS 패턴
+3. TypeScript 타입 안전성: any 사용 없음
+4. Server Actions / fetch 패턴 일관성
+5. JSDoc 주석 완비 (한국어)
+
+#### Pass 2 판정
+- **PASS**: 코드 품질 기준 충족
+- **FAIL**: 품질 이슈 발견 → 개발자에게 피드백 반환
+
+---
+
+### 리뷰 출력 포맷
+
+```markdown
+## CTO Integration Review
+
+### Pass 1: 스펙 준수 — {PASS | FAIL}
+- [ ] 요구사항 A: 구현 상태
+- [ ] 요구사항 B: 구현 상태
+- 검증 결과: {명령어} → {성공 | 실패}
+
+### Pass 2: 코드 품질 — {PASS | FAIL | SKIPPED}
+- 아키텍처: ...
+- 테스트: ...
+- 보안: ...
+- 품질 점수: ...
+```
+
+**출력**: `docs/[product]/[feature]/{server|mobile|web}-cto-review.md`
 
 ---
 
