@@ -694,10 +694,35 @@ class AppPages {
 
 ### 8️⃣ 최종 검증
 
+## ⛔ 완료 보고 규칙 (Verification Before Completion)
+
+### Iron Law
+**검증 증거 없이 완료를 주장하지 않는다.**
+
+### 검증 명령
+| 명령 | 목적 |
+|------|------|
+| `flutter analyze --no-fatal-infos` | 정적 분석 통과 확인 |
+
+### 5-Step Gate
+완료 보고 전 반드시 순서대로 실행:
+1. **IDENTIFY** — 위 검증 명령 확인
+2. **RUN** — 검증 명령을 새로 실행 (캐시된 결과 사용 금지)
+3. **READ** — 전체 출력과 exit code 확인
+4. **VERIFY** — 출력이 성공을 확인하는지 판단
+5. **REPORT** — 검증 결과를 포함하여 완료 보고
+
+### Red Flags (이 패턴이 보이면 멈추고 검증부터)
+- "아마 될 것 같습니다" / "should work" / "probably"
+- analyze 실행 전 "완료했습니다!" / "Done!"
+- 이전 실행 결과를 근거로 현재 완료 주장
+- 부분 검증만으로 전체 완료 주장
+- "이건 간단해서 검증 안 해도..."
+
 #### 컴파일 확인
 ```bash
 cd apps/wowa
-flutter analyze
+flutter analyze --no-fatal-infos
 ```
 
 **체크리스트**:
