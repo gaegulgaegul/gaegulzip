@@ -110,19 +110,17 @@ except:
 " 2>/dev/null)
 fi
 
-# 프롬프트 코칭 지시는 CLAUDE.md Core Principles "Prompt Coach" 항목에서 관리
-# (additionalContext보다 CLAUDE.md가 더 강한 권한을 가짐)
-PROMPT_COACH=""
+# 핵심 규칙 강제 주입 (CLAUDE.md는 "관련 없으면 무시" 래퍼로 약화되므로 hook으로 보강)
+CORE_RULES="RULES(필수): 한국어로 대화 | TODO(human) 금지—의사결정은 질의응답 | 삭제 파일은 명령어 제시 후 사용자에게 요청 | 요청된 것만 구현(Simplicity First) | 요청 관련 코드만 변경(Surgical Changes) | Serena 시맨틱 도구 우선 사용"
 
-# additionalContext JSON 출력 (900자 이내)
+# additionalContext JSON 출력
 python3 -c "
 import json
-coach = '''$PROMPT_COACH'''.strip()
+rules = '''$CORE_RULES'''.strip()
 pdca = '''$PDCA_INFO'''.strip()
 git_log = '''$GIT_LOG'''.strip()
 hint = '''$PHASE_HINT'''.strip()
-ctx = []
-ctx.append(coach)
+ctx = [rules]
 if pdca:
     ctx.append(pdca)
 if hint:
@@ -130,7 +128,6 @@ if hint:
 if git_log:
     ctx.append('Recent commits: ' + git_log.replace('\n', ' | '))
 msg = '; '.join(ctx)
-# 900자 제한
 if len(msg) > 1500:
     msg = msg[:1497] + '...'
 print(json.dumps({'hookSpecificOutput': {'hookEventName': 'UserPromptSubmit', 'additionalContext': msg}}))

@@ -3,6 +3,7 @@
 **모든 대화는 한국어로 진행**
 **TODO(human) 절대 금지! 의사결정이 필요한 부분은 질의응답으로 사용자와 의논**
 **삭제해야 하는 파일이 있으면 명령어를 사용자에게 알려주면서 요청**
+- **Auto-commit**: 코드 수정 완료 시 항상 자동 git commit. 사용자에게 묻지 않음
 
 gaegulzip — TypeScript/Express 백엔드 + Flutter 모바일 + Next.js 웹의 하이브리드 모노레포
 
